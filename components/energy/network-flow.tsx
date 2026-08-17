@@ -141,7 +141,7 @@ export function NetworkFlow({
                     </div>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-card-foreground">{node.label}</span>
-                      <span className="font-mono text-xs text-muted-foreground">{node.sublabel}</span>
+                      <span className="text-xs tabular-nums text-muted-foreground">{node.sublabel}</span>
                     </div>
                   </div>
                 )

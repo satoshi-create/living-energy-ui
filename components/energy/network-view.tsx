@@ -37,12 +37,12 @@ export function NetworkView() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-muted/40 px-4 py-3">
-            <Sun className={isNight ? "size-4 text-muted-foreground" : "size-4 text-primary"} />
-            <span className="text-sm text-muted-foreground">日中余剰モード</span>
+          <div className="mb-6 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-border/60 bg-muted/40 px-4 py-3">
+            <Sun className={isNight ? "size-4 shrink-0 text-muted-foreground" : "size-4 shrink-0 text-primary"} />
+            <span className="whitespace-nowrap text-sm text-muted-foreground">日中余剰モード</span>
             <Switch checked={isNight} onCheckedChange={setIsNight} />
-            <span className="text-sm text-muted-foreground">夜間供給モード</span>
-            <Moon className={isNight ? "size-4 text-primary" : "size-4 text-muted-foreground"} />
+            <span className="whitespace-nowrap text-sm text-muted-foreground">夜間供給モード</span>
+            <Moon className={isNight ? "size-4 shrink-0 text-primary" : "size-4 shrink-0 text-muted-foreground"} />
           </div>
 
           <NetworkFlow nodes={config.nodes} edges={config.edges} mode={isNight ? "night" : "day"} />

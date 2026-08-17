@@ -21,7 +21,7 @@ export function PowerFlowDiagram({ nodes }: { nodes: FlowNode[] }) {
                 <Icon className="size-5" />
               </div>
               <p className="text-sm font-medium text-card-foreground">{node.label}</p>
-              <p className="font-mono text-xs text-primary">{node.sublabel}</p>
+              <p className="text-xs tabular-nums text-primary">{node.sublabel}</p>
             </div>
             {!isLast && (
               <div
