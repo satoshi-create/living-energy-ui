@@ -2,7 +2,7 @@
 
 export type LivingCard = {
   id: string
-  icon: 'laptop' | 'fan' | 'coffee' | 'smartphone'
+  icon: 'laptop' | 'fan' | 'coffee' | 'smartphone' | 'waves' | 'shield' | 'moon'
   title: string
   value: string
   unit: string
@@ -55,6 +55,42 @@ export const LIVE_STATUS = {
   batteryPercent: 84,
   co2SavedKg: 0.9,
   monthlySavingsYen: 1420,
+}
+
+/** 流域・田んぼダムの生活実感（デモ。詳細操作は basin ビュー） */
+export const FLOOD_LIVING_CARDS: LivingCard[] = [
+  {
+    id: 'pool',
+    icon: 'waves',
+    title: '小学校プール換算',
+    value: '0.8',
+    unit: '杯分 一時貯留',
+    progress: 55,
+    detail: '水田オリフィス群のピークカット想定',
+  },
+  {
+    id: 'risk',
+    icon: 'shield',
+    title: '下流氾濫リスク',
+    value: '−15',
+    unit: '% 目安',
+    progress: 70,
+    detail: '平常時のパッシブ制御デモ',
+  },
+  {
+    id: 'patrol',
+    icon: 'moon',
+    title: '今夜の水路見回り',
+    value: '不要',
+    unit: '',
+    progress: 100,
+    detail: '板1枚で危険な水門作業を解雇',
+  },
+]
+
+export const FLOOD_STATUS = {
+  system: '平常' as const,
+  note: '流域の水位・排水は安定。詳細は「流域・田んぼダム」で確認できます。',
 }
 
 export type FlowNode = {

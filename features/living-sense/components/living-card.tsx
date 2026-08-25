@@ -1,4 +1,4 @@
-import { Laptop, Fan, Coffee, Smartphone, type LucideIcon } from "lucide-react"
+import { Laptop, Fan, Coffee, Smartphone, Waves, ShieldCheck, Moon, type LucideIcon } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import type { LivingCard as LivingCardData } from "../data"
 
@@ -7,6 +7,9 @@ const ICONS: Record<LivingCardData["icon"], LucideIcon> = {
   fan: Fan,
   coffee: Coffee,
   smartphone: Smartphone,
+  waves: Waves,
+  shield: ShieldCheck,
+  moon: Moon,
 }
 
 export function LivingCard({ card }: { card: LivingCardData }) {

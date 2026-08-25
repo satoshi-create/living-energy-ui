@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Gauge, Sun, Network, Trophy, Leaf } from "lucide-react"
+import { Gauge, Sun, Network, Trophy, Leaf, Waves } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
 import { HomeView } from "@/features/living-sense"
 import { BalconyView } from "@/features/balcony-pv"
+import { BasinView } from "@/features/basin-dam"
 import { NetworkView } from "@/features/network"
 import { RankingView } from "@/features/ranking"
 import { REGIONS } from "@/lib/regions"
@@ -13,6 +14,7 @@ import { REGIONS } from "@/lib/regions"
 const NAV_ITEMS = [
   { id: "home", label: "生活実感メーター", shortLabel: "ホーム", icon: Gauge },
   { id: "balcony", label: "ベランダ発電シミュレーター", shortLabel: "ベランダ", icon: Sun },
+  { id: "basin", label: "流域・田んぼダム", shortLabel: "流域", icon: Waves },
   { id: "network", label: "地域再エネネットワーク", shortLabel: "ネットワーク", icon: Network },
   { id: "ranking", label: "都道府県別 再エネ番付", shortLabel: "番付", icon: Trophy },
 ] as const
@@ -34,7 +36,7 @@ export function AppShell() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-sidebar-foreground">Living Energy UI</span>
-            <span className="text-xs text-muted-foreground">生活実感型・再エネ</span>
+            <span className="text-xs text-muted-foreground">生活実感型・再エネ×流域</span>
           </div>
         </div>
         <nav className="flex flex-col gap-1">
@@ -76,6 +78,7 @@ export function AppShell() {
         <main className="flex-1 px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8">
           {activeView === "home" && <HomeView />}
           {activeView === "balcony" && <BalconyView />}
+          {activeView === "basin" && <BasinView />}
           {activeView === "network" && <NetworkView />}
           {activeView === "ranking" && <RankingView />}
         </main>
@@ -90,7 +93,7 @@ export function AppShell() {
                 type="button"
                 onClick={() => setActiveView(item.id)}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-1 px-2 py-2.5 text-[11px] font-medium transition-colors",
+                  "flex flex-1 flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium transition-colors sm:px-2 sm:text-[11px]",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >

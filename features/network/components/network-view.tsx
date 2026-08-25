@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Sun, Moon } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Switch } from "@/components/ui/switch"

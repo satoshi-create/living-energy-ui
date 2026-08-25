@@ -20,8 +20,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 | 層 | 現行プロトタイプ | 構造分析書上の次ステップ |
 | --- | --- | --- |
-| Top | 生活実感メーター / ベランダシミュレーター | `living-sense-ui` / `balcony-plug-in-pv` |
-| Middle | CSS の簡易フロー図、ヒューリスティック適性スコア | React Flow、SunCalc、Open-Meteo×FastAPI |
+| Top | 生活実感メーター / ベランダ / 流域・田んぼダム | `living-sense-ui` / `balcony-plug-in-pv` / `orifice-paddy-dam-node` |
+| Middle | CSS の簡易フロー図、ヒューリスティック適性スコア、流域DAG | React Flow、SunCalc、Open-Meteo×FastAPI |
 | Bottom | 静的モック | 太陽幾何・pvlib・分散型マイクログリッド |
 
 数値はすべてデモ。実発電・気象API・IoTは未接続。`NEXT_PUBLIC_DATA_SOURCE=mock` を正とする。
@@ -35,6 +35,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `app/globals.css` | oklch トークン、`animate-flow-dash` |
 | `features/living-sense/` | 生活実感メーター（`living-sense-ui`） |
 | `features/balcony-pv/` | ベランダシミュレーター（`balcony-plug-in-pv`） |
+| `features/basin-dam/` | 流域・田んぼダム（`basin-dag-flow-visualizer` / `orifice-paddy-dam-node`） |
 | `features/network/` | 地域P2X網（`react-flow-visualizer` / `modular-microgrid-vn`） |
 | `features/ranking/` | 都道府県番付 |
 | `features/shell/` | AppShell + 地域ヘッダー |
@@ -49,6 +50,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | --- | --- | --- | --- |
 | `home` | 生活実感メーター | `features/living-sense` | `living-sense-ui` |
 | `balcony` | ベランダ発電シミュレーター | `features/balcony-pv` | `balcony-plug-in-pv` |
+| `basin` | 流域・田んぼダム | `features/basin-dam` | `basin-dag-flow-visualizer` / `orifice-paddy-dam-node` |
 | `network` | 地域再エネネットワーク | `features/network` | `react-flow-visualizer` |
 | `ranking` | 都道府県別 再エネ番付 | `features/ranking` | （独立ノードなし） |
 
