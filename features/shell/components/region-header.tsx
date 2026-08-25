@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { REGIONS, WEATHER } from "@/lib/energy-data"
+import { REGIONS, WEATHER } from "@/lib/regions"
 
 export function RegionHeader({
   regionId,

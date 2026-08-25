@@ -1,0 +1,12 @@
+---
+description: エネルギーモックデータと純関数の置き場所
+globs: features/**/data.ts,lib/regions.ts
+alwaysApply: false
+---
+
+# Energy Data
+
+- デモ値・型・純関数は各 feature の `data.ts`（共有は `lib/regions.ts`）に置く。コンポーネント内にマジックナンバーを増やさない。
+- `computeBalconyScore` / `recommendedKit` / `rankPrefectures` は副作用なしの純関数として保つ。
+- `NEXT_PUBLIC_DATA_SOURCE=live` にするまでは外部 fetch を足さない。API 化する場合は既存型（`LivingCard`, `NetworkNode`, `PrefectureRank` 等）を壊さない。
+- 地域 ID（`hokuto` 等）と構造分析書ノード ID（`balcony-plug-in-pv` 等）は別物。混同してリネームしない。

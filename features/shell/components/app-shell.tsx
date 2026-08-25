@@ -3,12 +3,12 @@
 import { useState } from "react"
 import { Gauge, Sun, Network, Trophy, Leaf } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { RegionHeader } from "@/components/energy/region-header"
-import { HomeView } from "@/components/energy/home-view"
-import { BalconyView } from "@/components/energy/balcony-view"
-import { NetworkView } from "@/components/energy/network-view"
-import { RankingView } from "@/components/energy/ranking-view"
-import { REGIONS } from "@/lib/energy-data"
+import { RegionHeader } from "./region-header"
+import { HomeView } from "@/features/living-sense"
+import { BalconyView } from "@/features/balcony-pv"
+import { NetworkView } from "@/features/network"
+import { RankingView } from "@/features/ranking"
+import { REGIONS } from "@/lib/regions"
 
 const NAV_ITEMS = [
   { id: "home", label: "生活実感メーター", shortLabel: "ホーム", icon: Gauge },

@@ -1,6 +1,6 @@
 import { Laptop, Fan, Coffee, Smartphone, type LucideIcon } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
-import type { LivingCard as LivingCardData } from "@/lib/energy-data"
+import type { LivingCard as LivingCardData } from "../data"
 
 const ICONS: Record<LivingCardData["icon"], LucideIcon> = {
   laptop: Laptop,

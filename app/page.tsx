@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/energy/app-shell"
+import { AppShell } from "@/features/shell"
 
 export default function Page() {
   return <AppShell />

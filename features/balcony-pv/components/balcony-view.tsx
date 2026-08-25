@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { BalconyIllustration } from "@/components/energy/balcony-illustration"
+import { BalconyIllustration } from "./balcony-illustration"
 import {
   DIRECTIONS,
   RAILING_TYPES,
@@ -15,7 +15,7 @@ import {
   recommendedKit,
   type Direction,
   type RailingType,
-} from "@/lib/energy-data"
+} from "../data"
 
 function formatHour(hour: number) {
   const h = Math.floor(hour)

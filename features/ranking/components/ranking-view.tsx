@@ -10,7 +10,7 @@ import {
   rankPrefectures,
   type EnergyMix,
   type RankingMetric,
-} from "@/lib/energy-data"
+} from "../data"
 
 const MIX_CONFIG: { key: keyof EnergyMix; label: string; className: string }[] = [
   { key: "solar", label: "太陽光", className: "bg-primary" },

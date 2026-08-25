@@ -1,9 +1,9 @@
 import { Zap, Leaf, PiggyBank } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { LivingCard } from "@/components/energy/living-card"
-import { PowerFlowDiagram } from "@/components/energy/power-flow-diagram"
-import { LIVING_CARDS, LIVE_STATUS, HOME_FLOW } from "@/lib/energy-data"
+import { LivingCard } from "./living-card"
+import { PowerFlowDiagram } from "./power-flow-diagram"
+import { LIVING_CARDS, LIVE_STATUS, HOME_FLOW } from "../data"
 
 export function HomeView() {
   return (

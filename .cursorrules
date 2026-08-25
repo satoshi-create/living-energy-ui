@@ -1,0 +1,38 @@
+# Living Energy UI — AI Development Guidelines
+
+賃貸・ベランダのプラグインPVを、kWhではなく「生活実感」で可視化する破壊的UI。
+構造分析書: `doc/構造分析書.md`
+
+## Hired Job
+「賃貸・マンション住まいにおいて、高価な工事や専門知識なしで、在宅ワークの電気代を浮かせつつ脱炭素への貢献実感を得る」
+
+解雇したジョブ: 数百万円の屋根置き太陽光 + 難解な専用モニター + 出力制御への怯え。
+
+## Design Principles
+- **生活実感換算が主役**: 発電量は必ず家電価値へ翻訳する（MacBook充電回数、サーキュレーター稼働時間など）。kWh単体をヒーローにしない。
+- **ローエンド破壊**: 導入ハードル・工事レス・Web標準を優先。産業用SCADA、ミリ秒需給、単線結線図は性能過剰として排除する。
+- **ブラウザ完結**: 当面は各 `features/*/data.ts` のモック。SunCalc / React Flow / Open-Meteo×FastAPI は依頼があるまで足さない。
+- **非消費者起点**: 持ち家屋根置きではなく、賃貸・集合住宅のベランダを第一画面にする。
+
+## Tech Stack
+- Next.js 16 (App Router) / React 19 / TypeScript strict
+- Tailwind CSS 4 + shadcn (base-nova) + `@base-ui/react`
+- lucide-react / pnpm / Vercel Analytics（本番のみ）
+- フォント: Noto Sans JP + JetBrains Mono。ダーク基調（`layout.tsx` で `html.dark` 固定）
+
+## Architecture
+- UI: `features/<name>/components/`（kebab-case、表示に特化）
+- データ・純関数: `features/<name>/data.ts`（共有地域は `lib/regions.ts`）
+- shadcn プリミティブ: `components/ui/`（再生成可能。独自改変しない）
+- 画面切替は `AppShell` のクライアント状態。認証・DB・グローバルストアは導入しない。
+
+## Coding
+- パスは `@/`。インタラクションがあるファイルのみ `'use client'`。
+- 関数コンポーネントは named export。Props は `XxxProps`。
+- 外科手術的編集。ファイル全体の書き換え禁止。v0 内部ファイル（`__v0_*`, `.snowflake/`）を触らない。
+- 秘密情報（`.env.local` の実値）をコミット・チャットに貼らない。
+
+## Forbidden
+- ログイン画面、産業用EMS、高精度潮流計算、kWh/MW ダッシュボード化
+- 既存のダーク×primary（緑）ビジュアル言語の無断差し替え
+- 依頼なしの React Flow / FastAPI / IoT 連携の追加

@@ -5,8 +5,8 @@ import { Sun, Moon } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Switch } from "@/components/ui/switch"
-import { NetworkFlow } from "@/components/energy/network-flow"
-import { NETWORK_MODELS, type NetworkModel } from "@/lib/energy-data"
+import { NetworkFlow } from "./network-flow"
+import { NETWORK_MODELS, type NetworkModel } from "../data"
 
 export function NetworkView() {
   const [model, setModel] = useState<NetworkModel>("yamanashi")

@@ -1,0 +1,46 @@
+# --- Build / deps (indexing freeze prevention) ---
+.next/
+node_modules/
+out/
+build/
+dist/
+.turbo/
+.cache/
+
+# --- Package manager ---
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+
+# --- Deploy / v0 sandbox ---
+.vercel/
+.snowflake/
+.v0-trash/
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+
+# --- Logs & secrets (.env.example stays indexed) ---
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
+# --- Binary assets ---
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.otf
+*.mp4
+*.webm
+
+/doc

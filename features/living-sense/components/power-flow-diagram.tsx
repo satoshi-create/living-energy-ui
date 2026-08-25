@@ -1,6 +1,6 @@
 import { Sun, BatteryCharging, Laptop, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { FlowNode } from "@/lib/energy-data"
+import type { FlowNode } from "../data"
 
 const ICONS: Record<FlowNode["icon"], LucideIcon> = {
   sun: Sun,

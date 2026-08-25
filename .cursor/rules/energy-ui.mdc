@@ -1,0 +1,14 @@
+---
+description: Living Energy 画面の UX とコンポーネント規約
+globs: features/**/*.tsx
+alwaysApply: false
+---
+
+# Energy UI
+
+- 画面の責務は `features/shell` の 4 ビューに閉じる。新規ルートを増やす前に既存ビューへ載せる。
+- 発電・蓄電の数値は必ず生活実感（回数・時間・円）と併記する。kWh だけの見出しにしない。
+- フロー図は現状 `power-flow-diagram.tsx` / `network-flow.tsx`。React Flow は明示依頼があるまで使わない。
+- `'use client'` はシェル・スライダー・トグルなどインタラクションがあるファイルのみ。
+- shadcn は `components/ui` から import。ドメイン見た目の上書きは `className` と `cn()` で最小に。
+- コピーは日本語。産業用語（SCADA、潮流、IRR、MW）を生活画面に出さない。

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import type { Direction, RailingType } from "@/lib/energy-data"
+import type { Direction, RailingType } from "../data"
 
 const DIRECTION_ROTATION: Record<Direction, number> = {
   南: 0,

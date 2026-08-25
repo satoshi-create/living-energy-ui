@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { NetworkEdge, NetworkNode } from "@/lib/energy-data"
+import type { NetworkEdge, NetworkNode } from "../data"
 
 const ICONS: Record<NetworkNode["icon"], LucideIcon> = {
   "sun-medium": SunMedium,
