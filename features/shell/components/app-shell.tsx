@@ -1,28 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { Gauge, Sun, Network, Trophy, Leaf, Waves } from "lucide-react"
+import { Sun, Network, Globe2, Building2, Leaf } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
-import { HomeView } from "@/features/living-sense"
 import { BalconyView } from "@/features/balcony-pv"
-import { BasinView } from "@/features/basin-dam"
 import { NetworkView } from "@/features/network"
-import { RankingView } from "@/features/ranking"
+import { GlobalImplementationView } from "@/features/global-implementation/components/global-implementation-view"
+import { EcosystemOrgsView } from "@/features/ecosystem-orgs/components/ecosystem-orgs-view"
 import { REGIONS } from "@/lib/regions"
 
 const NAV_ITEMS = [
-  { id: "home", label: "生活実感メーター", shortLabel: "ホーム", icon: Gauge },
-  { id: "balcony", label: "ベランダ発電シミュレーター", shortLabel: "ベランダ", icon: Sun },
-  { id: "basin", label: "流域・田んぼダム", shortLabel: "流域", icon: Waves },
-  { id: "network", label: "地域再エネネットワーク", shortLabel: "ネットワーク", icon: Network },
-  { id: "ranking", label: "都道府県別 再エネ番付", shortLabel: "番付", icon: Trophy },
+  { id: "balcony-simulation", label: "ベランダ発電シミュレーション", shortLabel: "ベランダ", icon: Sun },
+  { id: "regional-network", label: "地域再エネネットワーク", shortLabel: "ネットワーク", icon: Network },
+  { id: "global-implementation", label: "ベランダソーラー世界実装", shortLabel: "世界実装", icon: Globe2 },
+  { id: "ecosystem-orgs", label: "企業・非営利団体・エコシステム", shortLabel: "エコシステム", icon: Building2 },
 ] as const
 
 type ViewId = (typeof NAV_ITEMS)[number]["id"]
 
 export function AppShell() {
-  const [activeView, setActiveView] = useState<ViewId>("home")
+  const [activeView, setActiveView] = useState<ViewId>("balcony-simulation")
   const [regionId, setRegionId] = useState(REGIONS[0].id)
 
   const activeItem = NAV_ITEMS.find((item) => item.id === activeView)!
@@ -76,11 +74,10 @@ export function AppShell() {
         />
 
         <main className="flex-1 px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8">
-          {activeView === "home" && <HomeView />}
-          {activeView === "balcony" && <BalconyView />}
-          {activeView === "basin" && <BasinView />}
-          {activeView === "network" && <NetworkView />}
-          {activeView === "ranking" && <RankingView />}
+          {activeView === "balcony-simulation" && <BalconyView />}
+          {activeView === "regional-network" && <NetworkView />}
+          {activeView === "global-implementation" && <GlobalImplementationView />}
+          {activeView === "ecosystem-orgs" && <EcosystemOrgsView />}
         </main>
 
         <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border/60 bg-sidebar/95 backdrop-blur lg:hidden">
