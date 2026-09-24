@@ -12,9 +12,9 @@ import { REGIONS } from "@/lib/regions"
 
 const NAV_ITEMS = [
   { id: "balcony-simulation", label: "ベランダ発電シミュレーション", shortLabel: "ベランダ", icon: Sun },
-  { id: "regional-network", label: "地域再エネネットワーク", shortLabel: "ネットワーク", icon: Network },
   { id: "global-implementation", label: "ベランダソーラー世界実装", shortLabel: "世界実装", icon: Globe2 },
   { id: "ecosystem-orgs", label: "企業・非営利団体・エコシステム", shortLabel: "エコシステム", icon: Building2 },
+  { id: "regional-network", label: "地域再エネネットワーク", shortLabel: "ネットワーク", icon: Network },
 ] as const
 
 type ViewId = (typeof NAV_ITEMS)[number]["id"]
@@ -71,6 +71,7 @@ export function AppShell() {
           regionId={regionId}
           onRegionChange={setRegionId}
           title={activeItem.label}
+          showRegionSelect={activeView === "regional-network"}
         />
 
         <main className="flex-1 px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8">
