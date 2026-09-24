@@ -81,15 +81,17 @@ export const FLOOD_LIVING_CARDS: LivingCard[] = [
     id: 'patrol',
     icon: 'moon',
     title: '今夜の水路見回り',
-    value: '不要',
+    /** Locale-independent; resolve via `livingSense.notRequired` in the view. */
+    value: 'notRequired',
     unit: '',
     progress: 100,
     detail: '板1枚で危険な水門作業を解雇',
   },
 ]
 
+/** Locale-independent watershed status key. Label: `livingSense.watershedNormal`. */
 export const FLOOD_STATUS = {
-  system: '平常' as const,
+  systemKey: 'watershedNormal' as const,
   note: '流域の水位・排水は安定。詳細は「流域・田んぼダム」で確認できます。',
 }
 

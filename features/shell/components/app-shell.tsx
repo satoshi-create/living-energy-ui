@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
-import { Sun, Network, Globe2, Building2, Leaf } from "lucide-react"
+import { Sun, Network, Globe2, Building2, Leaf, PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
 import { BalconyView } from "@/features/balcony-pv"
@@ -32,6 +32,7 @@ export function AppShell() {
   const [activeView, setActiveView] = useState<ViewId>("balcony-simulation")
   const [regionId, setRegionId] = useState(REGIONS[0].id)
   const [hydrated, setHydrated] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     const storedView = sessionStorage.getItem(VIEW_STORAGE_KEY)
@@ -56,8 +57,23 @@ export function AppShell() {
   const activeItem = NAV_ITEMS.find((item) => item.id === activeView)!
 
   return (
-    <div className="flex min-h-screen w-full">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border/60 bg-sidebar px-4 py-6 lg:flex">
+    <div className="relative flex min-h-screen w-full">
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label={t("brand")}
+          className="fixed inset-0 z-40 bg-black/50"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        id="app-sidebar"
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border/60 bg-sidebar px-4 py-6 transition-transform duration-200 ease-out",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <div className="flex items-center gap-2 px-2 pb-8">
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
             <Leaf className="size-5" />
@@ -75,7 +91,10 @@ export function AppShell() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveView(item.id)}
+                onClick={() => {
+                  setActiveView(item.id)
+                  setIsSidebarOpen(false)
+                }}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
                   isActive
@@ -94,13 +113,26 @@ export function AppShell() {
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-1 flex-col">
-        <RegionHeader
-          regionId={regionId}
-          onRegionChange={setRegionId}
-          title={t(`nav.${activeItem.id}.label`)}
-          showRegionSelect={activeView === "regional-network"}
-        />
+      <div className="flex min-h-screen w-full flex-1 flex-col">
+        <div className="flex items-start gap-2">
+          <button
+            type="button"
+            aria-expanded={isSidebarOpen}
+            aria-controls="app-sidebar"
+            onClick={() => setIsSidebarOpen((open) => !open)}
+            className="mt-3 ml-3 flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-sidebar text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground sm:ml-4 lg:ml-6"
+          >
+            <PanelLeft className="size-4" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <RegionHeader
+              regionId={regionId}
+              onRegionChange={setRegionId}
+              title={t(`nav.${activeItem.id}.label`)}
+              showRegionSelect={activeView === "regional-network"}
+            />
+          </div>
+        </div>
 
         <main className="flex-1 px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8">
           {activeView === "balcony-simulation" && <BalconyView />}

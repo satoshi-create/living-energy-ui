@@ -3,6 +3,10 @@
 export type Direction = 'south' | 'southeast' | 'southwest' | 'east' | 'west'
 export type RailingType = 'grid' | 'glass' | 'concrete'
 
+/** Locale-independent kit label keys under `balconyPv.kit`. */
+export type KitPanelKey = 'panelDefault' | 'panelMid' | 'panelLight'
+export type KitStorageKey = 'storageDefault' | 'storageMid' | 'storageLight'
+
 /** Locale-independent direction keys. Labels live in messages under `common.directions`. */
 export const DIRECTIONS: readonly Direction[] = [
   'south',
@@ -12,10 +16,11 @@ export const DIRECTIONS: readonly Direction[] = [
   'west',
 ] as const
 
-export const RAILING_TYPES: { value: RailingType; label: string }[] = [
-  { value: 'grid', label: '格子スチール' },
-  { value: 'glass', label: 'ガラス' },
-  { value: 'concrete', label: 'コンクリート壁' },
+/** Locale-independent railing keys. Labels: `balconyPv.railing.*`. */
+export const RAILING_TYPES: { value: RailingType }[] = [
+  { value: 'grid' },
+  { value: 'glass' },
+  { value: 'concrete' },
 ]
 
 // Returns a suitability score (0-100) for the balcony simulator based on
@@ -48,8 +53,8 @@ export function scoreLabel(score: number): string {
   return '要検討'
 }
 
-export function recommendedKit(score: number): { panel: string; battery: string } {
-  if (score >= 85) return { panel: '100W折りたたみパネル', battery: '500Whポータブル電源' }
-  if (score >= 70) return { panel: '60W折りたたみパネル', battery: '300Whポータブル電源' }
-  return { panel: '30W軽量パネル', battery: '150Whモバイル電源' }
+export function recommendedKit(score: number): { panel: KitPanelKey; battery: KitStorageKey } {
+  if (score >= 85) return { panel: 'panelDefault', battery: 'storageDefault' }
+  if (score >= 70) return { panel: 'panelMid', battery: 'storageMid' }
+  return { panel: 'panelLight', battery: 'storageLight' }
 }

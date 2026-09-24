@@ -77,6 +77,14 @@
       "panel": "Panel",
       "battery": "Storage"
     },
+    "kit": {
+      "panelDefault": "100W foldable panel",
+      "storageDefault": "500Wh portable power station",
+      "panelMid": "60W foldable panel",
+      "storageMid": "300Wh portable power station",
+      "panelLight": "30W lightweight panel",
+      "storageLight": "150Wh mobile power bank"
+    },
     "score": {
       "excellent": "Excellent",
       "good": "Good",
@@ -93,59 +101,125 @@
     "co2Saved": "CO₂ cut today {kg}kg",
     "monthlySavings": "Est. bill savings this month ¥{yen}",
     "basinBadge": "Watershed {system}",
+    "watershedNormal": "Normal",
+    "notRequired": "Not needed",
     "livingCardsTitle": "Lived-experience cards",
     "floodCardsTitle": "Watershed lived experience",
     "floodNote": "Paddy-field dams are easing the downstream peak",
     "quickFlowTitle": "Quick power flow",
     "cards": {
-      "laptop": {
-        "title": "MacBook charges",
-        "unit": "charges",
-        "detail": "How many full laptop charges today's generation covers"
+      "macbook": {
+        "title": "MacBook Pro charge",
+        "unit": "charges done",
+        "detail": "Assuming a 60Wh battery"
       },
       "fan": {
-        "title": "Circulator",
-        "unit": "hours",
-        "detail": "Hours of airflow you can run while working from home"
+        "title": "Circulator runtime",
+        "unit": "hours left",
+        "detail": "Assuming 30W continuous run"
       },
-      "coffee": {
-        "title": "Coffee drips",
-        "unit": "cups",
-        "detail": "Morning cups you can brew on balcony solar"
+      "kettle": {
+        "title": "Electric kettle (1L boil)",
+        "unit": "boils done",
+        "detail": "About 110Wh per boil"
       },
-      "smartphone": {
-        "title": "Phone charges",
-        "unit": "charges",
-        "detail": "Full smartphone charges for the household"
+      "phone": {
+        "title": "Phone charge",
+        "unit": "charges done",
+        "detail": "Assuming 15Wh per charge"
       },
-      "waves": {
-        "title": "Peak cut",
-        "unit": "%",
-        "detail": "Share of watershed outflow peak reduced"
+      "pool": {
+        "title": "School-pool equivalent",
+        "unit": "pools held",
+        "detail": "Peak-cut estimate from paddy orifices"
       },
-      "shield": {
-        "title": "Downstream ease",
-        "unit": "homes",
-        "detail": "Downstream homes eased by paddy-field dams"
+      "risk": {
+        "title": "Downstream flood risk",
+        "unit": "% estimate",
+        "detail": "Passive control demo for normal conditions"
       },
-      "moon": {
-        "title": "Night readiness",
-        "unit": "hours",
-        "detail": "Hours water levels stayed managed overnight"
+      "patrol": {
+        "title": "Tonight's canal patrol",
+        "unit": "",
+        "detail": "One board retires hazardous gate work"
       }
     },
     "flow": {
-      "sun": {
-        "label": "Generation",
-        "sublabel": "Balcony PV"
+      "panel": {
+        "label": "Balcony panel",
+        "sublabel": "340W generating"
       },
       "battery": {
-        "label": "Storage",
-        "sublabel": "Portable battery"
+        "label": "Portable battery",
+        "sublabel": "84% charged"
       },
-      "laptop": {
-        "label": "Consumption",
-        "sublabel": "Work from home"
+      "desk": {
+        "label": "WFH PC & desk",
+        "sublabel": "Powered"
+      }
+    }
+  },
+  "worldPv": {
+    "title": "Balcony solar social implementation around the world",
+    "subtitle": "Tracking renter-friendly, no-construction renewables—from German law reform and Western legislation to off-grid rollouts in developing regions.",
+    "timeline": {
+      "heading": "Implementation timeline",
+      "until2020": {
+        "period": "Through 2020",
+        "title": "Pioneers and experiments",
+        "description": "Plug-in panels were mostly hobby and pilot use. Safety rules and power caps stayed vague country by country."
+      },
+      "from2021": {
+        "period": "2021 onward",
+        "title": "Safety and cap debates accelerate",
+        "description": "Demand for simple installs surged in places like Germany, pushing formal rules on output caps, certification, and grid connection."
+      },
+      "from2023": {
+        "period": "2023 onward",
+        "title": "Rental-friendly frameworks take shape",
+        "description": "Germany and the EU led legal frameworks that make balcony solar easier for renters, often around the ~800W class."
+      },
+      "present": {
+        "period": "Today",
+        "title": "Lived experience and no-construction become common language",
+        "description": "Telling the story in everyday terms—not just kWh—and starting without specialist construction is now a shared global theme."
+      }
+    },
+    "tags": {
+      "regulatoryRelief": "Regulatory relief",
+      "legislationTrend": "Legislation trends",
+      "offGrid": "Off-grid"
+    },
+    "regions": {
+      "germanyEu": {
+        "name": "Germany & EU",
+        "headline": "Plug-in renewables move toward a rental default",
+        "body": "Reforms and guidance made simple balcony installs a realistic option. Clear wattage caps and lived-experience messaging are spreading together.",
+        "bullets": {
+          "cap800w": "Clearer framing around the ~800W output class",
+          "rentalHousing": "Lower permission and install barriers for rental housing",
+          "livedExperience": "Strong fit with appliance-style lived-experience messaging"
+        }
+      },
+      "unitedStates": {
+        "name": "United States",
+        "headline": "Plug-in spreads amid state-by-state rules",
+        "body": "Rules often sit with states and utilities rather than one federal path. Interest in balcony and deck setups paired with portable storage remains high.",
+        "bullets": {
+          "stateRules": "Diverse interconnection and safety rules by state and utility",
+          "rentalHousing": "Growing install examples in rental and multifamily housing",
+          "livedExperience": "Strong lived-experience framing tied to outage resilience"
+        }
+      },
+      "africaDeveloping": {
+        "name": "Africa & developing regions",
+        "headline": "Balcony-scale renewables starting off-grid",
+        "body": "Where the grid is thin or absent, small panels and batteries are daily infrastructure. Modular, no-construction kits are the baseline.",
+        "bullets": {
+          "offGridFirst": "Small-capacity kits aimed at off-grid and weak-grid use",
+          "rentalHousing": "Rising plug-in demand in urban multifamily housing",
+          "livedExperience": "Lighting, charging, and work hours drive adoption decisions"
+        }
       }
     }
   }

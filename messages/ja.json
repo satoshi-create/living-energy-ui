@@ -77,6 +77,14 @@
       "panel": "パネル",
       "battery": "蓄電"
     },
+    "kit": {
+      "panelDefault": "100W折りたたみパネル",
+      "storageDefault": "500Whポータブル電源",
+      "panelMid": "60W折りたたみパネル",
+      "storageMid": "300Whポータブル電源",
+      "panelLight": "30W軽量パネル",
+      "storageLight": "150Whモバイル電源"
+    },
     "score": {
       "excellent": "最適",
       "good": "良好",
@@ -93,59 +101,125 @@
     "co2Saved": "本日のCO2削減 {kg}kg",
     "monthlySavings": "今月の電気代削減目安 ¥{yen}相当",
     "basinBadge": "流域 {system}",
+    "watershedNormal": "平常",
+    "notRequired": "不要",
     "livingCardsTitle": "生活実感カード",
     "floodCardsTitle": "流域の生活実感",
     "floodNote": "田んぼダムが下流のピークを和らげています",
     "quickFlowTitle": "クイック電力フロー",
     "cards": {
-      "laptop": {
-        "title": "MacBook充電",
-        "unit": "回分",
-        "detail": "今日の発電でノートPCをフル充電できる目安"
+      "macbook": {
+        "title": "MacBook Pro 充電",
+        "unit": "回分 完了",
+        "detail": "60Wh バッテリー想定"
       },
       "fan": {
-        "title": "サーキュレーター",
-        "unit": "時間",
-        "detail": "在宅ワーク中の空気循環をまかなえる時間"
+        "title": "サーキュレーター稼働",
+        "unit": "時間 残り",
+        "detail": "30W 連続稼働想定"
       },
-      "coffee": {
-        "title": "コーヒードリップ",
-        "unit": "杯分",
-        "detail": "朝の一杯を再エネで淹れられる目安"
+      "kettle": {
+        "title": "電気ケトル(1L沸騰)",
+        "unit": "回分 達成",
+        "detail": "約110Wh / 回"
       },
-      "smartphone": {
+      "phone": {
         "title": "スマホ充電",
-        "unit": "回分",
-        "detail": "家族のスマホを満充電できる回数"
+        "unit": "回分 達成",
+        "detail": "15Wh / 回想定"
       },
-      "waves": {
-        "title": "ピークカット",
-        "unit": "%",
-        "detail": "流域の出水ピークを抑えた割合"
+      "pool": {
+        "title": "小学校プール換算",
+        "unit": "杯分 一時貯留",
+        "detail": "水田オリフィス群のピークカット想定"
       },
-      "shield": {
-        "title": "下流の安心",
-        "unit": "世帯分",
-        "detail": "田んぼダムが守る下流域の目安"
+      "risk": {
+        "title": "下流氾濫リスク",
+        "unit": "% 目安",
+        "detail": "平常時のパッシブ制御デモ"
       },
-      "moon": {
-        "title": "夜間の備え",
-        "unit": "時間",
-        "detail": "豪雨夜間に水位を抑え続けた時間"
+      "patrol": {
+        "title": "今夜の水路見回り",
+        "unit": "",
+        "detail": "板1枚で危険な水門作業を解雇"
       }
     },
     "flow": {
-      "sun": {
-        "label": "発電",
-        "sublabel": "ベランダPV"
+      "panel": {
+        "label": "ベランダパネル",
+        "sublabel": "340W 発電中"
       },
       "battery": {
-        "label": "蓄電",
-        "sublabel": "ポータブル電源"
+        "label": "ポータブル蓄電池",
+        "sublabel": "残量 84%"
       },
-      "laptop": {
-        "label": "消費",
-        "sublabel": "在宅ワーク"
+      "desk": {
+        "label": "在宅ワークPC・デスク",
+        "sublabel": "給電中"
+      }
+    }
+  },
+  "worldPv": {
+    "title": "世界各国におけるベランダソーラーの社会実装",
+    "subtitle": "ドイツの法改正や欧米の法制化、途上国のオフグリッド展開など、賃貸でも工事レスで始められる再エネの動きを追います。",
+    "timeline": {
+      "heading": "実装タイムライン",
+      "until2020": {
+        "period": "〜2020",
+        "title": "先駆者と実験の時代",
+        "description": "プラグイン型パネルは趣味・実験用途が中心。安全基準や出力上限は国ごとに曖昧なままだった。"
+      },
+      "from2021": {
+        "period": "2021〜",
+        "title": "安全と上限の議論が加速",
+        "description": "ドイツなどで簡易設置の需要が急増し、出力上限・認証・系統接続のルール作りが本格化した。"
+      },
+      "from2023": {
+        "period": "2023〜",
+        "title": "賃貸向け法制化が進む",
+        "description": "独・EUを中心に、賃貸住宅でも設置しやすい法整備と〜800W級の枠組みが広がった。"
+      },
+      "present": {
+        "period": "現在",
+        "title": "生活実感と工事レスが共通言語に",
+        "description": "kWhではなく暮らしの実感で語り、専門工事なしで始めるベランダ発電が世界の共通テーマになっている。"
+      }
+    },
+    "tags": {
+      "regulatoryRelief": "法規制緩和",
+      "legislationTrend": "法制化動向",
+      "offGrid": "オフグリッド"
+    },
+    "regions": {
+      "germanyEu": {
+        "name": "ドイツ・EU",
+        "headline": "挿すだけの再エネが、賃貸の標準に近づく",
+        "body": "改正と指針により、ベランダへの簡易設置が現実的な選択肢になった。上限ワット数の明確化と、生活実感での訴求がセットで広がっている。",
+        "bullets": {
+          "cap800w": "〜800W級の出力上限が分かりやすく整理",
+          "rentalHousing": "賃貸住宅でも許可・設置ハードルが下がる動き",
+          "livedExperience": "家電換算など生活実感訴求との相性が高い"
+        }
+      },
+      "unitedStates": {
+        "name": "米国",
+        "headline": "州ごとのルールの中で、プラグインが広がる",
+        "body": "連邦一括ではなく州・ユーティリティ単位の規制が多い。一方でポータブル電源と組み合わせたベランダ／デッキ設置の関心は高い。",
+        "bullets": {
+          "stateRules": "州・系統会社ごとの接続・安全ルールが多様",
+          "rentalHousing": "賃貸・集合住宅での導入事例が増加中",
+          "livedExperience": "停電対策とセットの生活実感メッセージが強い"
+        }
+      },
+      "africaDeveloping": {
+        "name": "アフリカ・途上国",
+        "headline": "オフグリッドから始まるベランダ級の再エネ",
+        "body": "系統が届かない地域では、小規模パネルと蓄電池が生活インフラそのもの。工事レス・モジュラーな導入が前提になっている。",
+        "bullets": {
+          "offGridFirst": "オフグリッド／弱電系統向けの小容量キットが主流",
+          "rentalHousing": "都市部の集合住宅でも差し込み型需要が伸びる",
+          "livedExperience": "照明・充電・仕事時間など生活実感が導入判断の軸"
+        }
       }
     }
   }

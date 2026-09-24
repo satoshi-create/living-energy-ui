@@ -153,11 +153,11 @@ export function BalconyView() {
                 <CardContent className="flex flex-col gap-2 text-sm">
                   <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
                     <span className="text-muted-foreground">{t("results.panel")}</span>
-                    <span className="font-medium text-foreground">{kit.panel}</span>
+                    <span className="font-medium text-foreground">{t(`kit.${kit.panel}`)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
                     <span className="text-muted-foreground">{t("results.battery")}</span>
-                    <span className="font-medium text-foreground">{kit.battery}</span>
+                    <span className="font-medium text-foreground">{t(`kit.${kit.battery}`)}</span>
                   </div>
                 </CardContent>
               </Card>

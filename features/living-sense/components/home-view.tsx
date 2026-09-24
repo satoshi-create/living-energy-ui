@@ -40,7 +40,7 @@ export function HomeView() {
               </Badge>
               <Badge variant="secondary" className="gap-1.5 border border-border/60 bg-muted/60 py-1.5 text-foreground">
                 <ShieldCheck className="size-3.5 text-primary" />
-                {t("basinBadge", { system: FLOOD_STATUS.system })}
+                {t("basinBadge", { system: t(FLOOD_STATUS.systemKey) })}
               </Badge>
             </div>
           </div>
@@ -63,7 +63,12 @@ export function HomeView() {
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {FLOOD_LIVING_CARDS.map((card) => (
-            <LivingCard key={card.id} card={card} />
+            <LivingCard
+              key={card.id}
+              card={
+                card.value === "notRequired" ? { ...card, value: t("notRequired") } : card
+              }
+            />
           ))}
         </div>
       </div>
