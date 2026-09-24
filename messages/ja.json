@@ -1,0 +1,152 @@
+{
+  "metadata": {
+    "title": "Living Energy UI | 生活実感型・再エネダッシュボード",
+    "description": "自宅のベランダ発電や地域の再エネが、あなたの暮らしをどれだけ支えているかを直感的に実感できるダッシュボード。"
+  },
+  "shell": {
+    "brand": "Living Energy UI",
+    "tagline": "生活実感型・再エネ×流域",
+    "demoDisclaimer": "すべての数値はデモ用のシミュレーションデータです。実際の発電量とは異なります。",
+    "language": {
+      "label": "言語",
+      "ja": "日本語",
+      "en": "English"
+    },
+    "nav": {
+      "balcony-simulation": {
+        "label": "ベランダ発電シミュレーション",
+        "shortLabel": "ベランダ"
+      },
+      "global-implementation": {
+        "label": "ベランダソーラー世界実装",
+        "shortLabel": "世界実装"
+      },
+      "ecosystem-orgs": {
+        "label": "企業・非営利団体・エコシステム",
+        "shortLabel": "エコシステム"
+      },
+      "regional-network": {
+        "label": "地域再エネネットワーク",
+        "shortLabel": "ネットワーク"
+      }
+    }
+  },
+  "common": {
+    "directions": {
+      "south": "南向き",
+      "southeast": "南東",
+      "southwest": "南西",
+      "east": "東",
+      "west": "西"
+    },
+    "banzuke": {
+      "side": {
+        "east": "東",
+        "west": "西"
+      },
+      "title": {
+        "yokozuna": "横綱",
+        "ozeki": "大関",
+        "sekiwake": "関脇",
+        "komusubi": "小結"
+      }
+    }
+  },
+  "balconyPv": {
+    "tabs": {
+      "simulator": "シミュレーター",
+      "livingSense": "生活実感メーター"
+    },
+    "conditions": {
+      "title": "条件設定",
+      "direction": "ベランダの方角",
+      "railing": "手すりの種類",
+      "seasonTime": "季節・時刻",
+      "morning": "朝 8:00",
+      "evening": "夕方 17:00"
+    },
+    "railing": {
+      "grid": "格子スチール",
+      "glass": "ガラス",
+      "concrete": "コンクリート壁"
+    },
+    "results": {
+      "visualTitle": "診断結果ビジュアル",
+      "scoreLabel": "あなたのベランダの適性スコア",
+      "kitTitle": "おすすめ構成",
+      "panel": "パネル",
+      "battery": "蓄電"
+    },
+    "score": {
+      "excellent": "最適",
+      "good": "良好",
+      "fair": "普通",
+      "poor": "要検討"
+    },
+    "illustration": {
+      "ariaLabel": "ベランダの日照シミュレーション"
+    }
+  },
+  "livingSense": {
+    "instantGeneration": "現在の瞬間発電量",
+    "todayTotal": "本日の累計発電量: {val} kWh",
+    "co2Saved": "本日のCO2削減 {kg}kg",
+    "monthlySavings": "今月の電気代削減目安 ¥{yen}相当",
+    "basinBadge": "流域 {system}",
+    "livingCardsTitle": "生活実感カード",
+    "floodCardsTitle": "流域の生活実感",
+    "floodNote": "田んぼダムが下流のピークを和らげています",
+    "quickFlowTitle": "クイック電力フロー",
+    "cards": {
+      "laptop": {
+        "title": "MacBook充電",
+        "unit": "回分",
+        "detail": "今日の発電でノートPCをフル充電できる目安"
+      },
+      "fan": {
+        "title": "サーキュレーター",
+        "unit": "時間",
+        "detail": "在宅ワーク中の空気循環をまかなえる時間"
+      },
+      "coffee": {
+        "title": "コーヒードリップ",
+        "unit": "杯分",
+        "detail": "朝の一杯を再エネで淹れられる目安"
+      },
+      "smartphone": {
+        "title": "スマホ充電",
+        "unit": "回分",
+        "detail": "家族のスマホを満充電できる回数"
+      },
+      "waves": {
+        "title": "ピークカット",
+        "unit": "%",
+        "detail": "流域の出水ピークを抑えた割合"
+      },
+      "shield": {
+        "title": "下流の安心",
+        "unit": "世帯分",
+        "detail": "田んぼダムが守る下流域の目安"
+      },
+      "moon": {
+        "title": "夜間の備え",
+        "unit": "時間",
+        "detail": "豪雨夜間に水位を抑え続けた時間"
+      }
+    },
+    "flow": {
+      "sun": {
+        "label": "発電",
+        "sublabel": "ベランダPV"
+      },
+      "battery": {
+        "label": "蓄電",
+        "sublabel": "ポータブル電源"
+      },
+      "laptop": {
+        "label": "消費",
+        "sublabel": "在宅ワーク"
+      }
+    }
+  }
+}

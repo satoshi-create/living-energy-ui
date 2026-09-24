@@ -17,22 +17,27 @@
 ## Tech Stack
 - Next.js 16 (App Router) / React 19 / TypeScript strict
 - Tailwind CSS 4 + shadcn (base-nova) + `@base-ui/react`
+- next-intl（`/[locale]`、既定 `ja`、プレフィックス必須）
 - lucide-react / pnpm / Vercel Analytics（本番のみ）
 - フォント: Noto Sans JP + JetBrains Mono。ダーク基調（`layout.tsx` で `html.dark` 固定）
 
 ## Architecture
 - UI: `features/<name>/components/`（kebab-case、表示に特化）
 - データ・純関数: `features/<name>/data.ts`（共有地域は `lib/regions.ts`）
+- 文言: `messages/{ja,en}.json`（`i18n/routing.ts` / `i18n/request.ts`）
 - shadcn プリミティブ: `components/ui/`（再生成可能。独自改変しない）
 - 画面切替は `AppShell` のクライアント状態。認証・DB・グローバルストアは導入しない。
+- エントリ: `app/[locale]/page.tsx` → `<AppShell />`。`/` は `proxy.ts` 経由で `/ja` へ。
 
 ## Coding
 - パスは `@/`。インタラクションがあるファイルのみ `'use client'`。
 - 関数コンポーネントは named export。Props は `XxxProps`。
 - 外科手術的編集。ファイル全体の書き換え禁止。v0 内部ファイル（`__v0_*`, `.snowflake/`）を触らない。
 - 秘密情報（`.env.local` の実値）をコミット・チャットに貼らない。
+- **i18n**: ユーザー向け文言は `messages/{ja,en}.json` で管理し、コンポーネント内へのハードコードは禁止。ロケール非依存の ID（例: `south`, `east`）のみコード側に置き、表示ラベルは辞書から解決する。ルートは `/[locale]`（`ja` 既定・プレフィックス必須）。
 
 ## Forbidden
 - ログイン画面、産業用EMS、高精度潮流計算、kWh/MW ダッシュボード化
 - 既存のダーク×primary（緑）ビジュアル言語の無断差し替え
 - 依頼なしの React Flow / FastAPI / IoT 連携の追加
+- コンポーネント内へのユーザー向け文言のハードコード（辞書未移行のレガシー箇所は段階移行で解消）

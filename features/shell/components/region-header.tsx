@@ -11,18 +11,21 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { REGIONS, WEATHER } from "@/lib/regions"
+import { LanguageSwitcher } from "./language-switcher"
+
+type RegionHeaderProps = {
+  regionId: string
+  onRegionChange: (id: string) => void
+  title: string
+  showRegionSelect?: boolean
+}
 
 export function RegionHeader({
   regionId,
   onRegionChange,
   title,
   showRegionSelect = false,
-}: {
-  regionId: string
-  onRegionChange: (id: string) => void
-  title: string
-  showRegionSelect?: boolean
-}) {
+}: RegionHeaderProps) {
   return (
     <header className="flex flex-col gap-3 border-b border-border/60 bg-background/80 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
       <div>
@@ -52,6 +55,7 @@ export function RegionHeader({
           <Sun className="size-3.5 text-primary" />
           {WEATHER.label} {WEATHER.irradiance} W/m²
         </Badge>
+        <LanguageSwitcher />
       </div>
     </header>
   )

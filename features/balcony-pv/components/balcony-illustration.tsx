@@ -1,12 +1,14 @@
-import { cn } from "@/lib/utils"
+"use client"
+
+import { useTranslations } from "next-intl"
 import type { Direction, RailingType } from "../data"
 
 const DIRECTION_ROTATION: Record<Direction, number> = {
-  南: 0,
-  南東: -18,
-  南西: 18,
-  東: -34,
-  西: 34,
+  south: 0,
+  southeast: -18,
+  southwest: 18,
+  east: -34,
+  west: 34,
 }
 
 export function BalconyIllustration({
@@ -18,11 +20,12 @@ export function BalconyIllustration({
   railing: RailingType
   hour: number
 }) {
+  const t = useTranslations("balconyPv")
   // hour ranges 8-17. Map to sun arc position: t=0 at 8:00, t=1 at 17:00.
-  const t = (hour - 8) / 9
-  const sunX = 20 + t * 260
+  const tPos = (hour - 8) / 9
+  const sunX = 20 + tPos * 260
   // Elevation peaks at solar noon (t ~ 0.5).
-  const elevation = Math.sin(t * Math.PI)
+  const elevation = Math.sin(tPos * Math.PI)
   const sunY = 130 - elevation * 95
   // Longer shadows at low elevation.
   const shadowLength = 10 + (1 - elevation) * 70
@@ -32,7 +35,7 @@ export function BalconyIllustration({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/40 to-background">
-      <svg viewBox="0 0 300 200" className="h-56 w-full" role="img" aria-label="ベランダの日照シミュレーション">
+      <svg viewBox="0 0 300 200" className="h-56 w-full" role="img" aria-label={t("illustration.ariaLabel")}>
         {/* sky */}
         <rect x="0" y="0" width="300" height="140" fill="var(--color-muted)" opacity="0.5" />
         {/* sun path arc guide */}

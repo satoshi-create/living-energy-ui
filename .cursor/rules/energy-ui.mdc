@@ -11,4 +11,5 @@ alwaysApply: false
 - フロー図は現状 `power-flow-diagram.tsx` / `network-flow.tsx`。React Flow は明示依頼があるまで使わない。
 - `'use client'` はシェル・スライダー・トグルなどインタラクションがあるファイルのみ。
 - shadcn は `components/ui` から import。ドメイン見た目の上書きは `className` と `cn()` で最小に。
-- コピーは日本語。産業用語（SCADA、潮流、IRR、MW）を生活画面に出さない。
+- ユーザー向け文言は `messages/{ja,en}.json` の辞書で管理する。コンポーネント内へのハードコードは禁止（ロケール非依存の ID・キーのみコード側に置く）。
+- 産業用語（SCADA、潮流、IRR、MW）を生活画面に出さない。

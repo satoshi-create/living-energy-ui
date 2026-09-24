@@ -1,0 +1,152 @@
+{
+  "metadata": {
+    "title": "Living Energy UI | Lived-experience renewable dashboard",
+    "description": "A dashboard that shows how balcony solar and local renewables support everyday life—in terms you can feel, not just kWh."
+  },
+  "shell": {
+    "brand": "Living Energy UI",
+    "tagline": "Lived-experience renewables × watershed",
+    "demoDisclaimer": "All figures are demo simulation data and do not reflect real generation.",
+    "language": {
+      "label": "Language",
+      "ja": "日本語",
+      "en": "English"
+    },
+    "nav": {
+      "balcony-simulation": {
+        "label": "Balcony solar simulation",
+        "shortLabel": "Balcony"
+      },
+      "global-implementation": {
+        "label": "Balcony solar around the world",
+        "shortLabel": "Global"
+      },
+      "ecosystem-orgs": {
+        "label": "Companies, nonprofits & ecosystem",
+        "shortLabel": "Ecosystem"
+      },
+      "regional-network": {
+        "label": "Regional renewable network",
+        "shortLabel": "Network"
+      }
+    }
+  },
+  "common": {
+    "directions": {
+      "south": "South",
+      "southeast": "Southeast",
+      "southwest": "Southwest",
+      "east": "East",
+      "west": "West"
+    },
+    "banzuke": {
+      "side": {
+        "east": "East",
+        "west": "West"
+      },
+      "title": {
+        "yokozuna": "Yokozuna",
+        "ozeki": "Ozeki",
+        "sekiwake": "Sekiwake",
+        "komusubi": "Komusubi"
+      }
+    }
+  },
+  "balconyPv": {
+    "tabs": {
+      "simulator": "Simulator",
+      "livingSense": "Lived-experience meter"
+    },
+    "conditions": {
+      "title": "Conditions",
+      "direction": "Balcony orientation",
+      "railing": "Railing type",
+      "seasonTime": "Season & time of day",
+      "morning": "Morning 8:00",
+      "evening": "Evening 17:00"
+    },
+    "railing": {
+      "grid": "Steel grille",
+      "glass": "Glass",
+      "concrete": "Concrete wall"
+    },
+    "results": {
+      "visualTitle": "Diagnosis visual",
+      "scoreLabel": "Your balcony suitability score",
+      "kitTitle": "Recommended setup",
+      "panel": "Panel",
+      "battery": "Storage"
+    },
+    "score": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Needs review"
+    },
+    "illustration": {
+      "ariaLabel": "Balcony sunlight simulation"
+    }
+  },
+  "livingSense": {
+    "instantGeneration": "Instant generation now",
+    "todayTotal": "Today's total generation: {val} kWh",
+    "co2Saved": "CO₂ cut today {kg}kg",
+    "monthlySavings": "Est. bill savings this month ¥{yen}",
+    "basinBadge": "Watershed {system}",
+    "livingCardsTitle": "Lived-experience cards",
+    "floodCardsTitle": "Watershed lived experience",
+    "floodNote": "Paddy-field dams are easing the downstream peak",
+    "quickFlowTitle": "Quick power flow",
+    "cards": {
+      "laptop": {
+        "title": "MacBook charges",
+        "unit": "charges",
+        "detail": "How many full laptop charges today's generation covers"
+      },
+      "fan": {
+        "title": "Circulator",
+        "unit": "hours",
+        "detail": "Hours of airflow you can run while working from home"
+      },
+      "coffee": {
+        "title": "Coffee drips",
+        "unit": "cups",
+        "detail": "Morning cups you can brew on balcony solar"
+      },
+      "smartphone": {
+        "title": "Phone charges",
+        "unit": "charges",
+        "detail": "Full smartphone charges for the household"
+      },
+      "waves": {
+        "title": "Peak cut",
+        "unit": "%",
+        "detail": "Share of watershed outflow peak reduced"
+      },
+      "shield": {
+        "title": "Downstream ease",
+        "unit": "homes",
+        "detail": "Downstream homes eased by paddy-field dams"
+      },
+      "moon": {
+        "title": "Night readiness",
+        "unit": "hours",
+        "detail": "Hours water levels stayed managed overnight"
+      }
+    },
+    "flow": {
+      "sun": {
+        "label": "Generation",
+        "sublabel": "Balcony PV"
+      },
+      "battery": {
+        "label": "Storage",
+        "sublabel": "Portable battery"
+      },
+      "laptop": {
+        "label": "Consumption",
+        "sublabel": "Work from home"
+      }
+    }
+  }
+}

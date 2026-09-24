@@ -30,8 +30,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 | Path | Purpose |
 | --- | --- |
-| `app/page.tsx` | `<AppShell />` のみ |
-| `app/layout.tsx` | metadata / フォント / ダーク固定 / Analytics |
+| `app/[locale]/page.tsx` | `<AppShell />` のみ（`/ja`・`/en`） |
+| `app/[locale]/layout.tsx` | metadata / フォント / ダーク固定 / NextIntlClientProvider / Analytics |
+| `messages/{ja,en}.json` | ユーザー向け文言辞書 |
+| `i18n/` | routing / request / navigation |
+| `proxy.ts` | `/` → `/ja` 等のロケール交渉（Next.js 16 の旧 middleware） |
 | `app/globals.css` | oklch トークン、`animate-flow-dash` |
 | `features/living-sense/` | 生活実感メーター（`living-sense-ui`） |
 | `features/balcony-pv/` | ベランダシミュレーター（`balcony-plug-in-pv`） |

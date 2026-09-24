@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Gauge, PackageCheck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -12,7 +13,6 @@ import {
   DIRECTIONS,
   RAILING_TYPES,
   computeBalconyScore,
-  scoreLabel,
   recommendedKit,
   type Direction,
   type RailingType,
@@ -24,11 +24,20 @@ function formatHour(hour: number) {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
 }
 
+function scoreBand(score: number): "excellent" | "good" | "fair" | "poor" {
+  if (score >= 80) return "excellent"
+  if (score >= 60) return "good"
+  if (score >= 40) return "fair"
+  return "poor"
+}
+
 type BalconyTab = "simulator" | "living-sense"
 
 export function BalconyView() {
+  const t = useTranslations("balconyPv")
+  const tDirections = useTranslations("common.directions")
   const [tab, setTab] = useState<BalconyTab>("simulator")
-  const [direction, setDirection] = useState<Direction>("南")
+  const [direction, setDirection] = useState<Direction>("south")
   const [railing, setRailing] = useState<RailingType>("grid")
   const [hour, setHour] = useState(12.5)
 
@@ -44,10 +53,10 @@ export function BalconyView() {
         className="w-full sm:w-auto"
       >
         <ToggleGroupItem value="simulator" className="flex-1 text-sm sm:flex-none">
-          シミュレーター
+          {t("tabs.simulator")}
         </ToggleGroupItem>
         <ToggleGroupItem value="living-sense" className="flex-1 text-sm sm:flex-none">
-          生活実感メーター
+          {t("tabs.livingSense")}
         </ToggleGroupItem>
       </ToggleGroup>
 
@@ -57,27 +66,27 @@ export function BalconyView() {
         <>
           <Card className="border-border/60">
             <CardHeader>
-              <CardTitle className="text-sm font-semibold">条件設定</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t("conditions.title")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-6">
               <div className="flex flex-col gap-2">
-                <p className="text-xs font-medium text-muted-foreground">ベランダの方角</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("conditions.direction")}</p>
                 <ToggleGroup
                   value={[direction]}
                   onValueChange={(v) => v[0] && setDirection(v[0] as Direction)}
                   variant="outline"
                   className="flex-wrap"
                 >
-                  {DIRECTIONS.map((d) => (
-                    <ToggleGroupItem key={d.value} value={d.value} className="text-sm">
-                      {d.label}
+                  {DIRECTIONS.map((value) => (
+                    <ToggleGroupItem key={value} value={value} className="text-sm">
+                      {tDirections(value)}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
               </div>
 
               <div className="flex flex-col gap-2">
-                <p className="text-xs font-medium text-muted-foreground">手すりの種類</p>
+                <p className="text-xs font-medium text-muted-foreground">{t("conditions.railing")}</p>
                 <ToggleGroup
                   value={[railing]}
                   onValueChange={(v) => v[0] && setRailing(v[0] as RailingType)}
@@ -86,7 +95,7 @@ export function BalconyView() {
                 >
                   {RAILING_TYPES.map((r) => (
                     <ToggleGroupItem key={r.value} value={r.value} className="text-sm">
-                      {r.label}
+                      {t(`railing.${r.value}`)}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
@@ -94,7 +103,7 @@ export function BalconyView() {
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-muted-foreground">季節・時刻</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t("conditions.seasonTime")}</p>
                   <span className="font-mono text-sm text-foreground">{formatHour(hour)}</span>
                 </div>
                 <Slider
@@ -105,8 +114,8 @@ export function BalconyView() {
                   onValueChange={(v) => setHour(Array.isArray(v) ? v[0] : v)}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>朝 8:00</span>
-                  <span>夕方 17:00</span>
+                  <span>{t("conditions.morning")}</span>
+                  <span>{t("conditions.evening")}</span>
                 </div>
               </div>
             </CardContent>
@@ -115,7 +124,7 @@ export function BalconyView() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Card className="border-border/60">
               <CardHeader>
-                <CardTitle className="text-sm font-semibold">診断結果ビジュアル</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t("results.visualTitle")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <BalconyIllustration direction={direction} railing={railing} hour={hour} />
@@ -127,10 +136,10 @@ export function BalconyView() {
                 <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Gauge className="size-4" />
-                    <span className="text-xs font-medium">あなたのベランダの適性スコア</span>
+                    <span className="text-xs font-medium">{t("results.scoreLabel")}</span>
                   </div>
                   <span className="font-mono text-5xl font-semibold tabular-nums text-primary">{score}</span>
-                  <Badge className="bg-primary/90 text-primary-foreground">{scoreLabel(score)}</Badge>
+                  <Badge className="bg-primary/90 text-primary-foreground">{t(`score.${scoreBand(score)}`)}</Badge>
                 </CardContent>
               </Card>
 
@@ -138,16 +147,16 @@ export function BalconyView() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sm font-semibold">
                     <PackageCheck className="size-4 text-primary" />
-                    おすすめ構成
+                    {t("results.kitTitle")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2 text-sm">
                   <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-                    <span className="text-muted-foreground">パネル</span>
+                    <span className="text-muted-foreground">{t("results.panel")}</span>
                     <span className="font-medium text-foreground">{kit.panel}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-                    <span className="text-muted-foreground">蓄電</span>
+                    <span className="text-muted-foreground">{t("results.battery")}</span>
                     <span className="font-medium text-foreground">{kit.battery}</span>
                   </div>
                 </CardContent>

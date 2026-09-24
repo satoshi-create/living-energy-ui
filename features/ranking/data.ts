@@ -7,10 +7,15 @@ export type EnergyMix = {
   biomass: number
 }
 
+export type BanzukeSide = 'east' | 'west'
+export type BanzukeTitle = 'yokozuna' | 'ozeki' | 'sekiwake' | 'komusubi'
+
 export type PrefectureRank = {
   rank: number
-  title: string // 横綱, 大関, 関脇, etc.
-  side?: '東' | '西'
+  /** Locale-independent sumo rank ID. Labels: `common.banzuke.title.*` */
+  title: BanzukeTitle
+  /** Locale-independent side ID. Labels: `common.banzuke.side.*` */
+  side?: BanzukeSide
   prefecture: string
   selfSufficiency: number
   solarKw: number
@@ -21,8 +26,8 @@ export type PrefectureRank = {
 export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   {
     rank: 1,
-    title: '横綱',
-    side: '東',
+    title: 'yokozuna',
+    side: 'east',
     prefecture: '山梨県',
     selfSufficiency: 48.2,
     solarKw: 182000,
@@ -31,8 +36,8 @@ export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   },
   {
     rank: 1,
-    title: '横綱',
-    side: '西',
+    title: 'yokozuna',
+    side: 'west',
     prefecture: '秋田県',
     selfSufficiency: 45.1,
     solarKw: 96000,
@@ -41,8 +46,8 @@ export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   },
   {
     rank: 2,
-    title: '大関',
-    side: '東',
+    title: 'ozeki',
+    side: 'east',
     prefecture: '福島県',
     selfSufficiency: 41.8,
     solarKw: 214000,
@@ -51,8 +56,8 @@ export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   },
   {
     rank: 2,
-    title: '大関',
-    side: '西',
+    title: 'ozeki',
+    side: 'west',
     prefecture: '長野県',
     selfSufficiency: 39.6,
     solarKw: 143000,
@@ -61,8 +66,8 @@ export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   },
   {
     rank: 3,
-    title: '関脇',
-    side: '東',
+    title: 'sekiwake',
+    side: 'east',
     prefecture: '大分県',
     selfSufficiency: 34.5,
     solarKw: 88000,
@@ -71,8 +76,8 @@ export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   },
   {
     rank: 3,
-    title: '関脇',
-    side: '西',
+    title: 'sekiwake',
+    side: 'west',
     prefecture: '鹿児島県',
     selfSufficiency: 33.1,
     solarKw: 121000,
@@ -81,8 +86,8 @@ export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   },
   {
     rank: 4,
-    title: '小結',
-    side: '東',
+    title: 'komusubi',
+    side: 'east',
     prefecture: '岩手県',
     selfSufficiency: 29.7,
     solarKw: 76000,
@@ -91,8 +96,8 @@ export const PREFECTURE_RANKINGS: PrefectureRank[] = [
   },
   {
     rank: 4,
-    title: '小結',
-    side: '西',
+    title: 'komusubi',
+    side: 'west',
     prefecture: '宮崎県',
     selfSufficiency: 28.3,
     solarKw: 69000,
@@ -109,16 +114,16 @@ export const RANKING_METRICS: { value: RankingMetric; label: string; unit: strin
   { value: 'yoyGrowth', label: '伸び率(YoY)', unit: '%' },
 ]
 
-const BANZUKE_TITLES = ['横綱', '大関', '関脇', '小結']
+const BANZUKE_TITLES: BanzukeTitle[] = ['yokozuna', 'ozeki', 'sekiwake', 'komusubi']
 
 // Re-sorts the banzuke by the selected metric and reassigns sumo-style
-// rank titles (横綱・大関・関脇・小結) and 東/西 sides based on the new order.
+// rank titles and east/west sides based on the new order.
 export function rankPrefectures(metric: RankingMetric): PrefectureRank[] {
   const sorted = [...PREFECTURE_RANKINGS].sort((a, b) => b[metric] - a[metric])
   return sorted.map((entry, index) => ({
     ...entry,
     rank: Math.floor(index / 2) + 1,
     title: BANZUKE_TITLES[Math.floor(index / 2)] ?? BANZUKE_TITLES[BANZUKE_TITLES.length - 1],
-    side: index % 2 === 0 ? '東' : '西',
+    side: index % 2 === 0 ? 'east' : 'west',
   }))
 }

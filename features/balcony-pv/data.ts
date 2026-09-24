@@ -1,15 +1,16 @@
 // Mock for balcony-plug-in-pv. Heuristic stand-in for suncalc-js-engine.
 
-export type Direction = '南' | '南東' | '南西' | '東' | '西'
+export type Direction = 'south' | 'southeast' | 'southwest' | 'east' | 'west'
 export type RailingType = 'grid' | 'glass' | 'concrete'
 
-export const DIRECTIONS: { value: Direction; label: string }[] = [
-  { value: '南', label: '南向き' },
-  { value: '南東', label: '南東' },
-  { value: '南西', label: '南西' },
-  { value: '東', label: '東' },
-  { value: '西', label: '西' },
-]
+/** Locale-independent direction keys. Labels live in messages under `common.directions`. */
+export const DIRECTIONS: readonly Direction[] = [
+  'south',
+  'southeast',
+  'southwest',
+  'east',
+  'west',
+] as const
 
 export const RAILING_TYPES: { value: RailingType; label: string }[] = [
   { value: 'grid', label: '格子スチール' },
@@ -21,11 +22,11 @@ export const RAILING_TYPES: { value: RailingType; label: string }[] = [
 // direction, railing type, and time of day.
 export function computeBalconyScore(direction: Direction, railing: RailingType, hour: number): number {
   const directionScore: Record<Direction, number> = {
-    南: 100,
-    南東: 88,
-    南西: 88,
-    東: 68,
-    西: 68,
+    south: 100,
+    southeast: 88,
+    southwest: 88,
+    east: 68,
+    west: 68,
   }
   const railingScore: Record<RailingType, number> = {
     glass: 100,

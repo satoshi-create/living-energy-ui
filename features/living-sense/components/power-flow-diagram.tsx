@@ -1,3 +1,6 @@
+"use client"
+
+import { useTranslations } from "next-intl"
 import { Sun, BatteryCharging, Laptop, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { FlowNode } from "../data"
@@ -9,6 +12,8 @@ const ICONS: Record<FlowNode["icon"], LucideIcon> = {
 }
 
 export function PowerFlowDiagram({ nodes }: { nodes: FlowNode[] }) {
+  const t = useTranslations("livingSense")
+
   return (
     <div className="flex flex-col items-stretch gap-0 sm:flex-row sm:items-center">
       {nodes.map((node, index) => {
@@ -20,8 +25,8 @@ export function PowerFlowDiagram({ nodes }: { nodes: FlowNode[] }) {
               <div className="flex size-11 items-center justify-center rounded-full bg-primary/15 text-primary">
                 <Icon className="size-5" />
               </div>
-              <p className="text-sm font-medium text-card-foreground">{node.label}</p>
-              <p className="text-xs tabular-nums text-primary">{node.sublabel}</p>
+              <p className="text-sm font-medium text-card-foreground">{t(`flow.${node.id}.label`)}</p>
+              <p className="text-xs tabular-nums text-primary">{t(`flow.${node.id}.sublabel`)}</p>
             </div>
             {!isLast && (
               <div

@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -25,6 +26,8 @@ function formatValue(value: number, metric: RankingMetric) {
 }
 
 export function RankingView() {
+  const tSide = useTranslations("common.banzuke.side")
+  const tTitle = useTranslations("common.banzuke.title")
   const [metric, setMetric] = useState<RankingMetric>("selfSufficiency")
   const ranked = useMemo(() => rankPrefectures(metric), [metric])
   const unit = RANKING_METRICS.find((m) => m.value === metric)!.unit
@@ -60,9 +63,11 @@ export function RankingView() {
                         variant={entry.rank === 1 ? "default" : "secondary"}
                         className={entry.rank === 1 ? "bg-primary/90 text-primary-foreground" : ""}
                       >
-                        {entry.title}
+                        {tTitle(entry.title)}
                       </Badge>
-                      <span className="mt-1 text-[11px] text-muted-foreground">{entry.side}</span>
+                      <span className="mt-1 text-[11px] text-muted-foreground">
+                        {entry.side ? tSide(entry.side) : null}
+                      </span>
                     </div>
                     <span className="w-24 shrink-0 text-sm font-semibold text-foreground sm:w-32">
                       {entry.prefecture}

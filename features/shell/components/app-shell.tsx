@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Sun, Network, Globe2, Building2, Leaf } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
@@ -11,17 +12,46 @@ import { EcosystemOrgsView } from "@/features/ecosystem-orgs/components/ecosyste
 import { REGIONS } from "@/lib/regions"
 
 const NAV_ITEMS = [
-  { id: "balcony-simulation", label: "ベランダ発電シミュレーション", shortLabel: "ベランダ", icon: Sun },
-  { id: "global-implementation", label: "ベランダソーラー世界実装", shortLabel: "世界実装", icon: Globe2 },
-  { id: "ecosystem-orgs", label: "企業・非営利団体・エコシステム", shortLabel: "エコシステム", icon: Building2 },
-  { id: "regional-network", label: "地域再エネネットワーク", shortLabel: "ネットワーク", icon: Network },
+  { id: "balcony-simulation", icon: Sun },
+  { id: "global-implementation", icon: Globe2 },
+  { id: "ecosystem-orgs", icon: Building2 },
+  { id: "regional-network", icon: Network },
 ] as const
 
 type ViewId = (typeof NAV_ITEMS)[number]["id"]
 
+const VIEW_STORAGE_KEY = "living-energy-active-view"
+const REGION_STORAGE_KEY = "living-energy-region-id"
+
+function isViewId(value: string | null): value is ViewId {
+  return NAV_ITEMS.some((item) => item.id === value)
+}
+
 export function AppShell() {
+  const t = useTranslations("shell")
   const [activeView, setActiveView] = useState<ViewId>("balcony-simulation")
   const [regionId, setRegionId] = useState(REGIONS[0].id)
+  const [hydrated, setHydrated] = useState(false)
+
+  useEffect(() => {
+    const storedView = sessionStorage.getItem(VIEW_STORAGE_KEY)
+    const storedRegion = sessionStorage.getItem(REGION_STORAGE_KEY)
+    if (isViewId(storedView)) setActiveView(storedView)
+    if (storedRegion && REGIONS.some((r) => r.id === storedRegion)) {
+      setRegionId(storedRegion)
+    }
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
+    sessionStorage.setItem(VIEW_STORAGE_KEY, activeView)
+  }, [activeView, hydrated])
+
+  useEffect(() => {
+    if (!hydrated) return
+    sessionStorage.setItem(REGION_STORAGE_KEY, regionId)
+  }, [regionId, hydrated])
 
   const activeItem = NAV_ITEMS.find((item) => item.id === activeView)!
 
@@ -33,8 +63,8 @@ export function AppShell() {
             <Leaf className="size-5" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-sidebar-foreground">Living Energy UI</span>
-            <span className="text-xs text-muted-foreground">生活実感型・再エネ×流域</span>
+            <span className="text-sm font-semibold text-sidebar-foreground">{t("brand")}</span>
+            <span className="text-xs text-muted-foreground">{t("tagline")}</span>
           </div>
         </div>
         <nav className="flex flex-col gap-1">
@@ -54,15 +84,13 @@ export function AppShell() {
                 )}
               >
                 <Icon className="size-4 shrink-0" />
-                <span>{item.label}</span>
+                <span>{t(`nav.${item.id}.label`)}</span>
               </button>
             )
           })}
         </nav>
         <div className="mt-auto rounded-xl border border-border/60 bg-muted/40 p-3">
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            すべての数値はデモ用のシミュレーションデータです。実際の発電量とは異なります。
-          </p>
+          <p className="text-xs leading-relaxed text-muted-foreground">{t("demoDisclaimer")}</p>
         </div>
       </aside>
 
@@ -70,7 +98,7 @@ export function AppShell() {
         <RegionHeader
           regionId={regionId}
           onRegionChange={setRegionId}
-          title={activeItem.label}
+          title={t(`nav.${activeItem.id}.label`)}
           showRegionSelect={activeView === "regional-network"}
         />
 
@@ -96,7 +124,7 @@ export function AppShell() {
                 )}
               >
                 <Icon className="size-5" />
-                <span>{item.shortLabel}</span>
+                <span>{t(`nav.${item.id}.shortLabel`)}</span>
               </button>
             )
           })}
