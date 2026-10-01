@@ -136,3 +136,14 @@
 .animate-flow-dash {
   animation: flow-dash 1s linear infinite;
 }
+
+/* 世界PVマップ: 国名ラベルのクリック・ホバー */
+.world-pv-map-svg .world-pv-map-label {
+  cursor: pointer;
+  transition: fill 150ms ease, opacity 150ms ease;
+}
+
+.world-pv-map-svg g:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

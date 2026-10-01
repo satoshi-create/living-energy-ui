@@ -11,7 +11,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Reading order
 
 1. このファイル
-2. `doc/構造分析書.md` — クリステンセン理論・ノード・JTBD
+2. `docs/構造分析書.md` — クリステンセン理論・ノード・JTBD
 3. `.cursorrules` — 編集時の禁止事項とスタック
 4. `features/*/data.ts` — 機能別モックと純関数
 5. `features/shell/components/app-shell.tsx` — 4画面のエントリ
@@ -45,7 +45,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | `components/ui/` | shadcn プリミティブ |
 | `lib/regions.ts` | 共有地域・天気モック |
 | `lib/utils.ts` | `cn()` |
-| `doc/構造分析書.md` | 戦略正本 |
+| `docs/構造分析書.md` | 戦略正本 |
 
 ## Views (`AppShell`) ↔ 構造分析書
 

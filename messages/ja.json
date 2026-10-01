@@ -161,28 +161,232 @@
   },
   "worldPv": {
     "title": "世界各国におけるベランダソーラーの社会実装",
-    "subtitle": "ドイツの法改正や欧米の法制化、途上国のオフグリッド展開など、賃貸でも工事レスで始められる再エネの動きを追います。",
+    "lead": "独法改正・欧米の法制化、アフリカ等のオフグリッド実装など、プラグインPVが「生活実感」で広がる動向の骨組みビューです（デモ）。",
+    "expand": "展開",
+    "collapse": "折りたたむ",
+    "regionsHeading": "地域別の実装動向",
+    "map": {
+      "legendTitle": "系統連系 / 認可ステータス",
+      "legendLegalPlug": "800Wプラグ公認（Solarpaket I / G98）",
+      "legendAppliance": "600W / 家電製品区分（簡易届出）",
+      "legendStorage": "オフグリッド蓄電型（逆潮流未認可）",
+      "legendStrictCode": "NEC/電気工事規程（コンセント連系不可）",
+      "storageShort": "蓄電",
+      "focusAll": "全域",
+      "focusEurope": "欧州",
+      "focusAsia": "アジア",
+      "focusOthers": "他地域",
+      "zoomIn": "ズームイン",
+      "zoomOut": "ズームアウト",
+      "resetView": "表示をリセット"
+    },
+    "detail": {
+      "close": "閉じる",
+      "progress": "社会実装進展度",
+      "powerLimit": "認可上限",
+      "powerLimitWatts": "{watts}W連系",
+      "powerLimitOffGrid": "オフグリッド（逆潮流不可）",
+      "payback": "回収年数",
+      "tabPolicy": "制度・賃貸",
+      "tabLife": "生活・経済",
+      "tabSafety": "安全・退避",
+      "connectionMethod": "接続方式",
+      "tenantRights": "賃貸設置権",
+      "tenantRightsYes": "法制化・保障",
+      "tenantRightsNo": "規約・協議要",
+      "regulation": "準拠法規",
+      "meterRequirement": "メーター要件",
+      "costRange": "初期費用",
+      "baseLoadCoverage": "生活賄い率 (JTBD)",
+      "incentives": "公的助成・税制",
+      "windSafety": "風速耐性・出仕舞い",
+      "antiIslanding": "単独運転遮断基準",
+      "mountingRules": "設置・穴あけ制約",
+      "lastUpdated": "更新日"
+    },
+    "countries": {
+      "germany": {
+        "name": "ドイツ",
+        "statusLabel": "800Wプラグ公認",
+        "powerLimit": "800W",
+        "connectionMethod": "コンセント直結（プラグイン）",
+        "tenantRights": "法的に権利保障",
+        "paybackYears": "3〜4年",
+        "costRange": "€350〜€500 (約5〜8万円)",
+        "baseLoadCoverage": "昼間ベースロードの約70〜90%相殺",
+        "incentives": "付加価値税(VAT)0% + 各自治体補助金(€100〜€500)",
+        "antiIslanding": "VDE-AR-N 4105 (プラグ抜去時0.2秒以内の電圧喪失)",
+        "meterRequirement": "旧メーター逆回転を暫定許容（順次スマートメーター化）",
+        "windSafety": "強風時の手すり内側退避推奨（無突起クランプ推奨）",
+        "mountingRules": "ビス留め穴あけ原則禁止（挟み込みブラケット必須・所要15分）",
+        "summary": "連邦ネットワーク庁(MaStR)への登録のみで無届連系可能。賃貸人の設置権が法制化され100万世帯以上に急速普及。"
+      },
+      "austria": {
+        "name": "オーストリア",
+        "statusLabel": "800Wプラグ公認",
+        "powerLimit": "800W",
+        "connectionMethod": "コンセント直結（プラグイン）",
+        "tenantRights": "法的に権利保障",
+        "paybackYears": "4〜5年",
+        "costRange": "€400〜€600 (約6〜9万円)",
+        "baseLoadCoverage": "昼間ベースロードの約60〜80%相殺",
+        "incentives": "一部自治体での環境助成あり",
+        "antiIslanding": "TOR Erzeuger Typ A (瞬時単独運転防止)",
+        "meterRequirement": "スマートメーター設置家庭推奨（2週間前通知）",
+        "windSafety": "耐風圧基準準拠（台風時は取り外し推奨）",
+        "mountingRules": "手すり無穿孔固定（小型家電分類のため電気工事士不要）",
+        "summary": "小型家電製品として分類。系統事業者への2週間前事前通知のみで手軽にコンセント給電が可能。"
+      },
+      "switzerland": {
+        "name": "スイス",
+        "statusLabel": "600W / 家電製品区分",
+        "powerLimit": "600W",
+        "connectionMethod": "コンセント直結（プラグイン）",
+        "tenantRights": "規約・協議要",
+        "paybackYears": "6〜8年",
+        "costRange": "CHF 600〜900 (約10〜15万円)",
+        "baseLoadCoverage": "昼間ベースロードの約50〜65%相殺",
+        "incentives": "カントン（州）ごとの再エネ助成",
+        "antiIslanding": "ESTI指針・差込プラグPRCD（漏電遮断器）要件",
+        "meterRequirement": "電力会社への事前届出必須",
+        "windSafety": "降雪荷重・アルプス山間部強風耐性要",
+        "mountingRules": "ベランダ手すり外側設置は賃貸家主の書面合意必須",
+        "summary": "定格600Wまでプラグ接続容認。ベランダ内側は自由だが手すり外側設置は賃貸管理者の合意が必要。"
+      },
+      "uk": {
+        "name": "イギリス",
+        "statusLabel": "800Wプラグ公認",
+        "powerLimit": "800W",
+        "connectionMethod": "コンセント直結（プラグイン）",
+        "tenantRights": "規約・協議要",
+        "paybackYears": "5〜7年",
+        "costRange": "£400〜£650 (約8〜12万円)",
+        "baseLoadCoverage": "昼間ベースロードの約50〜70%相殺",
+        "incentives": "VAT 0%（省エネ部材特例）",
+        "antiIslanding": "ENA G98認証 (プラグ抜去時0.5秒以内停止)",
+        "meterRequirement": "スマートメーター推奨（ENAへの事後28日以内通知）",
+        "windSafety": "沿岸強風地域は風速30m/s耐性または出仕舞い退避",
+        "mountingRules": "BS 1363 (5Aヒューズ付プラグ必須・屋外防滴コンセント要)",
+        "summary": "5Aヒューズ付きプラグを条件に配電事業者(ENA)への28日以内事後通知で800Wまで連系可能。"
+      },
+      "france": {
+        "name": "フランス",
+        "statusLabel": "800Wプラグ公認",
+        "powerLimit": "800W",
+        "connectionMethod": "コンセント直結（プラグイン）",
+        "tenantRights": "規約・協議要",
+        "paybackYears": "5〜6年",
+        "costRange": "€450〜€700 (約7〜11万円)",
+        "baseLoadCoverage": "昼間ベースロードの約60〜75%相殺",
+        "incentives": "なし（低価格キットが量販店で定着）",
+        "antiIslanding": "DIN VDE 0126-1-1 / VFR 2019準拠",
+        "meterRequirement": "Linky（スマートメーター）による自己消費協約",
+        "windSafety": "強風注意報時の角度フラット化・格納推奨",
+        "mountingRules": "工具不要のワンタッチ手すりストラップ/ブラケット主流",
+        "summary": "配電事業者Enedisへの無料CACSIオンライン申告で即日利用可能。大手ホームセンターでキットが広く流通。"
+      },
+      "italy": {
+        "name": "イタリア",
+        "statusLabel": "800Wプラグ公認",
+        "powerLimit": "800W",
+        "connectionMethod": "コンセント直結（プラグイン）",
+        "tenantRights": "法的に権利保障",
+        "paybackYears": "3〜5年 (日照豊富)",
+        "costRange": "€400〜€550 (約6〜9万円)",
+        "baseLoadCoverage": "昼間ベースロードの約80〜100%相殺",
+        "incentives": "税額控除50%（Ecobonus対象）",
+        "antiIslanding": "CEI 0-21 (単独運転防止・認証インバータ)",
+        "meterRequirement": "双方向スマートメーター対応（350W以下は届出不要）",
+        "windSafety": "地中海突風対策（固定式または手動折りたたみ退避）",
+        "mountingRules": "外観景観規制エリアを除き手すりクランプ設置可能",
+        "summary": "ARERA規則により350W以下は届出不要の完全自由。350〜800Wは簡易通信票の送付のみでプラグイン可能。"
+      },
+      "belgium": {
+        "name": "ベルギー",
+        "statusLabel": "800Wプラグ公認",
+        "powerLimit": "800W",
+        "connectionMethod": "コンセント直結（プラグイン）",
+        "tenantRights": "規約・協議要",
+        "paybackYears": "5〜7年",
+        "costRange": "€400〜€600 (約6〜9万円)",
+        "baseLoadCoverage": "昼間ベースロードの約60〜70%相殺",
+        "incentives": "フランデレン地域等での個別補助金",
+        "antiIslanding": "Synergrid公認インバータリスト準拠",
+        "meterRequirement": "デジタルスマートメーター設置必須（円盤逆回転不可）",
+        "windSafety": "突風時の固定確認義務",
+        "mountingRules": "共有部手すり設置は管理組合合意要",
+        "summary": "旧型円盤メーターの逆回転を防ぐためデジタルスマートメーター設置家庭でのみプラグイン連系を認可。"
+      },
+      "usa": {
+        "name": "アメリカ",
+        "statusLabel": "NEC/電気工事規程",
+        "powerLimit": "オフグリッド (逆潮流不可)",
+        "connectionMethod": "オフグリッド蓄電",
+        "tenantRights": "規約・協議要",
+        "paybackYears": "回収困難 (屋根置き連系が主流)",
+        "costRange": "$800〜$1,500 (蓄電オフグリッドキット)",
+        "baseLoadCoverage": "部分オフグリッド利用 (アウトドア・停電対策)",
+        "incentives": "連邦税額控除(ITC 30%)は屋根工事連動が主",
+        "antiIslanding": "UL 1741 SB / NEC Rapid Shutdown (急速遮断)",
+        "meterRequirement": "ユーティリティ連系協議・専門電気工事士の接続必須",
+        "windSafety": "ハリケーン・竜巻地域での剛体耐風基準 (110mph以上)",
+        "mountingRules": "コンセント直結は違法配線扱い / HOA(住民組合)の規約規制",
+        "summary": "NECの急速遮断(Rapid Shutdown)要件によりコンセント直結は原則不可。蓄電型オフグリッドキットが主流。"
+      },
+      "china": {
+        "name": "中国",
+        "statusLabel": "オフグリッド蓄電型",
+        "powerLimit": "800W",
+        "connectionMethod": "オフグリッド蓄電 / マイクロインバータ系統工事",
+        "tenantRights": "原則不可",
+        "paybackYears": "3〜4年 (電気代水準による)",
+        "costRange": "1,500〜3,000元 (約3〜6万円)",
+        "baseLoadCoverage": "昼間ベースロードの約60〜80%相殺",
+        "incentives": "一部都市の実証モデル推進",
+        "antiIslanding": "NB/T 32004 (系統連系規格)",
+        "meterRequirement": "双方向スマートメーター（集合住宅での直結は非公認）",
+        "windSafety": "高層ビル特有のビル風・落下防止ワイヤー多重化必須",
+        "mountingRules": "管理会社（物業）の許可極めて困難・防護ネット内設置中心",
+        "summary": "世界のバルコニーPV機器（インバータ・蓄電池）の最大輸出国。国内集合住宅でも実証が進む。"
+      },
+      "japan": {
+        "name": "日本",
+        "statusLabel": "オフグリッド蓄電型",
+        "powerLimit": "オフグリッド (逆潮流不可)",
+        "connectionMethod": "オフグリッド蓄電",
+        "tenantRights": "原則不可",
+        "paybackYears": "10年以上 (蓄電投資が主体)",
+        "costRange": "10〜18万円 (ポータブル電源込み)",
+        "baseLoadCoverage": "ポータブル電源経由で夜間家電・スマホ等の部分自給",
+        "incentives": "一部自治体の防災蓄電池購入補助",
+        "antiIslanding": "JET認証（系統連系用は別途協議要）",
+        "meterRequirement": "逆潮流禁止（逆電力継電器RPRなしの直結不可）",
+        "windSafety": "台風時の出仕舞い（室内完全退避）必須 / 落下防止基準厳格",
+        "mountingRules": "管理規約でベランダ手すり私物設置禁止が一般的",
+        "summary": "内線規程・系統連系の壁によりコンセント直結は未認可。ポータブル電源直結の蓄電自給が主流。"
+      }
+    },
     "timeline": {
       "heading": "実装タイムライン",
       "until2020": {
         "period": "〜2020",
-        "title": "先駆者と実験の時代",
-        "description": "プラグイン型パネルは趣味・実験用途が中心。安全基準や出力上限は国ごとに曖昧なままだった。"
+        "title": "屋根置き・FIT中心",
+        "description": "再エネ普及の主戦場は屋根置き太陽光とFIT。プラグイン型はまだ周辺的な位置づけだった。"
       },
       "from2021": {
         "period": "2021〜",
-        "title": "安全と上限の議論が加速",
-        "description": "ドイツなどで簡易設置の需要が急増し、出力上限・認証・系統接続のルール作りが本格化した。"
+        "title": "EUプラグインPV拡大",
+        "description": "EUを中心に挿し込み型パネルの需要が急増し、安全基準と出力枠の議論が本格化した。"
       },
       "from2023": {
         "period": "2023〜",
-        "title": "賃貸向け法制化が進む",
-        "description": "独・EUを中心に、賃貸住宅でも設置しやすい法整備と〜800W級の枠組みが広がった。"
+        "title": "800W社会実装",
+        "description": "独・EUなどで〜800W級の枠組みが整い、賃貸・集合住宅でも社会実装が進んだ。"
       },
-      "present": {
+      "current": {
         "period": "現在",
-        "title": "生活実感と工事レスが共通言語に",
-        "description": "kWhではなく暮らしの実感で語り、専門工事なしで始めるベランダ発電が世界の共通テーマになっている。"
+        "title": "世界実装の分岐",
+        "description": "法制化が進む先進国と、オフグリッド実装が先行する地域へと、世界の展開が分岐している。"
       }
     },
     "tags": {
@@ -193,32 +397,82 @@
     "regions": {
       "germanyEu": {
         "name": "ドイツ・EU",
-        "headline": "挿すだけの再エネが、賃貸の標準に近づく",
-        "body": "改正と指針により、ベランダへの簡易設置が現実的な選択肢になった。上限ワット数の明確化と、生活実感での訴求がセットで広がっている。",
+        "headline": "プラグイン太陽光 800W 枠の社会実装",
+        "body": "法改正と指針により、ベランダへの簡易設置が現実的な選択肢になった。出力上限の明確化と生活実感での訴求がセットで広がっている。",
         "bullets": {
-          "cap800w": "〜800W級の出力上限が分かりやすく整理",
-          "rentalHousing": "賃貸住宅でも許可・設置ハードルが下がる動き",
-          "livedExperience": "家電換算など生活実感訴求との相性が高い"
+          "clearOutputCap": "出力上限の明確化（〜800W級）",
+          "rentalMultifamily": "賃貸・集合住宅での設置ハードル低下",
+          "applianceValue": "家電価値換算による生活実感訴求"
         }
       },
       "unitedStates": {
         "name": "米国",
-        "headline": "州ごとのルールの中で、プラグインが広がる",
-        "body": "連邦一括ではなく州・ユーティリティ単位の規制が多い。一方でポータブル電源と組み合わせたベランダ／デッキ設置の関心は高い。",
+        "headline": "州・自治体レベルでのプラグインPV制度化",
+        "body": "連邦一括ではなく州・自治体単位でルールが整いつつある。賃貸向けインセンティブと既存屋根置きとの差別化が焦点だ。",
         "bullets": {
-          "stateRules": "州・系統会社ごとの接続・安全ルールが多様",
-          "rentalHousing": "賃貸・集合住宅での導入事例が増加中",
-          "livedExperience": "停電対策とセットの生活実感メッセージが強い"
+          "stateInterconnection": "州別の接続ルール",
+          "rentalIncentives": "賃貸向けインセンティブ",
+          "rooftopDifferentiation": "既存屋根置きとの差別化"
         }
       },
       "africaDeveloping": {
         "name": "アフリカ・途上国",
-        "headline": "オフグリッドから始まるベランダ級の再エネ",
-        "body": "系統が届かない地域では、小規模パネルと蓄電池が生活インフラそのもの。工事レス・モジュラーな導入が前提になっている。",
+        "headline": "オフグリッド／弱電網でのベランダ・壁面ソーラー",
+        "body": "系統が届かない・弱い地域では、小規模パネルと蓄電池が生活インフラそのもの。工事レスな導入が前提になっている。",
         "bullets": {
-          "offGridFirst": "オフグリッド／弱電系統向けの小容量キットが主流",
-          "rentalHousing": "都市部の集合住宅でも差し込み型需要が伸びる",
-          "livedExperience": "照明・充電・仕事時間など生活実感が導入判断の軸"
+          "appliancePower": "家電単位の電源確保",
+          "microgridLink": "マイクログリッド接続",
+          "coopNgo": "市民協同・NGO連携"
+        }
+      }
+    }
+  },
+  "ecosystem": {
+    "title": "ベランダソーラーに関する企業・非営利団体",
+    "lead": "Anker、Enphase、市民協同体など、製品・組織・求人をつなぐエコシステムの骨組み一覧です（デモ）。",
+    "tags": {
+      "pluginStorage": "プラグイン蓄電",
+      "microinverter": "マイクロインバータ",
+      "cooperative": "市民協同",
+      "advocacy": "政策・啓発"
+    },
+    "orgs": {
+      "ankerSolix": {
+        "name": "Anker Solix",
+        "subtitle": "プラグイン蓄電・ベランダキット",
+        "body": "ポータブル電源とベランダ向けキットで、工事レスの再エネ導入を製品側から支える。"
+      },
+      "enphase": {
+        "name": "Enphase",
+        "subtitle": "マイクロインバータ・住宅再エネ",
+        "body": "住宅向けマイクロインバータとモジュール型システムで、小規模分散再エネの基盤をつくる。"
+      },
+      "energyCoop": {
+        "name": "市民協同体・エネルギー協同組合",
+        "subtitle": "地域での共同購入・設置支援",
+        "body": "地域単位の共同購入や設置支援を通じ、個人では届きにくい導入ハードルを下げる。"
+      },
+      "climateNpo": {
+        "name": "再エネ・気候系NPO / NGO",
+        "subtitle": "政策提言・啓発・途上国実装",
+        "body": "政策提言、市民啓発、途上国でのオフグリッド実装など、制度と現場をつなぐ役割を担う。"
+      }
+    },
+    "careers": {
+      "heading": "求人・組織エコシステム連携（枠組み）",
+      "description": "企業採用情報と市民協同・実装現場をつなぐ枠組みのプレースホルダ。今後、外部求人・団体ディレクトリと接続予定。",
+      "areas": {
+        "productHardware": {
+          "title": "プロダクト / ハード",
+          "description": "パネル・蓄電・インバータなど、プラグイン製品の設計・製造・流通。"
+        },
+        "communityPolicy": {
+          "title": "コミュニティ / 政策",
+          "description": "協同組合運営、啓発、法制化・インセンティブ設計の現場。"
+        },
+        "uxLivedData": {
+          "title": "UX / 生活実感データ",
+          "description": "発電を家電価値へ翻訳するUI・計測・コミュニケーション設計。"
         }
       }
     }

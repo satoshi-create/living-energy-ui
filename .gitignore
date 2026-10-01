@@ -17,4 +17,4 @@ node_modules
 .next/
 .DS_Store
 
-/doc
+/docs

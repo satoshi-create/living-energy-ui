@@ -18,11 +18,11 @@
         "shortLabel": "Balcony"
       },
       "global-implementation": {
-        "label": "Balcony solar around the world",
+        "label": "Global Implementation of Balcony Solar",
         "shortLabel": "Global"
       },
       "ecosystem-orgs": {
-        "label": "Companies, nonprofits & ecosystem",
+        "label": "Companies, Nonprofits & Ecosystem",
         "shortLabel": "Ecosystem"
       },
       "regional-network": {
@@ -160,29 +160,233 @@
     }
   },
   "worldPv": {
-    "title": "Balcony solar social implementation around the world",
-    "subtitle": "Tracking renter-friendly, no-construction renewables—from German law reform and Western legislation to off-grid rollouts in developing regions.",
+    "title": "Global Implementation of Balcony Solar",
+    "lead": "A framework view tracking how plug-in PV is expanding through lived experience: German legal reforms, Western legislation, and African off-grid implementations (Demo).",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "regionsHeading": "Regional rollout trends",
+    "map": {
+      "legendTitle": "Grid connection / Approval status",
+      "legendLegalPlug": "800W plug approved (Solarpaket I / G98)",
+      "legendAppliance": "600W / Appliance category (simplified notice)",
+      "legendStorage": "Off-grid storage (no reverse flow)",
+      "legendStrictCode": "NEC / Electrical code (no outlet grid-tie)",
+      "storageShort": "Storage",
+      "focusAll": "Global",
+      "focusEurope": "Europe",
+      "focusAsia": "Asia",
+      "focusOthers": "Others",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetView": "Reset view"
+    },
+    "detail": {
+      "close": "Close",
+      "progress": "Implementation Progress",
+      "powerLimit": "Allowed Capacity Limit",
+      "powerLimitWatts": "{watts}W grid-tied",
+      "powerLimitOffGrid": "Off-grid (no reverse flow)",
+      "payback": "Payback Period",
+      "tabPolicy": "Policy & Tenancy",
+      "tabLife": "Daily Life & Economy",
+      "tabSafety": "Safety & Resilience",
+      "connectionMethod": "Connection Type",
+      "tenantRights": "Tenant Installation Right",
+      "tenantRightsYes": "Legally Guaranteed",
+      "tenantRightsNo": "Rules / consent required",
+      "regulation": "Regulatory Standard",
+      "meterRequirement": "Meter Requirements",
+      "costRange": "Upfront Cost",
+      "baseLoadCoverage": "Lived-experience coverage (JTBD)",
+      "incentives": "Incentives & tax",
+      "windSafety": "Wind / stow guidance",
+      "antiIslanding": "Anti-islanding standard",
+      "mountingRules": "Mounting / drilling limits",
+      "lastUpdated": "Last updated"
+    },
+    "countries": {
+      "germany": {
+        "name": "Germany",
+        "statusLabel": "800W Plug-in Certified",
+        "powerLimit": "800W",
+        "connectionMethod": "Plug-in Direct Connection",
+        "tenantRights": "Legally Guaranteed",
+        "paybackYears": "3–4 years",
+        "costRange": "€350–€500 (approx. ¥50–80k)",
+        "baseLoadCoverage": "Offsets ~70–90% of daytime base load",
+        "incentives": "0% VAT + municipal grants (€100–€500)",
+        "antiIslanding": "VDE-AR-N 4105 (voltage loss within 0.2s on unplug)",
+        "meterRequirement": "Legacy reverse-spin temporarily allowed (smart meters rolling out)",
+        "windSafety": "Stow inside railing in high wind (flush clamps recommended)",
+        "mountingRules": "No drilling preferred (clamp brackets; ~15 min)",
+        "summary": "Grid connection with Federal Network Agency (MaStR) registration only. Tenant install rights are law; adoption exceeds 1 million households."
+      },
+      "austria": {
+        "name": "Austria",
+        "statusLabel": "800W Plug-in Certified",
+        "powerLimit": "800W",
+        "connectionMethod": "Plug-in Direct Connection",
+        "tenantRights": "Legally Guaranteed",
+        "paybackYears": "4–5 years",
+        "costRange": "€400–€600 (approx. ¥60–90k)",
+        "baseLoadCoverage": "Offsets ~60–80% of daytime base load",
+        "incentives": "Local environmental grants in some municipalities",
+        "antiIslanding": "TOR Erzeuger Typ A (instant anti-islanding)",
+        "meterRequirement": "Smart-meter homes preferred (2-week prior notice)",
+        "windSafety": "Wind-load compliant (remove in storms)",
+        "mountingRules": "No-drill railing fix (appliance class; electrician not required)",
+        "summary": "Classed as a small appliance. A 2-week prior notice to the grid operator is enough for easy plug-in operation."
+      },
+      "switzerland": {
+        "name": "Switzerland",
+        "statusLabel": "600W / Appliance Category",
+        "powerLimit": "600W",
+        "connectionMethod": "Plug-in Direct Connection",
+        "tenantRights": "Rules / consent required",
+        "paybackYears": "6–8 years",
+        "costRange": "CHF 600–900 (approx. ¥100–150k)",
+        "baseLoadCoverage": "Offsets ~50–65% of daytime base load",
+        "incentives": "Canton-level renewable grants",
+        "antiIslanding": "ESTI guidance · PRCD (RCD) plug requirements",
+        "meterRequirement": "Prior notice to the utility required",
+        "windSafety": "Snow load and Alpine wind resistance needed",
+        "mountingRules": "Outside-railing install needs written landlord consent",
+        "summary": "Plug-in allowed up to 600W rated. Inside the railing is freer; outside mounts need property-manager consent."
+      },
+      "uk": {
+        "name": "United Kingdom (UK)",
+        "statusLabel": "800W Plug-in Certified",
+        "powerLimit": "800W",
+        "connectionMethod": "Plug-in Direct Connection",
+        "tenantRights": "Rules / consent required",
+        "paybackYears": "5–7 years",
+        "costRange": "£400–£650 (approx. ¥80–120k)",
+        "baseLoadCoverage": "Offsets ~50–70% of daytime base load",
+        "incentives": "0% VAT (energy-saving product relief)",
+        "antiIslanding": "ENA G98 certified (stop within 0.5s on unplug)",
+        "meterRequirement": "Smart meter recommended (notify ENA within 28 days)",
+        "windSafety": "Coastal sites: 30 m/s wind rating or stow",
+        "mountingRules": "BS 1363 (fused 5A plug required; outdoor IP outlet)",
+        "summary": "With a fused 5A plug, up to 800W grid-tie via post-install notice to ENA within 28 days."
+      },
+      "france": {
+        "name": "France",
+        "statusLabel": "800W Plug-in Certified",
+        "powerLimit": "800W",
+        "connectionMethod": "Plug-in Direct Connection",
+        "tenantRights": "Rules / consent required",
+        "paybackYears": "5–6 years",
+        "costRange": "€450–€700 (approx. ¥70–110k)",
+        "baseLoadCoverage": "Offsets ~60–75% of daytime base load",
+        "incentives": "None (low-cost kits established in retail)",
+        "antiIslanding": "DIN VDE 0126-1-1 / VFR 2019 compliant",
+        "meterRequirement": "Linky smart meter self-consumption accord",
+        "windSafety": "Flatten or stow when high-wind warnings",
+        "mountingRules": "Tool-free railing straps/brackets are mainstream",
+        "summary": "Free online CACSI filing to Enedis enables same-day use. DIY kits are widely sold at home centers."
+      },
+      "italy": {
+        "name": "Italy",
+        "statusLabel": "800W Plug-in Certified",
+        "powerLimit": "800W",
+        "connectionMethod": "Plug-in Direct Connection",
+        "tenantRights": "Legally Guaranteed",
+        "paybackYears": "3–5 years (strong insolation)",
+        "costRange": "€400–€550 (approx. ¥60–90k)",
+        "baseLoadCoverage": "Offsets ~80–100% of daytime base load",
+        "incentives": "50% tax credit (Ecobonus)",
+        "antiIslanding": "CEI 0-21 (certified inverter anti-islanding)",
+        "meterRequirement": "Bidirectional smart meter (≤350W needs no filing)",
+        "windSafety": "Mediterranean gusts: fixed or fold-away stow",
+        "mountingRules": "Railing clamps OK outside protected streetscape zones",
+        "summary": "Under ARERA rules, ≤350W needs no procedure. 350–800W is authorized via a simplified notice."
+      },
+      "belgium": {
+        "name": "Belgium",
+        "statusLabel": "800W Plug-in Certified",
+        "powerLimit": "800W",
+        "connectionMethod": "Plug-in Direct Connection",
+        "tenantRights": "Rules / consent required",
+        "paybackYears": "5–7 years",
+        "costRange": "€400–€600 (approx. ¥60–90k)",
+        "baseLoadCoverage": "Offsets ~60–70% of daytime base load",
+        "incentives": "Regional grants (e.g. Flanders)",
+        "antiIslanding": "Synergrid-approved inverter list",
+        "meterRequirement": "Digital smart meter required (no disc reverse-spin)",
+        "windSafety": "Check fixings in gusts",
+        "mountingRules": "Shared-railing installs need HOA consent",
+        "summary": "To prevent reverse spin on legacy disc meters, plug-in grid-tie is allowed only in homes with digital meters."
+      },
+      "usa": {
+        "name": "United States (US)",
+        "statusLabel": "NEC / Electrical Code",
+        "powerLimit": "Off-grid (no reverse flow)",
+        "connectionMethod": "Off-grid storage",
+        "tenantRights": "Rules / consent required",
+        "paybackYears": "Hard to recover (rooftop interconnect dominates)",
+        "costRange": "$800–$1,500 (off-grid storage kit)",
+        "baseLoadCoverage": "Partial off-grid (outdoor / outage backup)",
+        "incentives": "Federal ITC 30% mainly tied to rooftop work",
+        "antiIslanding": "UL 1741 SB / NEC Rapid Shutdown",
+        "meterRequirement": "Utility interconnect + licensed electrician required",
+        "windSafety": "Hurricane/tornado regions: rigid wind ratings (110+ mph)",
+        "mountingRules": "Outlet plug-in treated as illegal wiring / HOA limits",
+        "summary": "NEC Rapid Shutdown rules generally ban outlet plug-in. Storage off-grid kits dominate the market."
+      },
+      "china": {
+        "name": "China",
+        "statusLabel": "Off-grid Storage Type",
+        "powerLimit": "800W",
+        "connectionMethod": "Off-grid storage / microinverter interconnect work",
+        "tenantRights": "Generally not allowed",
+        "paybackYears": "3–4 years (depends on tariffs)",
+        "costRange": "¥1,500–3,000 CNY (approx. ¥30–60k JPY)",
+        "baseLoadCoverage": "Offsets ~60–80% of daytime base load",
+        "incentives": "Pilot programs in some cities",
+        "antiIslanding": "NB/T 32004 (grid-tie standard)",
+        "meterRequirement": "Bidirectional smart meter (direct multifamily plug-in not certified)",
+        "windSafety": "High-rise wind / multi-point fall protection required",
+        "mountingRules": "Property-manager approval is rare; installs behind safety nets",
+        "summary": "The world's largest exporter of balcony PV gear (inverters, batteries). Domestic multifamily pilots are expanding."
+      },
+      "japan": {
+        "name": "Japan",
+        "statusLabel": "Off-grid Storage Type",
+        "powerLimit": "Off-grid (no reverse flow)",
+        "connectionMethod": "Off-grid storage",
+        "tenantRights": "Generally not allowed",
+        "paybackYears": "10+ years (storage-led investment)",
+        "costRange": "¥100–180k (incl. portable power station)",
+        "baseLoadCoverage": "Partial self-supply for night appliances / phones via portable storage",
+        "incentives": "Some municipal disaster-battery purchase grants",
+        "antiIslanding": "JET certification (grid-tie needs separate talks)",
+        "meterRequirement": "No reverse flow (no direct tie without RPR)",
+        "windSafety": "Typhoon stow indoors required / strict fall rules",
+        "mountingRules": "Condo rules often ban railing personal fixtures",
+        "summary": "Indoor wiring rules and interconnection talks still block outlet plug-in. Portable storage self-supply is mainstream."
+      }
+    },
     "timeline": {
-      "heading": "Implementation timeline",
+      "heading": "Implementation Timeline",
       "until2020": {
-        "period": "Through 2020",
-        "title": "Pioneers and experiments",
-        "description": "Plug-in panels were mostly hobby and pilot use. Safety rules and power caps stayed vague country by country."
+        "period": "~2020",
+        "title": "Rooftop & FIT Era",
+        "description": "Renewables centered on rooftop solar and FIT schemes. Plug-in panels remained a peripheral option."
       },
       "from2021": {
-        "period": "2021 onward",
-        "title": "Safety and cap debates accelerate",
-        "description": "Demand for simple installs surged in places like Germany, pushing formal rules on output caps, certification, and grid connection."
+        "period": "2021~",
+        "title": "EU Plug-in PV Expansion",
+        "description": "Plug-in panel demand surged across the EU, accelerating debates on safety standards and output caps."
       },
       "from2023": {
-        "period": "2023 onward",
-        "title": "Rental-friendly frameworks take shape",
-        "description": "Germany and the EU led legal frameworks that make balcony solar easier for renters, often around the ~800W class."
+        "period": "2023~",
+        "title": "800W Social Implementation",
+        "description": "Germany and the EU clarified ~800W frameworks, enabling social rollout in rental and multifamily housing."
       },
-      "present": {
+      "current": {
         "period": "Today",
-        "title": "Lived experience and no-construction become common language",
-        "description": "Telling the story in everyday terms—not just kWh—and starting without specialist construction is now a shared global theme."
+        "title": "Global Bifurcation",
+        "description": "World rollout is splitting between jurisdictions advancing legislation and regions leading with off-grid deployment."
       }
     },
     "tags": {
@@ -193,32 +397,82 @@
     "regions": {
       "germanyEu": {
         "name": "Germany & EU",
-        "headline": "Plug-in renewables move toward a rental default",
-        "body": "Reforms and guidance made simple balcony installs a realistic option. Clear wattage caps and lived-experience messaging are spreading together.",
+        "headline": "Social rollout of the 800W plug-in solar framework",
+        "body": "Legal reforms made simple balcony installs a realistic option. Clear output caps and lived-experience messaging are spreading together.",
         "bullets": {
-          "cap800w": "Clearer framing around the ~800W output class",
-          "rentalHousing": "Lower permission and install barriers for rental housing",
-          "livedExperience": "Strong fit with appliance-style lived-experience messaging"
+          "clearOutputCap": "Clearer output caps (~800W class)",
+          "rentalMultifamily": "Lower barriers for rental and multifamily housing",
+          "applianceValue": "Appliance-value framing for lived experience"
         }
       },
       "unitedStates": {
         "name": "United States",
-        "headline": "Plug-in spreads amid state-by-state rules",
-        "body": "Rules often sit with states and utilities rather than one federal path. Interest in balcony and deck setups paired with portable storage remains high.",
+        "headline": "State and local institutionalization of plug-in PV",
+        "body": "Rules are taking shape at the state and municipal level rather than federally. Rental incentives and differentiation from rooftop solar are key themes.",
         "bullets": {
-          "stateRules": "Diverse interconnection and safety rules by state and utility",
-          "rentalHousing": "Growing install examples in rental and multifamily housing",
-          "livedExperience": "Strong lived-experience framing tied to outage resilience"
+          "stateInterconnection": "State-by-state interconnection rules",
+          "rentalIncentives": "Incentives aimed at renters",
+          "rooftopDifferentiation": "Differentiation from existing rooftop solar"
         }
       },
       "africaDeveloping": {
         "name": "Africa & developing regions",
-        "headline": "Balcony-scale renewables starting off-grid",
+        "headline": "Balcony and facade solar on off-grid and weak grids",
         "body": "Where the grid is thin or absent, small panels and batteries are daily infrastructure. Modular, no-construction kits are the baseline.",
         "bullets": {
-          "offGridFirst": "Small-capacity kits aimed at off-grid and weak-grid use",
-          "rentalHousing": "Rising plug-in demand in urban multifamily housing",
-          "livedExperience": "Lighting, charging, and work hours drive adoption decisions"
+          "appliancePower": "Appliance-scale power access",
+          "microgridLink": "Microgrid interconnection",
+          "coopNgo": "Citizen cooperatives and NGO partnerships"
+        }
+      }
+    }
+  },
+  "ecosystem": {
+    "title": "Companies, Nonprofits & Ecosystem",
+    "lead": "An overview of players connecting products, organizations, and careers: Anker, Enphase, energy cooperatives, and more (Demo).",
+    "tags": {
+      "pluginStorage": "Plug-in storage",
+      "microinverter": "Microinverter",
+      "cooperative": "Citizen cooperative",
+      "advocacy": "Policy & outreach"
+    },
+    "orgs": {
+      "ankerSolix": {
+        "name": "Anker Solix",
+        "subtitle": "Plug-in storage & balcony kits",
+        "body": "Portable power stations and balcony kits that make no-construction renewables product-ready."
+      },
+      "enphase": {
+        "name": "Enphase",
+        "subtitle": "Microinverters & residential renewables",
+        "body": "Residential microinverters and modular systems that underpin small-scale distributed renewables."
+      },
+      "energyCoop": {
+        "name": "Citizen & energy cooperatives",
+        "subtitle": "Local group buying and install support",
+        "body": "Lowering individual adoption barriers through community purchasing and local install support."
+      },
+      "climateNpo": {
+        "name": "Renewables & climate NPOs / NGOs",
+        "subtitle": "Policy, outreach & developing-region rollout",
+        "body": "Bridging policy advocacy, public education, and off-grid implementation in developing regions."
+      }
+    },
+    "careers": {
+      "heading": "Careers & Ecosystem Partnerships",
+      "description": "A placeholder framework bridging industry hiring with cooperative and grassroots projects.",
+      "areas": {
+        "productHardware": {
+          "title": "Product / Hardware",
+          "description": "Design, manufacturing, and distribution of plug-in panels, storage, and inverters."
+        },
+        "communityPolicy": {
+          "title": "Community / Policy",
+          "description": "Cooperative operations, outreach, and incentive or legislative design in the field."
+        },
+        "uxLivedData": {
+          "title": "UX / Lived-experience data",
+          "description": "UI, metering, and messaging that translate generation into appliance-level value."
         }
       }
     }

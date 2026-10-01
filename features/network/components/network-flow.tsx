@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useLocale } from "next-intl"
 import {
   SunMedium,
   Wind,
@@ -14,7 +15,13 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { NetworkEdge, NetworkNode } from "../data"
+import {
+  localizedNode,
+  uiText,
+  type NetworkEdge,
+  type NetworkLocale,
+  type NetworkNode,
+} from "../data"
 
 const ICONS: Record<NetworkNode["icon"], LucideIcon> = {
   "sun-medium": SunMedium,
@@ -28,32 +35,39 @@ const ICONS: Record<NetworkNode["icon"], LucideIcon> = {
   sprout: Sprout,
 }
 
-const ENERGY_KIND_LABEL: Record<NetworkNode["kind"], string> = {
-  supply: "供給ノード",
-  convert: "変換・蓄電ノード",
-  consume: "消費ノード",
-}
-
-const BASIN_KIND_LABEL: Record<NetworkNode["kind"], string> = {
-  supply: "上流・貯留",
-  convert: "調整・排水",
-  consume: "下流・受益",
-}
-
 type LinePos = { x1: number; y1: number; x2: number; y2: number; key: string; active: boolean }
+
+function toNetworkLocale(locale: string): NetworkLocale {
+  return locale === "en" ? "en" : "ja"
+}
 
 export function NetworkFlow({
   nodes,
   edges,
   mode,
   variant = "energy",
+  locale: localeProp,
 }: {
   nodes: NetworkNode[]
   edges: NetworkEdge[]
   mode: "day" | "night"
   variant?: "energy" | "basin"
+  locale?: NetworkLocale
 }) {
-  const kindLabel = variant === "basin" ? BASIN_KIND_LABEL : ENERGY_KIND_LABEL
+  const locale = localeProp ?? toNetworkLocale(useLocale())
+  const kindLabel: Record<NetworkNode["kind"], string> =
+    variant === "basin"
+      ? {
+          supply: uiText("basinSupply", locale),
+          convert: uiText("basinConvert", locale),
+          consume: uiText("basinConsume", locale),
+        }
+      : {
+          supply: uiText("kindSupply", locale),
+          convert: uiText("kindConvert", locale),
+          consume: uiText("kindConsume", locale),
+        }
+
   const containerRef = useRef<HTMLDivElement>(null)
   const nodeRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const [lines, setLines] = useState<LinePos[]>([])
@@ -140,6 +154,7 @@ export function NetworkFlow({
             <div className="flex flex-col gap-4 sm:justify-center sm:gap-6">
               {columns[kind].map((node) => {
                 const Icon = ICONS[node.icon]
+                const copy = localizedNode(node, locale)
                 const dimmed =
                   variant === "energy" && mode === "night" && node.kind === "supply" && node.icon !== "wind"
                 const watching = node.status === "watch"
@@ -160,19 +175,19 @@ export function NetworkFlow({
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-card-foreground">{node.label}</span>
+                        <span className="text-sm font-medium text-card-foreground">{copy.label}</span>
                         {watching && (
                           <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
-                            注意
+                            {uiText("watch", locale)}
                           </span>
                         )}
                       </div>
-                      <span className="text-xs tabular-nums text-muted-foreground">{node.sublabel}</span>
+                      <span className="text-xs tabular-nums text-muted-foreground">{copy.sublabel}</span>
                       {typeof node.levelPct === "number" && (
                         <div
                           className="mt-2 h-1 overflow-hidden rounded-full bg-muted"
                           role="meter"
-                          aria-label={`${node.label}の貯留`}
+                          aria-label={`${copy.label}`}
                           aria-valuenow={node.levelPct}
                           aria-valuemin={0}
                           aria-valuemax={100}

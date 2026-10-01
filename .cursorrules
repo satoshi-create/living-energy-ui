@@ -1,7 +1,7 @@
 # Living Energy UI — AI Development Guidelines
 
 賃貸・ベランダのプラグインPVを、kWhではなく「生活実感」で可視化する破壊的UI。
-構造分析書: `doc/構造分析書.md`
+構造分析書: `docs/構造分析書.md`
 
 ## Hired Job
 「賃貸・マンション住まいにおいて、高価な工事や専門知識なしで、在宅ワークの電気代を浮かせつつ脱炭素への貢献実感を得る」

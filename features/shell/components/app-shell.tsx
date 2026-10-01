@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
 import { BalconyView } from "@/features/balcony-pv"
 import { NetworkView } from "@/features/network"
-import { GlobalImplementationView } from "@/features/global-implementation/components/global-implementation-view"
-import { EcosystemOrgsView } from "@/features/ecosystem-orgs/components/ecosystem-orgs-view"
+import { RankingView, EcosystemView } from "@/features/ranking/components/ranking-view"
 import { REGIONS } from "@/lib/regions"
 
 const NAV_ITEMS = [
@@ -56,8 +55,15 @@ export function AppShell() {
 
   const activeItem = NAV_ITEMS.find((item) => item.id === activeView)!
 
+  const isMapView = activeView === "global-implementation"
+
   return (
-    <div className="relative flex min-h-screen w-full">
+    <div
+      className={cn(
+        "relative flex w-full",
+        isMapView ? "h-screen overflow-hidden" : "min-h-screen"
+      )}
+    >
       {isSidebarOpen && (
         <button
           type="button"
@@ -113,8 +119,13 @@ export function AppShell() {
         </div>
       </aside>
 
-      <div className="flex min-h-screen w-full flex-1 flex-col">
-        <div className="flex items-start gap-2">
+      <div
+        className={cn(
+          "flex w-full flex-1 flex-col",
+          isMapView ? "h-screen min-h-0 overflow-hidden" : "min-h-screen"
+        )}
+      >
+        <div className="flex shrink-0 items-start gap-2">
           <button
             type="button"
             aria-expanded={isSidebarOpen}
@@ -134,11 +145,18 @@ export function AppShell() {
           </div>
         </div>
 
-        <main className="flex-1 px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8">
+        <main
+          className={cn(
+            "min-h-0 flex-1",
+            isMapView
+              ? "flex flex-col overflow-hidden px-0 pb-16 pt-0 lg:pb-0"
+              : "px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8"
+          )}
+        >
           {activeView === "balcony-simulation" && <BalconyView />}
           {activeView === "regional-network" && <NetworkView />}
-          {activeView === "global-implementation" && <GlobalImplementationView />}
-          {activeView === "ecosystem-orgs" && <EcosystemOrgsView />}
+          {activeView === "global-implementation" && <RankingView />}
+          {activeView === "ecosystem-orgs" && <EcosystemView />}
         </main>
 
         <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border/60 bg-sidebar/95 backdrop-blur lg:hidden">

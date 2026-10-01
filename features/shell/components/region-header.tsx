@@ -1,5 +1,6 @@
 "use client"
 
+import { useLocale } from "next-intl"
 import { Sun } from "lucide-react"
 import {
   Select,
@@ -10,7 +11,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { REGIONS, WEATHER } from "@/lib/regions"
+import {
+  REGIONS,
+  WEATHER,
+  localizedRegion,
+  localizedWeatherLabel,
+  type AppLocale,
+} from "@/lib/regions"
 import { LanguageSwitcher } from "./language-switcher"
 
 type RegionHeaderProps = {
@@ -26,6 +33,9 @@ export function RegionHeader({
   title,
   showRegionSelect = false,
 }: RegionHeaderProps) {
+  const locale = (useLocale() === "en" ? "en" : "ja") as AppLocale
+  const weatherLabel = localizedWeatherLabel(WEATHER, locale)
+
   return (
     <header className="flex flex-col gap-3 border-b border-border/60 bg-background/80 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
       <div>
@@ -37,14 +47,17 @@ export function RegionHeader({
           <Select value={regionId} onValueChange={(value) => value && onRegionChange(value)}>
             <SelectTrigger className="h-9 min-w-44">
               <SelectValue>
-                {(value: string) => REGIONS.find((region) => region.id === value)?.label ?? value}
+                {(value: string) => {
+                  const region = REGIONS.find((r) => r.id === value)
+                  return region ? localizedRegion(region, locale).label : value
+                }}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {REGIONS.map((region) => (
                   <SelectItem key={region.id} value={region.id}>
-                    {region.label}
+                    {localizedRegion(region, locale).label}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -53,7 +66,7 @@ export function RegionHeader({
         )}
         <Badge variant="secondary" className="gap-1.5 border border-border/60 bg-muted/60 py-1.5 text-foreground">
           <Sun className="size-3.5 text-primary" />
-          {WEATHER.label} {WEATHER.irradiance} W/m²
+          {weatherLabel} {WEATHER.irradiance} W/m²
         </Badge>
         <LanguageSwitcher />
       </div>

@@ -1,8 +1,11 @@
+const path = require("path");
+
 module.exports = {
   apps: [
     {
       name: "living-energy-ui",
-      script: "node_modules/.bin/next",
+      cwd: __dirname,
+      script: path.resolve(__dirname, "node_modules/next/dist/bin/next"),
       args: "dev",
       watch: false,
       env: {
@@ -12,4 +15,3 @@ module.exports = {
     },
   ],
 };
-
