@@ -428,46 +428,215 @@
     }
   },
   "ecosystem": {
-    "title": "ベランダソーラーに関する企業・非営利団体",
-    "lead": "Anker、Enphase、市民協同体など、製品・組織・求人をつなぐエコシステムの骨組み一覧です（デモ）。",
-    "tags": {
-      "pluginStorage": "プラグイン蓄電",
-      "microinverter": "マイクロインバータ",
-      "cooperative": "市民協同",
-      "advocacy": "政策・啓発"
+    "title": "企業・非営利団体・エコシステム",
+    "lead": "世界と日本、ベランダソーラーと地域グリッドをつなぐ分散型エネルギーエコシステム",
+    "filters": {
+      "region": {
+        "label": "地域",
+        "all": "すべて",
+        "japan": "日本 (Japan)",
+        "global": "世界 (Global)"
+      },
+      "formFactor": {
+        "label": "形態",
+        "all": "すべて",
+        "balcony": "ベランダソーラー",
+        "nonBalcony": "ベランダソーラー以外"
+      },
+      "empty": "条件に一致する組織がありません。"
     },
-    "orgs": {
-      "ankerSolix": {
-        "name": "Anker Solix",
-        "subtitle": "プラグイン蓄電・ベランダキット",
-        "body": "ポータブル電源とベランダ向けキットで、工事レスの再エネ導入を製品側から支える。"
+    "viewMode": {
+      "label": "表示",
+      "cards": "🗂 カード",
+      "table": "📊 ファンダメンタル一覧"
+    },
+    "table": {
+      "columns": {
+        "org": "組織 / 銘柄",
+        "approach": "アプローチ (構造)",
+        "powerSource": "技術・電源種別",
+        "decentralizedFit": "自律分散適性",
+        "bosRatio": "出仕舞い度 (BOS比率)",
+        "financialHealth": "経済基盤・循環力",
+        "regionForm": "地域 / 形態"
       },
-      "enphase": {
-        "name": "Enphase",
-        "subtitle": "マイクロインバータ・住宅再エネ",
-        "body": "住宅向けマイクロインバータとモジュール型システムで、小規模分散再エネの基盤をつくる。"
-      },
-      "energyCoop": {
-        "name": "市民協同体・エネルギー協同組合",
-        "subtitle": "地域での共同購入・設置支援",
-        "body": "地域単位の共同購入や設置支援を通じ、個人では届きにくい導入ハードルを下げる。"
-      },
-      "climateNpo": {
-        "name": "再エネ・気候系NPO / NGO",
-        "subtitle": "政策提言・啓発・途上国実装",
-        "body": "政策提言、市民啓発、途上国でのオフグリッド実装など、制度と現場をつなぐ役割を担う。"
+      "innovation": {
+        "disruptive": "⚡ 破壊的(自律分散)",
+        "sustaining": "🏛 持続的(集中メガ)"
       }
     },
-    "careers": {
-      "heading": "求人・組織エコシステム連携（枠組み）",
-      "description": "企業採用情報と市民協同・実装現場をつなぐ枠組みのプレースホルダ。今後、外部求人・団体ディレクトリと接続予定。",
+    "categories": {
+      "corporate": "企業",
+      "npo": "NPO",
+      "coop": "生協",
+      "ecosystem": "連合"
+    },
+    "regionBadge": {
+      "japan": "日本",
+      "global": "世界"
+    },
+    "formFactorBadge": {
+      "balcony": "ベランダ",
+      "nonBalcony": "ベランダ以外"
+    },
+    "categoryLabels": {
+      "pluginStorage": "プラグイン蓄電",
+      "citizenPractice": "市民実践・啓発",
+      "coopPower": "市民協同・産直電力",
+      "p2pAggregation": "P2P・分散アグリゲーション",
+      "policyNetwork": "政策・地域ネットワーク",
+      "standardsCommons": "規格標準化・コモンズ",
+      "microinverter": "マイクロインバータ",
+      "energyCoopUnion": "市民エネルギー協同組合連合",
+      "perovskite": "ペロブスカイト",
+      "megaSolarPpa": "集中型メガソーラー / PPA"
+    },
+    "tags": {
+      "portablePower": "ポータブル電源",
+      "rentalFriendly": "賃貸対応",
+      "diySolar": "DIYソーラー",
+      "citizenParticipation": "市民参加",
+      "balconyGuide": "ベランダ設置ガイド",
+      "groupBuying": "共同購入",
+      "coop": "生協",
+      "directEnergy": "産直エネルギー",
+      "surplusReturn": "剰余還元",
+      "p2pTrading": "P2P取引",
+      "climateTech": "気候テック",
+      "dispatchAi": "需給管理AI",
+      "regionalCommons": "地域コモンズ",
+      "disasterMicrogrid": "防災マイクログリッド",
+      "municipalityLink": "自治体連携",
+      "eu800w": "欧州規格 (800W)",
+      "pluginPv": "プラグインPV",
+      "openStandard": "オープンスタンダード",
+      "microinverter": "マイクロインバータ",
+      "gridAutonomy": "系統自立",
+      "distributedEms": "分散EMS",
+      "energyDemocracy": "エネルギー民主化",
+      "citizenEquity": "市民出資",
+      "microgrid": "マイクログリッド",
+      "perovskite": "ペロブスカイト",
+      "lightweightFilm": "軽量フィルム",
+      "concentratedPpa": "集中PPA",
+      "utilityScale": "ユーティリティスケール"
+    },
+    "actors": {
+      "anker-solix-jp": {
+        "name": "Anker Solix (日本展開)",
+        "subtitle": "プラグイン蓄電・ベランダキット",
+        "description": "ポータブル電源とベランダ向け軽量キットで、工事レスの再エネ自給を生活空間から支える。",
+        "metrics": {
+          "storageCapacity": {
+            "label": "想定蓄電容量",
+            "value": "1.6〜3.8 kWh"
+          }
+        }
+      },
+      "balcony-solar-action-jp": {
+        "name": "市民ベランダ発電ネットワーク",
+        "subtitle": "集合住宅・賃貸での受光ワークショップ",
+        "description": "規約や安全基準をクリアしながらベランダ受光を実践する市民共同体。導入ガイドの無償提供と共同購入を主導。",
+        "metrics": {
+          "households": {
+            "label": "参加世帯",
+            "value": "450+ 世帯"
+          }
+        }
+      },
+      "seikatsu-club-energy": {
+        "name": "生活クラブエナジー",
+        "subtitle": "生活協同組合による再エネ共同購入・供給",
+        "description": "組合員出資の市民風力や太陽光・バイオマス産地と提携。「生活クラブでんき」を通じた地域還元・剰余還元モデルを運用。",
+        "metrics": {
+          "partnerPlants": {
+            "label": "提携再エネ発電所",
+            "value": "70+ か所"
+          }
+        }
+      },
+      "digital-grid-jp": {
+        "name": "デジタルグリッド / DGP",
+        "subtitle": "民間電力直接取引プラットフォーム",
+        "description": "AIと分散コントローラを用い、発電家と需要家を直接紐付ける電力取引所を運営。系統分散DERの市場統合を推進。",
+        "metrics": {
+          "monthlyVolume": {
+            "label": "月間取引規模",
+            "value": "1.2億+ kWh"
+          }
+        }
+      },
+      "community-power-jp": {
+        "name": "全国ご当地エネルギー協会",
+        "subtitle": "地域主導・住民主体のエネルギー自立支援",
+        "description": "市民発電所や地域新電力の全国ネットワーク。収益を地域課題解決や防災へ循環させるコモンズ基盤を構築。"
+      },
+      "sekisui-chemical": {
+        "name": "積水化学工業",
+        "subtitle": "ペロブスカイト太陽電池・軽量フィルム",
+        "description": "軽量・フレキシブルなペロブスカイトで、工事レスの受光面をベランダや壁面へ広げる量産投資を進める。",
+        "metrics": {
+          "filmThroughput": {
+            "label": "フィルム量産目標",
+            "value": "GW級ライン"
+          }
+        }
+      },
+      "west-holdings": {
+        "name": "ウエストホールディングス",
+        "subtitle": "集中型メガソーラー・PPA",
+        "description": "大規模造成と架台依存の集中型太陽光PPAを展開。安定配当型のユーティリティ事業モデル。",
+        "metrics": {
+          "ppaCapacity": {
+            "label": "PPA累計容量",
+            "value": "GW級"
+          }
+        }
+      },
+      "balkonkraftwerk-alliance-eu": {
+        "name": "欧州プラグインソーラー連盟 (Stecker-Solar)",
+        "subtitle": "コンセント直結型ソーラーの規制緩和・普及",
+        "description": "ドイツ800W規制緩和を牽引した市民・メーカー連合。系統連系申請の簡素化とオープンな安全規格策定を推進。",
+        "metrics": {
+          "euInstalls": {
+            "label": "欧州普及台数",
+            "value": "150万+ 台"
+          }
+        }
+      },
+      "enphase-energy": {
+        "name": "Enphase Energy",
+        "subtitle": "マイクロインバータ・分散EMS基盤",
+        "description": "モジュールごとの独立制御で日陰や散乱光の影響を極小化。系統停電時にも自立動作するマイクログリッド基盤を形成。",
+        "metrics": {
+          "globalInstalls": {
+            "label": "世界導入実績",
+            "value": "4,000万+ 台"
+          }
+        }
+      },
+      "rescoop-eu": {
+        "name": "REScoop.eu",
+        "subtitle": "欧州2,250以上の市民エネルギー生協ネットワーク",
+        "description": "市民150万人以上が共同出資し、再エネ発電・配電・省エネ改修を民主的に所有・運営する世界最大の分散コモンズ組織。",
+        "metrics": {
+          "members": {
+            "label": "加盟組合員",
+            "value": "150万+ 人"
+          }
+        }
+      }
+    },
+    "layers": {
+      "heading": "エコシステム構成レイヤー",
+      "description": "自律分散生活VNを支える機能分解サマリー。プロダクト／ハード、地域協同／政策、UX／生活実感データの三層で構成する。",
       "areas": {
         "productHardware": {
           "title": "プロダクト / ハード",
           "description": "パネル・蓄電・インバータなど、プラグイン製品の設計・製造・流通。"
         },
         "communityPolicy": {
-          "title": "コミュニティ / 政策",
+          "title": "地域協同 / 政策",
           "description": "協同組合運営、啓発、法制化・インセンティブ設計の現場。"
         },
         "uxLivedData": {

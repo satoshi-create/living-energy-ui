@@ -4,14 +4,14 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WorldPvMap } from '@/features/balcony-pv'
 import {
   WORLD_BALCONY_PV_COUNTRIES,
   type CountryPvDetail,
 } from '@/features/balcony-pv/data'
-import { ECOSYSTEM_ORGS, ECOSYSTEM_CAREERS } from '../data'
+import type { CountryCode } from '@/lib/country-codes'
 
 type CountryCopyKey =
   | 'name'
@@ -29,7 +29,11 @@ type CountryCopyKey =
   | 'mountingRules'
   | 'summary'
 
-export function RankingView() {
+export type RankingViewProps = {
+  onNavigateToEcosystem?: (countryCode: CountryCode) => void
+}
+
+export function RankingView({ onNavigateToEcosystem }: RankingViewProps) {
   const t = useTranslations('worldPv')
   const [selectedCountryId, setSelectedCountryId] = useState<string>('germany')
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)
@@ -191,82 +195,21 @@ export function RankingView() {
                   {t('detail.lastUpdated')}: {country.lastUpdated}
                 </div>
               </div>
+
+              {onNavigateToEcosystem && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-auto w-full shrink-0"
+                  onClick={() => onNavigateToEcosystem(country.code)}
+                >
+                  関連組織を見る
+                </Button>
+              )}
             </div>
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-export function EcosystemView() {
-  const t = useTranslations('ecosystem')
-
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-          {t('title')}
-        </h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">{t('lead')}</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {ECOSYSTEM_ORGS.map((org) => (
-          <Card key={org.id} className="border-border/60">
-            <CardHeader className="gap-3">
-              <div className="flex flex-wrap gap-1.5">
-                {org.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="border border-border/60 bg-muted/60 text-foreground"
-                  >
-                    {t(`tags.${tag}`)}
-                  </Badge>
-                ))}
-              </div>
-              <CardTitle className="text-sm font-semibold leading-snug">
-                {t(`orgs.${org.id}.name`)}
-              </CardTitle>
-              <p className="text-xs font-medium text-muted-foreground">
-                {t(`orgs.${org.id}.subtitle`)}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                {t(`orgs.${org.id}.body`)}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="border-border/60">
-        <CardHeader className="gap-2">
-          <CardTitle className="text-sm font-semibold">{t('careers.heading')}</CardTitle>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {t('careers.description')}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {ECOSYSTEM_CAREERS.map((area) => (
-              <div
-                key={area}
-                className="flex flex-col gap-1.5 rounded-xl border border-border/60 bg-muted/30 p-4"
-              >
-                <p className="text-sm font-medium text-foreground">
-                  {t(`careers.areas.${area}.title`)}
-                </p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  {t(`careers.areas.${area}.description`)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

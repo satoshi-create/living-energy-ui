@@ -8,6 +8,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { HomeView } from "@/features/living-sense"
+import type { CountryCode } from "@/lib/country-codes"
 import { BalconyIllustration } from "./balcony-illustration"
 import {
   DIRECTIONS,
@@ -33,7 +34,11 @@ function scoreBand(score: number): "excellent" | "good" | "fair" | "poor" {
 
 type BalconyTab = "simulator" | "living-sense"
 
-export function BalconyView() {
+export type BalconyViewProps = {
+  onNavigateToEcosystem?: (countryCode: CountryCode) => void
+}
+
+export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: BalconyViewProps) {
   const t = useTranslations("balconyPv")
   const tDirections = useTranslations("common.directions")
   const [tab, setTab] = useState<BalconyTab>("simulator")

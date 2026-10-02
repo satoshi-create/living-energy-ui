@@ -1,5 +1,7 @@
 // Mock for balcony-plug-in-pv. Heuristic stand-in for suncalc-js-engine.
 
+import type { CountryCode } from '@/lib/country-codes'
+
 export type Direction = 'south' | 'southeast' | 'southwest' | 'east' | 'west'
 export type RailingType = 'grid' | 'glass' | 'concrete'
 
@@ -62,7 +64,7 @@ export function recommendedKit(score: number): { panel: KitPanelKey; battery: Ki
 export interface CountryPvDetail {
   id: string
   name: string
-  code: string
+  code: CountryCode
   rating: string // 例: "★★★★★"
   status: 'legal_plug' | 'appliance_notified' | 'storage_only' | 'strict_code'
   statusLabel: string

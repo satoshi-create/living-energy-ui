@@ -429,45 +429,214 @@
   },
   "ecosystem": {
     "title": "Companies, Nonprofits & Ecosystem",
-    "lead": "An overview of players connecting products, organizations, and careers: Anker, Enphase, energy cooperatives, and more (Demo).",
-    "tags": {
-      "pluginStorage": "Plug-in storage",
-      "microinverter": "Microinverter",
-      "cooperative": "Citizen cooperative",
-      "advocacy": "Policy & outreach"
+    "lead": "A distributed energy ecosystem linking the world and Japan, balcony solar and regional grids",
+    "filters": {
+      "region": {
+        "label": "Region",
+        "all": "All",
+        "japan": "Japan",
+        "global": "Global"
+      },
+      "formFactor": {
+        "label": "Form factor",
+        "all": "All",
+        "balcony": "Balcony solar",
+        "nonBalcony": "Beyond balcony solar"
+      },
+      "empty": "No organizations match these filters."
     },
-    "orgs": {
-      "ankerSolix": {
-        "name": "Anker Solix",
-        "subtitle": "Plug-in storage & balcony kits",
-        "body": "Portable power stations and balcony kits that make no-construction renewables product-ready."
+    "viewMode": {
+      "label": "View",
+      "cards": "🗂 Cards",
+      "table": "📊 Fundamentals"
+    },
+    "table": {
+      "columns": {
+        "org": "Org / Ticker",
+        "approach": "Approach (structure)",
+        "powerSource": "Tech / power source",
+        "decentralizedFit": "Decentralized fit",
+        "bosRatio": "Exit-ready (BOS ratio)",
+        "financialHealth": "Economic base & circulation",
+        "regionForm": "Region / form"
       },
-      "enphase": {
-        "name": "Enphase",
-        "subtitle": "Microinverters & residential renewables",
-        "body": "Residential microinverters and modular systems that underpin small-scale distributed renewables."
-      },
-      "energyCoop": {
-        "name": "Citizen & energy cooperatives",
-        "subtitle": "Local group buying and install support",
-        "body": "Lowering individual adoption barriers through community purchasing and local install support."
-      },
-      "climateNpo": {
-        "name": "Renewables & climate NPOs / NGOs",
-        "subtitle": "Policy, outreach & developing-region rollout",
-        "body": "Bridging policy advocacy, public education, and off-grid implementation in developing regions."
+      "innovation": {
+        "disruptive": "⚡ Disruptive (distributed)",
+        "sustaining": "🏛 Sustaining (central mega)"
       }
     },
-    "careers": {
-      "heading": "Careers & Ecosystem Partnerships",
-      "description": "A placeholder framework bridging industry hiring with cooperative and grassroots projects.",
+    "categories": {
+      "corporate": "Corporate",
+      "npo": "NPO",
+      "coop": "Co-op",
+      "ecosystem": "Alliance"
+    },
+    "regionBadge": {
+      "japan": "Japan",
+      "global": "Global"
+    },
+    "formFactorBadge": {
+      "balcony": "Balcony",
+      "nonBalcony": "Non-balcony"
+    },
+    "categoryLabels": {
+      "pluginStorage": "Plug-in storage",
+      "citizenPractice": "Citizen practice & outreach",
+      "coopPower": "Co-op & direct energy",
+      "p2pAggregation": "P2P & distributed aggregation",
+      "policyNetwork": "Policy & regional network",
+      "standardsCommons": "Standards & commons",
+      "microinverter": "Microinverter",
+      "energyCoopUnion": "Citizen energy co-op federation",
+      "perovskite": "Perovskite",
+      "megaSolarPpa": "Central mega-solar / PPA"
+    },
+    "tags": {
+      "portablePower": "Portable power",
+      "rentalFriendly": "Rental-friendly",
+      "diySolar": "DIY solar",
+      "citizenParticipation": "Citizen participation",
+      "balconyGuide": "Balcony install guide",
+      "groupBuying": "Group buying",
+      "coop": "Co-op",
+      "directEnergy": "Direct energy",
+      "surplusReturn": "Surplus return",
+      "p2pTrading": "P2P trading",
+      "climateTech": "Climate tech",
+      "dispatchAi": "Dispatch AI",
+      "regionalCommons": "Regional commons",
+      "disasterMicrogrid": "Disaster microgrid",
+      "municipalityLink": "Municipality link",
+      "eu800w": "EU standard (800W)",
+      "pluginPv": "Plug-in PV",
+      "openStandard": "Open standard",
+      "microinverter": "Microinverter",
+      "gridAutonomy": "Grid autonomy",
+      "distributedEms": "Distributed EMS",
+      "energyDemocracy": "Energy democracy",
+      "citizenEquity": "Citizen equity",
+      "microgrid": "Microgrid",
+      "perovskite": "Perovskite",
+      "lightweightFilm": "Lightweight film",
+      "concentratedPpa": "Concentrated PPA",
+      "utilityScale": "Utility scale"
+    },
+    "actors": {
+      "anker-solix-jp": {
+        "name": "Anker Solix (Japan)",
+        "subtitle": "Plug-in storage & balcony kits",
+        "description": "Portable power stations and lightweight balcony kits that bring no-construction self-supply into living spaces.",
+        "metrics": {
+          "storageCapacity": {
+            "label": "Target storage",
+            "value": "1.6–3.8 kWh"
+          }
+        }
+      },
+      "balcony-solar-action-jp": {
+        "name": "Citizen Balcony Solar Network",
+        "subtitle": "Workshops for multifamily & rental homes",
+        "description": "A citizen commons practicing balcony solar within building rules and safety codes, with free guides and group purchasing.",
+        "metrics": {
+          "households": {
+            "label": "Participating households",
+            "value": "450+ homes"
+          }
+        }
+      },
+      "seikatsu-club-energy": {
+        "name": "Seikatsu Club Energy",
+        "subtitle": "Co-op renewable purchasing & supply",
+        "description": "Partners with member-funded wind, solar, and biomass sites. Runs a regional surplus-return model via Seikatsu Club Electricity.",
+        "metrics": {
+          "partnerPlants": {
+            "label": "Partner plants",
+            "value": "70+ sites"
+          }
+        }
+      },
+      "digital-grid-jp": {
+        "name": "Digital Grid / DGP",
+        "subtitle": "Peer-to-peer electricity marketplace",
+        "description": "Operates a power exchange that directly links producers and consumers with AI and distributed controllers, integrating DERs into markets.",
+        "metrics": {
+          "monthlyVolume": {
+            "label": "Monthly volume",
+            "value": "120M+ kWh"
+          }
+        }
+      },
+      "community-power-jp": {
+        "name": "Community Power Japan",
+        "subtitle": "Community-led energy independence",
+        "description": "A national network of citizen plants and local utilities circulating returns into regional issues and disaster resilience commons."
+      },
+      "sekisui-chemical": {
+        "name": "Sekisui Chemical",
+        "subtitle": "Perovskite solar & lightweight film",
+        "description": "Scales lightweight, flexible perovskite to expand no-construction capture surfaces onto balconies and walls.",
+        "metrics": {
+          "filmThroughput": {
+            "label": "Film production target",
+            "value": "GW-class line"
+          }
+        }
+      },
+      "west-holdings": {
+        "name": "West Holdings",
+        "subtitle": "Central mega-solar & PPA",
+        "description": "Runs utility-scale solar PPAs dependent on earthworks and racking—a sustaining, dividend-oriented model.",
+        "metrics": {
+          "ppaCapacity": {
+            "label": "Cumulative PPA capacity",
+            "value": "GW-class"
+          }
+        }
+      },
+      "balkonkraftwerk-alliance-eu": {
+        "name": "European Plug-in Solar Alliance",
+        "subtitle": "Socket-ready solar deregulation & adoption",
+        "description": "Citizen–maker coalition that drove Germany’s 800W relief. Advances simplified interconnection and open safety standards.",
+        "metrics": {
+          "euInstalls": {
+            "label": "EU installs",
+            "value": "1.5M+ units"
+          }
+        }
+      },
+      "enphase-energy": {
+        "name": "Enphase Energy",
+        "subtitle": "Microinverters & distributed EMS",
+        "description": "Per-module control minimizes shade and diffuse-light loss. Forms microgrid foundations that stay autonomous during outages.",
+        "metrics": {
+          "globalInstalls": {
+            "label": "Global installs",
+            "value": "40M+ units"
+          }
+        }
+      },
+      "rescoop-eu": {
+        "name": "REScoop.eu",
+        "subtitle": "2,250+ European citizen energy co-ops",
+        "description": "Over 1.5 million citizens jointly own and run renewables, distribution, and efficiency retrofits in the world’s largest energy commons.",
+        "metrics": {
+          "members": {
+            "label": "Member citizens",
+            "value": "1.5M+ people"
+          }
+        }
+      }
+    },
+    "layers": {
+      "heading": "Ecosystem composition layers",
+      "description": "A functional breakdown of the autonomous distributed living VN: product/hardware, regional co-ops/policy, and UX/lived-experience data.",
       "areas": {
         "productHardware": {
           "title": "Product / Hardware",
           "description": "Design, manufacturing, and distribution of plug-in panels, storage, and inverters."
         },
         "communityPolicy": {
-          "title": "Community / Policy",
+          "title": "Regional co-ops / Policy",
           "description": "Cooperative operations, outreach, and incentive or legislative design in the field."
         },
         "uxLivedData": {

@@ -7,8 +7,10 @@ import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
 import { BalconyView } from "@/features/balcony-pv"
 import { NetworkView } from "@/features/network"
-import { RankingView, EcosystemView } from "@/features/ranking/components/ranking-view"
+import { RankingView } from "@/features/ranking"
+import { EcosystemView } from "@/features/ecosystem"
 import { REGIONS } from "@/lib/regions"
+import type { CountryCode } from "@/lib/country-codes"
 
 const NAV_ITEMS = [
   { id: "balcony-simulation", icon: Sun },
@@ -18,6 +20,11 @@ const NAV_ITEMS = [
 ] as const
 
 type ViewId = (typeof NAV_ITEMS)[number]["id"]
+
+export type EcosystemNavIntent = {
+  view: "ecosystem"
+  countryCode?: import("@/lib/country-codes").CountryCode
+}
 
 const VIEW_STORAGE_KEY = "living-energy-active-view"
 const REGION_STORAGE_KEY = "living-energy-region-id"
@@ -29,6 +36,7 @@ function isViewId(value: string | null): value is ViewId {
 export function AppShell() {
   const t = useTranslations("shell")
   const [activeView, setActiveView] = useState<ViewId>("balcony-simulation")
+  const [navIntent, setNavIntent] = useState<EcosystemNavIntent | null>(null)
   const [regionId, setRegionId] = useState(REGIONS[0].id)
   const [hydrated, setHydrated] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -52,6 +60,18 @@ export function AppShell() {
     if (!hydrated) return
     sessionStorage.setItem(REGION_STORAGE_KEY, regionId)
   }, [regionId, hydrated])
+
+  const navigateToEcosystem = (countryCode: CountryCode) => {
+    setNavIntent({ view: "ecosystem", countryCode })
+    setActiveView("ecosystem-orgs")
+    setIsSidebarOpen(false)
+  }
+
+  const selectView = (id: ViewId) => {
+    setNavIntent(null)
+    setActiveView(id)
+    setIsSidebarOpen(false)
+  }
 
   const activeItem = NAV_ITEMS.find((item) => item.id === activeView)!
 
@@ -97,10 +117,7 @@ export function AppShell() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => {
-                  setActiveView(item.id)
-                  setIsSidebarOpen(false)
-                }}
+                onClick={() => selectView(item.id)}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
                   isActive
@@ -153,10 +170,20 @@ export function AppShell() {
               : "px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8"
           )}
         >
-          {activeView === "balcony-simulation" && <BalconyView />}
+          {activeView === "balcony-simulation" && (
+            <BalconyView onNavigateToEcosystem={navigateToEcosystem} />
+          )}
           {activeView === "regional-network" && <NetworkView />}
-          {activeView === "global-implementation" && <RankingView />}
-          {activeView === "ecosystem-orgs" && <EcosystemView />}
+          {activeView === "global-implementation" && (
+            <RankingView onNavigateToEcosystem={navigateToEcosystem} />
+          )}
+          {activeView === "ecosystem-orgs" && (
+            <EcosystemView
+              initialCountryCode={
+                navIntent?.view === "ecosystem" ? navIntent.countryCode : undefined
+              }
+            />
+          )}
         </main>
 
         <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border/60 bg-sidebar/95 backdrop-blur lg:hidden">
@@ -167,7 +194,7 @@ export function AppShell() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveView(item.id)}
+                onClick={() => selectView(item.id)}
                 className={cn(
                   "flex flex-1 flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium transition-colors sm:px-2 sm:text-[11px]",
                   isActive ? "text-primary" : "text-muted-foreground"
