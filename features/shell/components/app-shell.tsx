@@ -2,29 +2,21 @@
 
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
-import { Sun, Network, Globe2, Building2, Leaf, PanelLeft } from "lucide-react"
+import { Sun, Network, Globe2, Leaf, PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
 import { BalconyView } from "@/features/balcony-pv"
 import { NetworkView } from "@/features/network"
 import { RankingView } from "@/features/ranking"
-import { EcosystemView } from "@/features/ecosystem"
 import { REGIONS } from "@/lib/regions"
-import type { CountryCode } from "@/lib/country-codes"
 
 const NAV_ITEMS = [
   { id: "balcony-simulation", icon: Sun },
   { id: "global-implementation", icon: Globe2 },
-  { id: "ecosystem-orgs", icon: Building2 },
   { id: "regional-network", icon: Network },
 ] as const
 
 type ViewId = (typeof NAV_ITEMS)[number]["id"]
-
-export type EcosystemNavIntent = {
-  view: "ecosystem"
-  countryCode?: import("@/lib/country-codes").CountryCode
-}
 
 const VIEW_STORAGE_KEY = "living-energy-active-view"
 const REGION_STORAGE_KEY = "living-energy-region-id"
@@ -36,7 +28,6 @@ function isViewId(value: string | null): value is ViewId {
 export function AppShell() {
   const t = useTranslations("shell")
   const [activeView, setActiveView] = useState<ViewId>("balcony-simulation")
-  const [navIntent, setNavIntent] = useState<EcosystemNavIntent | null>(null)
   const [regionId, setRegionId] = useState(REGIONS[0].id)
   const [hydrated, setHydrated] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -61,14 +52,7 @@ export function AppShell() {
     sessionStorage.setItem(REGION_STORAGE_KEY, regionId)
   }, [regionId, hydrated])
 
-  const navigateToEcosystem = (countryCode: CountryCode) => {
-    setNavIntent({ view: "ecosystem", countryCode })
-    setActiveView("ecosystem-orgs")
-    setIsSidebarOpen(false)
-  }
-
   const selectView = (id: ViewId) => {
-    setNavIntent(null)
     setActiveView(id)
     setIsSidebarOpen(false)
   }
@@ -170,20 +154,9 @@ export function AppShell() {
               : "px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8"
           )}
         >
-          {activeView === "balcony-simulation" && (
-            <BalconyView onNavigateToEcosystem={navigateToEcosystem} />
-          )}
+          {activeView === "balcony-simulation" && <BalconyView />}
           {activeView === "regional-network" && <NetworkView />}
-          {activeView === "global-implementation" && (
-            <RankingView onNavigateToEcosystem={navigateToEcosystem} />
-          )}
-          {activeView === "ecosystem-orgs" && (
-            <EcosystemView
-              initialCountryCode={
-                navIntent?.view === "ecosystem" ? navIntent.countryCode : undefined
-              }
-            />
-          )}
+          {activeView === "global-implementation" && <RankingView />}
         </main>
 
         <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border/60 bg-sidebar/95 backdrop-blur lg:hidden">

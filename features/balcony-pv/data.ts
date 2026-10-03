@@ -93,6 +93,19 @@ export interface CountryPvDetail {
 /** @deprecated Prefer CountryPvDetail */
 export type CountryPvStatus = CountryPvDetail
 
+export function getCountryPvByCode(code: CountryCode): CountryPvDetail | undefined {
+  return WORLD_BALCONY_PV_COUNTRIES.find((c) => c.code === code)
+}
+
+/** Sidebar field keys; labels: `balconyPv.world.fields.*`. */
+export const COUNTRY_PV_SIDEBAR_FIELDS = [
+  { key: 'powerLimit', labelKey: 'powerLimit' },
+  { key: 'regulation', labelKey: 'regulation' },
+  { key: 'tenantRights', labelKey: 'tenantRights' },
+  { key: 'connectionMethod', labelKey: 'connectionMethod' },
+  { key: 'lastUpdated', labelKey: 'lastUpdated' },
+] as const satisfies readonly { key: keyof CountryPvDetail; labelKey: string }[]
+
 export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'germany',
