@@ -120,9 +120,10 @@ export function WorldImplementationView() {
   }, [])
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
+    <div className="relative flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
+      {/* マップ: <lg は全幅上部、>=lg は左側 flex-1 */}
       <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
-        <div className="flex h-full min-h-[calc(100vh-4rem)] items-center justify-center p-2 sm:p-4">
+        <div className="flex h-full min-h-0 w-full items-center justify-center p-2 sm:p-4">
           <WorldPvMap
             selectedCountryId={selectedId ?? ""}
             onSelectCountry={(country) => {
@@ -136,8 +137,14 @@ export function WorldImplementationView() {
       {selectedCountry ? (
         <Card
           ref={sidebarRef}
-          className="relative h-full max-h-[calc(100vh-4rem)] max-w-full shrink-0 overflow-y-auto border-border/60"
-          style={{ width: sidebarWidth }}
+          className={cn(
+            "z-30 flex flex-col overflow-hidden border-border/60 bg-card",
+            // <lg: ボトムシート（マップ上部を常時可視、ピン操作を阻害しない）
+            "fixed inset-x-0 bottom-0 h-[45vh] max-h-[50vh] w-full rounded-t-xl shadow-lg",
+            // >=lg: 右側リサイズ可能サイドバー
+            "lg:relative lg:inset-auto lg:h-full lg:max-h-[calc(100vh-4rem)] lg:w-[var(--sidebar-w)] lg:shrink-0 lg:rounded-xl lg:shadow-none",
+          )}
+          style={{ ["--sidebar-w" as string]: `${sidebarWidth}px` }}
         >
           <div
             role="separator"
@@ -149,7 +156,11 @@ export function WorldImplementationView() {
             onPointerCancel={onResizePointerUp}
             className="absolute top-0 bottom-0 left-0 z-10 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-primary/40 active:bg-primary/60 lg:block"
           />
-          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0 pl-5">
+          {/* SP グラブハンドル */}
+          <div className="flex shrink-0 justify-center pt-2 lg:hidden" aria-hidden>
+            <div className="h-1.5 w-10 rounded-full bg-muted-foreground/40" />
+          </div>
+          <CardHeader className="flex shrink-0 flex-row items-start justify-between gap-2 space-y-0 pl-5">
             <div className="flex min-w-0 flex-col gap-1">
               <CardTitle className="text-sm font-semibold">
                 {countryMsg("name")}
@@ -170,7 +181,7 @@ export function WorldImplementationView() {
               <X className="size-4" />
             </button>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 pl-5 text-sm">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pl-5 text-sm">
             <div className="flex flex-col gap-2">
               {COUNTRY_PV_SIDEBAR_FIELDS.map(({ key, labelKey }) => (
                 <div key={key} className="flex flex-col gap-0.5 rounded-lg bg-muted/50 px-3 py-2">

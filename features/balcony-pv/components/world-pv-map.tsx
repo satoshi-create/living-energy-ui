@@ -2,6 +2,7 @@
 
 import React, {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -20,6 +21,12 @@ type RegionFocus = 'all' | 'europe' | 'asia' | 'asia-us';
 type Transform = { x: number; y: number; k: number };
 
 type ViewBox = { x: number; y: number; w: number; h: number };
+
+/** Mobile width (< sm / 768px) → europe; desktop → all. */
+function getDefaultRegionFocus(): RegionFocus {
+  if (typeof window === 'undefined') return 'all';
+  return window.matchMedia('(max-width: 767px)').matches ? 'europe' : 'all';
+}
 
 const ASIA_COUNTRY_IDS = new Set(['china', 'japan']);
 const EUROPE_COUNTRY_IDS = new Set([
@@ -106,6 +113,7 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
   const svgRef = useRef<SVGSVGElement>(null);
   const transformRef = useRef(transform);
   transformRef.current = transform;
+  const didInitRegionRef = useRef(false);
 
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const panStartRef = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
@@ -122,6 +130,16 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
   const relK = relativeScale(transform.k);
   const isTightZoom = relK >= 2.4;
   const isZoomed = relK >= 1.3;
+
+  // SP (< 768px) のみ初期リージョンを欧州に。SSR/ハイドレーション不一致を避けるためマウント後に判定。
+  useLayoutEffect(() => {
+    if (didInitRegionRef.current) return;
+    didInitRegionRef.current = true;
+    const initial = getDefaultRegionFocus();
+    if (initial !== 'all') {
+      setRegionFocus(initial);
+    }
+  }, []);
 
   useEffect(() => {
     setIsAnimating(true);
