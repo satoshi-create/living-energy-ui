@@ -204,6 +204,22 @@
       "mountingRules": "設置・穴あけ制約",
       "lastUpdated": "更新日"
     },
+    "sidebar": {
+      "powerLimit": "認可上限",
+      "regulation": "制度・規格",
+      "legalRight": "法的権利",
+      "connectionMethod": "接続方式",
+      "lastUpdated": "更新日",
+      "relatedOrgs": "関連組織",
+      "relatedOrgsEmpty": "該当する組織がありません",
+      "resizeAria": "サイドバー幅を調整",
+      "filters": {
+        "all": "すべて",
+        "company": "企業",
+        "npo": "非営利団体",
+        "government": "政府機関"
+      }
+    },
     "countries": {
       "germany": {
         "name": "ドイツ",

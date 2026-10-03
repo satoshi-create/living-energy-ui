@@ -204,6 +204,22 @@
       "mountingRules": "Mounting / drilling limits",
       "lastUpdated": "Last updated"
     },
+    "sidebar": {
+      "powerLimit": "Approved Capacity Limit",
+      "regulation": "Regulations & Standards",
+      "legalRight": "Legal Right",
+      "connectionMethod": "Connection Method",
+      "lastUpdated": "Last Updated",
+      "relatedOrgs": "Related Organizations",
+      "relatedOrgsEmpty": "No organizations found",
+      "resizeAria": "Resize sidebar",
+      "filters": {
+        "all": "All",
+        "company": "Companies",
+        "npo": "NPOs & Commons",
+        "government": "Government"
+      }
+    },
     "countries": {
       "germany": {
         "name": "Germany",

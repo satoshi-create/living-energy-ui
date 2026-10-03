@@ -1,23 +1,35 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { useTranslations } from "next-intl"
-import { Gauge, PackageCheck } from "lucide-react"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
+import { Building2, Gauge, Landmark, PackageCheck, Users, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { HomeView } from "@/features/living-sense"
 import type { CountryCode } from "@/lib/country-codes"
+import { cn } from "@/lib/utils"
 import { BalconyIllustration } from "./balcony-illustration"
+import { WorldPvMap } from "./world-pv-map"
 import {
+  COUNTRY_PV_SIDEBAR_FIELDS,
   DIRECTIONS,
+  ECOSYSTEM_ACTOR_FILTERS,
   RAILING_TYPES,
+  WORLD_BALCONY_PV_COUNTRIES,
   computeBalconyScore,
+  getEcosystemActorsByCountry,
   recommendedKit,
   type Direction,
+  type EcosystemActorFilter,
+  type EcosystemActorType,
   type RailingType,
 } from "../data"
+
+const SIDEBAR_DEFAULT_WIDTH = 384
+const SIDEBAR_MIN_WIDTH = 320
+const SIDEBAR_MAX_WIDTH = 700
 
 function formatHour(hour: number) {
   const h = Math.floor(hour)
@@ -32,10 +44,194 @@ function scoreBand(score: number): "excellent" | "good" | "fair" | "poor" {
   return "poor"
 }
 
+const ACTOR_TYPE_ICON: Record<EcosystemActorType, typeof Building2> = {
+  company: Building2,
+  npo: Users,
+  government: Landmark,
+}
+
 type BalconyTab = "simulator" | "living-sense"
 
 export type BalconyViewProps = {
   onNavigateToEcosystem?: (countryCode: CountryCode) => void
+}
+
+export function WorldImplementationView() {
+  const t = useTranslations("worldPv")
+  const tSidebar = useTranslations("worldPv.sidebar")
+  const locale = useLocale()
+  const isEn = locale === "en"
+  const [selectedId, setSelectedId] = useState<string | null>("germany")
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH)
+  const [actorFilter, setActorFilter] = useState<EcosystemActorFilter>("all")
+  const sidebarRef = useRef<HTMLDivElement>(null)
+  const draggingRef = useRef(false)
+
+  const selectedCountry = useMemo(
+    () => WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === selectedId) ?? null,
+    [selectedId],
+  )
+  const relatedActors = useMemo(
+    () => (selectedCountry ? getEcosystemActorsByCountry(selectedCountry.id, actorFilter) : []),
+    [selectedCountry, actorFilter],
+  )
+
+  const countryMsg = (field: string) =>
+    t(`countries.${selectedCountry!.id}.${field}` as Parameters<typeof t>[0])
+
+  const sidebarFieldValue = (key: (typeof COUNTRY_PV_SIDEBAR_FIELDS)[number]["key"]) => {
+    if (!selectedCountry) return ""
+    if (key === "powerLimit") return countryMsg("powerLimit")
+    if (key === "tenantRights") {
+      if (isEn && selectedCountry.tenantRightsEn) return selectedCountry.tenantRightsEn
+      return isEn ? countryMsg("tenantRights") : selectedCountry.tenantRights
+    }
+    if (key === "connectionMethod") {
+      if (isEn && selectedCountry.connectionMethodEn) return selectedCountry.connectionMethodEn
+      return isEn ? countryMsg("connectionMethod") : selectedCountry.connectionMethod
+    }
+    if (key === "regulation") {
+      if (isEn && selectedCountry.regulationEn) return selectedCountry.regulationEn
+      return selectedCountry.regulation
+    }
+    return String(selectedCountry[key])
+  }
+
+  const onResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    draggingRef.current = true
+    e.currentTarget.setPointerCapture(e.pointerId)
+    document.body.style.cursor = "col-resize"
+    document.body.style.userSelect = "none"
+  }, [])
+
+  const onResizePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current || !sidebarRef.current) return
+    const right = sidebarRef.current.getBoundingClientRect().right
+    const next = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, right - e.clientX))
+    setSidebarWidth(next)
+  }, [])
+
+  const onResizePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current) return
+    draggingRef.current = false
+    e.currentTarget.releasePointerCapture(e.pointerId)
+    document.body.style.cursor = ""
+    document.body.style.userSelect = ""
+  }, [])
+
+  return (
+    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+        <div className="flex h-full min-h-[calc(100vh-4rem)] items-center justify-center p-2 sm:p-4">
+          <WorldPvMap
+            selectedCountryId={selectedId ?? ""}
+            onSelectCountry={(country) => {
+              setSelectedId(country.id)
+              setActorFilter("all")
+            }}
+          />
+        </div>
+      </div>
+
+      {selectedCountry ? (
+        <Card
+          ref={sidebarRef}
+          className="relative h-full max-h-[calc(100vh-4rem)] max-w-full shrink-0 overflow-y-auto border-border/60"
+          style={{ width: sidebarWidth }}
+        >
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label={tSidebar("resizeAria")}
+            onPointerDown={onResizePointerDown}
+            onPointerMove={onResizePointerMove}
+            onPointerUp={onResizePointerUp}
+            onPointerCancel={onResizePointerUp}
+            className="absolute top-0 bottom-0 left-0 z-10 hidden w-1.5 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-primary/40 active:bg-primary/60 lg:block"
+          />
+          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0 pl-5">
+            <div className="flex min-w-0 flex-col gap-1">
+              <CardTitle className="text-sm font-semibold">
+                {countryMsg("name")}
+                <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
+                  {selectedCountry.code}
+                </span>
+              </CardTitle>
+              <Badge className="w-fit bg-primary/90 text-primary-foreground">
+                {countryMsg("statusLabel")}
+              </Badge>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedId(null)}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label={t("detail.close")}
+            >
+              <X className="size-4" />
+            </button>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4 pl-5 text-sm">
+            <div className="flex flex-col gap-2">
+              {COUNTRY_PV_SIDEBAR_FIELDS.map(({ key, labelKey }) => (
+                <div key={key} className="flex flex-col gap-0.5 rounded-lg bg-muted/50 px-3 py-2">
+                  <span className="text-xs text-muted-foreground">{tSidebar(labelKey)}</span>
+                  <span className="break-words font-medium text-foreground">
+                    {sidebarFieldValue(key)}
+                  </span>
+                </div>
+              ))}
+              <p className="text-xs leading-relaxed text-muted-foreground">{countryMsg("summary")}</p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-medium text-muted-foreground">{tSidebar("relatedOrgs")}</p>
+              <ToggleGroup
+                value={[actorFilter]}
+                onValueChange={(v) => v[0] && setActorFilter(v[0] as EcosystemActorFilter)}
+                variant="outline"
+                className="flex w-full flex-wrap"
+              >
+                {ECOSYSTEM_ACTOR_FILTERS.map((f) => (
+                  <ToggleGroupItem key={f.id} value={f.id} className="flex-1 text-xs sm:flex-none">
+                    {tSidebar(`filters.${f.id}`)}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+              <div className="flex flex-col gap-2">
+                {relatedActors.length === 0 ? (
+                  <p className="rounded-lg bg-muted/40 px-3 py-4 text-center text-xs text-muted-foreground">
+                    {tSidebar("relatedOrgsEmpty")}
+                  </p>
+                ) : (
+                  relatedActors.map((actor) => {
+                    const Icon = ACTOR_TYPE_ICON[actor.type]
+                    return (
+                      <div
+                        key={actor.id}
+                        className={cn(
+                          "flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5",
+                        )}
+                      >
+                        <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words font-medium text-foreground">
+                            {isEn && actor.nameEn ? actor.nameEn : actor.name}
+                          </p>
+                          <p className="mt-0.5 break-words text-xs text-muted-foreground">
+                            {isEn && actor.roleEn ? actor.roleEn : actor.role}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+    </div>
+  )
 }
 
 export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: BalconyViewProps) {

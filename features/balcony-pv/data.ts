@@ -70,8 +70,14 @@ export interface CountryPvDetail {
   statusLabel: string
   powerLimit: string
   connectionMethod: string
+  /** Optional English override for connection method (locale bind). */
+  connectionMethodEn?: string
   tenantRights: string
+  /** Optional English override for legal / tenant rights (locale bind). */
+  tenantRightsEn?: string
   regulation: string
+  /** Optional English override for regulation label (locale bind). */
+  regulationEn?: string
   costRange: string
   paybackYears: string
   baseLoadCoverage: string
@@ -97,14 +103,189 @@ export function getCountryPvByCode(code: CountryCode): CountryPvDetail | undefin
   return WORLD_BALCONY_PV_COUNTRIES.find((c) => c.code === code)
 }
 
-/** Sidebar field keys; labels: `balconyPv.world.fields.*`. */
+/** World-map chrome keys under `worldPv.sidebar` / `worldPv.detail`. */
+export const WORLD_MAP_TITLE = 'ベランダソーラー世界実装'
+export const WORLD_MAP_TAB_LABEL = '世界実装マップ'
+/** @deprecated Prefer `worldPv.detail.close` via next-intl */
+export const WORLD_MAP_CLOSE_LABEL = '閉じる'
+/** @deprecated Prefer `worldPv.sidebar.relatedOrgs` via next-intl */
+export const RELATED_ORGS_TITLE = '関連組織'
+/** @deprecated Prefer `worldPv.sidebar.relatedOrgsEmpty` via next-intl */
+export const RELATED_ORGS_EMPTY = '該当する組織がありません'
+/** @deprecated Prefer `worldPv.sidebar.resizeAria` via next-intl */
+export const SIDEBAR_RESIZE_ARIA_LABEL = 'サイドバー幅を調整'
+
+/** Sidebar rows for world balcony-PV status (labels: `worldPv.sidebar.*`). */
 export const COUNTRY_PV_SIDEBAR_FIELDS = [
   { key: 'powerLimit', labelKey: 'powerLimit' },
   { key: 'regulation', labelKey: 'regulation' },
-  { key: 'tenantRights', labelKey: 'tenantRights' },
+  { key: 'tenantRights', labelKey: 'legalRight' },
   { key: 'connectionMethod', labelKey: 'connectionMethod' },
   { key: 'lastUpdated', labelKey: 'lastUpdated' },
-] as const satisfies readonly { key: keyof CountryPvDetail; labelKey: string }[]
+] as const satisfies readonly {
+  key: keyof CountryPvDetail
+  labelKey: 'powerLimit' | 'regulation' | 'legalRight' | 'connectionMethod' | 'lastUpdated'
+}[]
+
+/** Related-organization actor type (locale-independent). */
+export type EcosystemActorType = 'company' | 'npo' | 'government'
+
+export type EcosystemActor = {
+  id: string
+  name: string
+  /** Optional English display name (locale bind). */
+  nameEn?: string
+  type: EcosystemActorType
+  countryId: string
+  role: string
+  roleEn?: string
+  url?: string
+}
+
+export type EcosystemActorFilter = 'all' | EcosystemActorType
+
+/** Sub-tab filters for related organizations (labels: `worldPv.sidebar.filters.*`). */
+export const ECOSYSTEM_ACTOR_FILTERS: readonly { id: EcosystemActorFilter }[] = [
+  { id: 'all' },
+  { id: 'company' },
+  { id: 'npo' },
+  { id: 'government' },
+] as const
+
+export const ECOSYSTEM_ACTORS: EcosystemActor[] = [
+  {
+    id: 'enphase',
+    name: 'Enphase Energy',
+    type: 'company',
+    countryId: 'usa',
+    role: 'マイクロインバータ・プラグイン機器ベンダー',
+  },
+  {
+    id: 'hoymiles',
+    name: 'Hoymiles',
+    type: 'company',
+    countryId: 'china',
+    role: 'マイクロインバータ製造・輸出',
+  },
+  {
+    id: 'anker',
+    name: 'Anker Solix',
+    type: 'company',
+    countryId: 'china',
+    role: 'ベランダ向け蓄電・プラグインキット',
+  },
+  {
+    id: 'steckersolar',
+    name: '欧州プラグインソーラー連盟 (Stecker-Solar)',
+    nameEn: 'European Plug-in Solar Alliance (Stecker-Solar)',
+    type: 'npo',
+    countryId: 'germany',
+    role: 'プラグインPV普及・規格提言のコモンズ',
+    roleEn: 'Commons for plug-in PV adoption & standards advocacy',
+  },
+  {
+    id: 'dgs',
+    name: 'Deutsche Gesellschaft für Sonnenenergie (DGS)',
+    type: 'npo',
+    countryId: 'germany',
+    role: '市民太陽エネルギー推進団体',
+    roleEn: 'Citizen solar energy advocacy association',
+  },
+  {
+    id: 'bnetza',
+    name: '連邦ネットワーク庁 (BNetzA)',
+    nameEn: 'Federal Network Agency (BNetzA)',
+    type: 'government',
+    countryId: 'germany',
+    role: 'MaStR登録・系統ルール監督',
+    roleEn: 'MaStR registration & grid rule oversight',
+  },
+  {
+    id: 'esti',
+    name: 'スイス連邦検査機関 (ESTI)',
+    nameEn: 'Swiss Federal Inspectorate (ESTI)',
+    type: 'government',
+    countryId: 'switzerland',
+    role: '600W家電区分・安全指針',
+    roleEn: '600W appliance category & safety guidance',
+  },
+  {
+    id: 'arera',
+    name: 'ARERA',
+    type: 'government',
+    countryId: 'italy',
+    role: 'プラグインPV規則 (Delibera) 策定',
+    roleEn: 'Plug-in PV rules (Delibera) drafting',
+  },
+  {
+    id: 'enedis',
+    name: 'Enedis',
+    type: 'company',
+    countryId: 'france',
+    role: '配電・CACSI申告窓口',
+    roleEn: 'Distribution & CACSI filing desk',
+  },
+  {
+    id: 'ena',
+    name: 'Energy Networks Association (ENA)',
+    type: 'npo',
+    countryId: 'uk',
+    role: 'G98接続規程・事後通知枠組み',
+    roleEn: 'G98 connection rules & post-install notice framework',
+  },
+  {
+    id: 'meti-enecho',
+    name: '経済産業省 資源エネルギー庁',
+    nameEn: 'Agency for Natural Resources and Energy (METI)',
+    type: 'government',
+    countryId: 'japan',
+    role: 'エネルギー政策・系統連系制度の所管',
+    roleEn: 'Energy policy & grid interconnection regulation',
+  },
+  {
+    id: 'jema',
+    name: '日本電機工業会 (JEMA)',
+    nameEn: 'Japan Electrical Manufacturers’ Association (JEMA)',
+    type: 'npo',
+    countryId: 'japan',
+    role: '電機・蓄電・PV関連の業界規格・普及',
+    roleEn: 'Industry standards & outreach for electrical / storage / PV',
+  },
+  {
+    id: 'nef',
+    name: '新エネルギー財団 (NEF)',
+    nameEn: 'New Energy Foundation (NEF)',
+    type: 'npo',
+    countryId: 'japan',
+    role: '新エネルギー普及・調査研究の公益財団',
+    roleEn: 'Public foundation for new-energy outreach & research',
+  },
+  {
+    id: 'ecoflow-jp',
+    name: 'EcoFlow',
+    type: 'company',
+    countryId: 'japan',
+    role: 'ポータブル電源・ベランダ向け蓄電キット',
+    roleEn: 'Portable power stations & balcony storage kits',
+  },
+  {
+    id: 'anker-jp',
+    name: 'Anker Solix',
+    type: 'company',
+    countryId: 'japan',
+    role: 'ポータブル電源・プラグイン蓄電キット',
+    roleEn: 'Portable power stations & plug-in storage kits',
+  },
+]
+
+export function getEcosystemActorsByCountry(
+  countryId: string,
+  filter: EcosystemActorFilter = 'all',
+): EcosystemActor[] {
+  return ECOSYSTEM_ACTORS.filter(
+    (a) => a.countryId === countryId && (filter === 'all' || a.type === filter),
+  )
+}
 
 export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
@@ -116,7 +297,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: '800Wプラグ公認',
     powerLimit: '800W',
     connectionMethod: 'コンセント直結 (プラグイン)',
+    connectionMethodEn: 'Plug-in Direct Connection',
     tenantRights: '法的に権利保障',
+    tenantRightsEn: 'Legally Guaranteed',
     regulation: 'Solarpaket I / MaStR',
     costRange: '€350〜€500 (約5〜8万円)',
     paybackYears: '3〜4年',
@@ -144,7 +327,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: '800Wプラグ公認',
     powerLimit: '800W',
     connectionMethod: 'コンセント直結 (プラグイン)',
+    connectionMethodEn: 'Plug-in Direct Connection',
     tenantRights: '法的に権利保障',
+    tenantRightsEn: 'Legally Guaranteed',
     regulation: 'TOR Erzeuger Typ A / E-Control',
     costRange: '€400〜€600 (約6〜9万円)',
     paybackYears: '4〜5年',
@@ -172,7 +357,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: '800Wプラグ公認',
     powerLimit: '800W',
     connectionMethod: 'コンセント直結 (プラグイン)',
+    connectionMethodEn: 'Plug-in Direct Connection',
     tenantRights: '法的に権利保障',
+    tenantRightsEn: 'Legally Guaranteed',
     regulation: 'ARERA Delibera 315/2020/R/eel',
     costRange: '€400〜€550 (約6〜9万円)',
     paybackYears: '3〜5年 (日照豊富)',
@@ -200,7 +387,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: '800Wプラグ公認',
     powerLimit: '800W',
     connectionMethod: 'コンセント直結 (プラグイン)',
+    connectionMethodEn: 'Plug-in Direct Connection',
     tenantRights: '規約・協議要',
+    tenantRightsEn: 'Rules / consent required',
     regulation: 'ENA EREC G98 / BS 1363',
     costRange: '£400〜£650 (約8〜12万円)',
     paybackYears: '5〜7年',
@@ -228,7 +417,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: '800Wプラグ公認',
     powerLimit: '800W',
     connectionMethod: 'コンセント直結 (プラグイン)',
+    connectionMethodEn: 'Plug-in Direct Connection',
     tenantRights: '規約・協議要',
+    tenantRightsEn: 'Rules / consent required',
     regulation: 'CACSI (Enedis)',
     costRange: '€450〜€700 (約7〜11万円)',
     paybackYears: '5〜6年',
@@ -256,7 +447,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: '800Wプラグ公認',
     powerLimit: '800W',
     connectionMethod: 'コンセント直結 (プラグイン)',
+    connectionMethodEn: 'Plug-in Direct Connection',
     tenantRights: '規約・協議要',
+    tenantRightsEn: 'Rules / consent required',
     regulation: 'Synergrid C10/11',
     costRange: '€400〜€600 (約6〜9万円)',
     paybackYears: '5〜7年',
@@ -284,7 +477,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: '600W/家電製品区分',
     powerLimit: '600W',
     connectionMethod: 'コンセント直結 (プラグイン)',
+    connectionMethodEn: 'Plug-in Direct Connection',
     tenantRights: '規約・協議要',
+    tenantRightsEn: 'Rules / consent required',
     regulation: 'NIV Art. 16 / ESTI',
     costRange: 'CHF 600〜900 (約10〜15万円)',
     paybackYears: '6〜8年',
@@ -312,8 +507,11 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: 'オフグリッド蓄電型',
     powerLimit: '800W',
     connectionMethod: 'オフグリッド蓄電 / マイクロインバータ系統工事',
+    connectionMethodEn: 'Off-grid storage / microinverter interconnect work',
     tenantRights: '原則不可',
+    tenantRightsEn: 'Generally not allowed',
     regulation: '国家標準 GB/T',
+    regulationEn: 'National standard GB/T',
     costRange: '1,500〜3,000元 (約3〜6万円)',
     paybackYears: '3〜4年 (電気代水準による)',
     baseLoadCoverage: '昼間ベースロードの約60〜80%相殺',
@@ -340,8 +538,11 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: 'オフグリッド蓄電型',
     powerLimit: 'オフグリッド (逆潮流不可)',
     connectionMethod: 'オフグリッド蓄電',
+    connectionMethodEn: 'Off-grid storage',
     tenantRights: '原則不可',
+    tenantRightsEn: 'Generally not allowed',
     regulation: '電気事業法 / 内線規程',
+    regulationEn: 'Electricity Business Act / Indoor Wiring Rules',
     costRange: '10〜18万円 (ポータブル電源込み)',
     paybackYears: '10年以上 (蓄電投資が主体)',
     baseLoadCoverage: 'ポータブル電源経由で夜間家電・スマホ等の部分自給',
@@ -368,7 +569,9 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     statusLabel: 'NEC/電気工事規程',
     powerLimit: 'オフグリッド (逆潮流不可)',
     connectionMethod: 'オフグリッド蓄電',
+    connectionMethodEn: 'Off-grid storage',
     tenantRights: '規約・協議要',
+    tenantRightsEn: 'Rules / consent required',
     regulation: 'NEC Article 690 / UL 1741',
     costRange: '$800〜$1,500 (蓄電オフグリッドキット)',
     paybackYears: '回収困難 (屋根置き連系が主流)',

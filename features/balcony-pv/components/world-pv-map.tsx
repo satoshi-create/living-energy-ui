@@ -4,7 +4,6 @@ import React, {
   useEffect,
   useRef,
   useState,
-  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { useTranslations } from 'next-intl';
@@ -38,7 +37,8 @@ const SVG_H = 460;
 /** Absolute scale in SVG user space (world fit ≈ 1; region presets up to ~3.5). */
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 6;
-const DRAG_THRESHOLD_PX = 5;
+/** Screen px; keep high enough that normal click jitter never cancels selection. */
+const DRAG_THRESHOLD_PX = 12;
 const ZOOM_STEP = 1.25;
 
 const REGION_VIEW: Record<RegionFocus, ViewBox> = {
@@ -95,10 +95,10 @@ function clientToSvgPoint(
 
 export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapProps) {
   const t = useTranslations('worldPv');
-  const [regionFocus, setRegionFocus] = useState<RegionFocus>('europe');
+  const [regionFocus, setRegionFocus] = useState<RegionFocus>('all');
   const [showLegendMobile, setShowLegendMobile] = useState(false);
   const [transform, setTransform] = useState<Transform>(() =>
-    viewBoxToTransform(REGION_VIEW.europe)
+    viewBoxToTransform(REGION_VIEW.all)
   );
   const [isPanning, setIsPanning] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -195,10 +195,15 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
       return;
     }
 
-    // Allow pan from background, or from country after drag threshold (handled in move)
+    // Pin/label hits: never arm pan — click must always select (bypass drag cancel).
+    if (onCountry) {
+      panStartRef.current = null;
+      return;
+    }
+
     const tform = transformRef.current;
     panStartRef.current = { x: e.clientX, y: e.clientY, tx: tform.x, ty: tform.y };
-    if (!onCountry) setIsPanning(true);
+    setIsPanning(true);
   }
 
   function onPointerMove(e: ReactPointerEvent<SVGSVGElement>) {
@@ -269,12 +274,11 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
     }
   }
 
-  function onCountryClick(e: ReactMouseEvent, country: CountryPvDetail) {
-    if (movedRef.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
+  function onCountryPointerUp(e: ReactPointerEvent<SVGGElement>, country: CountryPvDetail) {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    e.stopPropagation();
+    // Pan is not armed on country nodes; only cancel if a real map drag occurred.
+    if (movedRef.current) return;
     onSelectCountry(country);
   }
 
@@ -480,18 +484,30 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
               <g
                 key={country.id}
                 data-country-node
+                data-selected={isSelected ? 'true' : undefined}
                 className="group cursor-pointer"
                 opacity={focused ? 1 : 0.22}
-                onClick={(e) => onCountryClick(e, country)}
+                onPointerDown={(e) => {
+                  // Keep selection path out of the SVG pan gesture pipeline.
+                  e.stopPropagation();
+                  movedRef.current = false;
+                }}
+                onPointerUp={(e) => onCountryPointerUp(e, country)}
+                onClick={(e) => {
+                  // Selection is handled on pointerUp; block leftover click after drag.
+                  e.stopPropagation();
+                  if (movedRef.current) e.preventDefault();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    if (!movedRef.current) onSelectCountry(country);
+                    onSelectCountry(country);
                   }
                 }}
                 role="button"
                 tabIndex={0}
                 aria-label={countryName}
+                aria-pressed={isSelected}
               >
                 {/* ピン周辺ヒットエリア */}
                 <circle cx={country.x} cy={country.y} r={hitR} fill="transparent" />

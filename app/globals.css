@@ -143,7 +143,23 @@
   transition: fill 150ms ease, opacity 150ms ease;
 }
 
-.world-pv-map-svg g:focus-visible {
-  outline: 2px solid var(--ring);
+/* Keyboard focus only — must not look like an active selection. */
+.world-pv-map-svg g[data-country-node]:focus {
+  outline: none;
+}
+
+.world-pv-map-svg g[data-country-node]:focus-visible {
+  outline: 1px dashed color-mix(in oklch, var(--ring) 45%, transparent);
+  outline-offset: 3px;
+}
+
+/* True selection (selectedCountryId), distinct from focus-visible. */
+.world-pv-map-svg g[data-country-node][data-selected='true'] {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.world-pv-map-svg g[data-country-node][data-selected='true']:focus-visible {
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }

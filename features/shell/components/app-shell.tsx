@@ -5,9 +5,8 @@ import { useTranslations } from "next-intl"
 import { Sun, Network, Globe2, Leaf, PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
-import { BalconyView } from "@/features/balcony-pv"
+import { BalconyView, WorldImplementationView } from "@/features/balcony-pv/components/balcony-view"
 import { NetworkView } from "@/features/network"
-import { RankingView } from "@/features/ranking"
 import { REGIONS } from "@/lib/regions"
 
 const NAV_ITEMS = [
@@ -156,7 +155,7 @@ export function AppShell() {
         >
           {activeView === "balcony-simulation" && <BalconyView />}
           {activeView === "regional-network" && <NetworkView />}
-          {activeView === "global-implementation" && <RankingView />}
+          {activeView === "global-implementation" && <WorldImplementationView />}
         </main>
 
         <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border/60 bg-sidebar/95 backdrop-blur lg:hidden">
