@@ -1,26 +1,44 @@
 'use client';
 
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-} from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Info, Minus, Plus, RotateCcw, ZoomIn } from 'lucide-react';
-import { CountryPvDetail, WORLD_BALCONY_PV_COUNTRIES } from '../data';
+import { Minus, Plus, RotateCcw } from 'lucide-react';
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+} from 'react-simple-maps';
+import {
+  CountryPvDetail,
+  GLOBAL_PV_VENDORS,
+  WORLD_BALCONY_PV_COUNTRIES,
+  getMaturityScore,
+  getMovementPhaseById,
+  matchesModelFilter,
+  resolveRegionCategory,
+  type MovementHistoryPhaseId,
+} from '../data';
+
+export type { MovementHistoryPhaseId };
 
 interface WorldPvMapProps {
   selectedCountryId: string;
-  onSelectCountry: (country: CountryPvDetail) => void;
+  onSelectCountry: (country: CountryPvDetail | null) => void;
+  isRankingOpen: boolean;
+  onRankingOpenChange: (open: boolean) => void;
+  isMovementHistoryOpen: boolean;
+  onMovementHistoryOpenChange: (open: boolean) => void;
+  historyPhase: MovementHistoryPhaseId | null;
+  onHistoryPhaseChange: (phase: MovementHistoryPhaseId | null) => void;
+  /** サイドバーのマイルストーン連動用。regionId を渡すとピン強調・パンする */
+  historyFocusRegionId?: string | null;
 }
 
-type RegionFocus = 'all' | 'europe' | 'asia' | 'asia-us';
+type RegionFocus = 'all' | 'europe' | 'asia' | 'africa' | 'north_america' | 'asia-us';
 
-type Transform = { x: number; y: number; k: number };
-
-type ViewBox = { x: number; y: number; w: number; h: number };
+type MapCamera = { center: [number, number]; zoom: number };
 
 /** Mobile width (< sm / 768px) → europe; desktop → all. */
 function getDefaultRegionFocus(): RegionFocus {
@@ -28,108 +46,159 @@ function getDefaultRegionFocus(): RegionFocus {
   return window.matchMedia('(max-width: 767px)').matches ? 'europe' : 'all';
 }
 
-const ASIA_COUNTRY_IDS = new Set(['china', 'japan']);
-const EUROPE_COUNTRY_IDS = new Set([
-  'germany',
-  'austria',
-  'italy',
-  'uk',
-  'france',
-  'belgium',
-  'switzerland',
-]);
+const PARENT_IDS_WITH_CHILDREN = new Set(
+  WORLD_BALCONY_PV_COUNTRIES.map((c) => c.parentId).filter((id): id is string => Boolean(id))
+);
 
-const SVG_W = 1000;
-const SVG_H = 460;
-/** Absolute scale in SVG user space (world fit ≈ 1; region presets up to ~3.5). */
-const MIN_SCALE = 0.5;
-const MAX_SCALE = 6;
-/** Screen px; keep high enough that normal click jitter never cancels selection. */
-const DRAG_THRESHOLD_PX = 12;
+/** Leaf (and non-grouped) regions rendered as map pins. */
+const MAP_PIN_COUNTRIES = WORLD_BALCONY_PV_COUNTRIES.filter(
+  (c) => !PARENT_IDS_WITH_CHILDREN.has(c.id)
+);
+
+const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 8;
 const ZOOM_STEP = 1.25;
 
-const REGION_VIEW: Record<RegionFocus, ViewBox> = {
-  all: { x: 0, y: 0, w: 1000, h: 460 },
-  europe: { x: 380, y: 90, w: 240, h: 150 },
-  asia: { x: 690, y: 130, w: 220, h: 130 },
-  'asia-us': { x: 80, y: 80, w: 280, h: 220 },
+const REGION_CAMERA: Record<RegionFocus, MapCamera> = {
+  all: { center: [10, 20], zoom: 1 },
+  europe: { center: [15, 50], zoom: 3.5 },
+  north_america: { center: [-95, 40], zoom: 2.8 },
+  africa: { center: [20, 5], zoom: 2.5 },
+  asia: { center: [110, 30], zoom: 2.2 },
+  'asia-us': { center: [10, 20], zoom: 1 },
 };
 
-function filledStarCount(rating: string): number {
-  return (rating.match(/★/g) ?? []).length;
+const FOCUS_TABS: readonly {
+  id: RegionFocus;
+  labelKey: string;
+  label: string;
+  zoom?: boolean;
+}[] = [
+  { id: 'all', labelKey: 'focusAll', label: '全域' },
+  { id: 'europe', labelKey: 'focusEurope', label: '欧州', zoom: true },
+  { id: 'asia', labelKey: 'focusAsia', label: 'アジア', zoom: true },
+  { id: 'africa', labelKey: 'focusAfrica', label: 'アフリカ', zoom: true },
+  { id: 'north_america', labelKey: 'focusNorthAmerica', label: '北米（州別）', zoom: true },
+  { id: 'asia-us', labelKey: 'focusOthers', label: '他地域' },
+];
+
+function clampZoom(z: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 }
 
-function clampScale(k: number) {
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, k));
+/** Per-country label offset so dense clusters (W. Europe / E. Africa) don't overlap. */
+const getLabelOffset = (id: string): { x: number; y: number; textAnchor: 'middle' | 'start' | 'end' } => {
+  switch (id) {
+    // 西欧クラスタ
+    case 'gb':
+      return { x: -12, y: -16, textAnchor: 'end' }; // イギリス: 左上
+    case 'be':
+      return { x: -8, y: -12, textAnchor: 'end' }; // ベルギー: 左上寄り
+    case 'de':
+      return { x: 12, y: -16, textAnchor: 'start' }; // ドイツ: 右上
+    case 'fr':
+      return { x: -16, y: 0, textAnchor: 'end' }; // フランス: 左横
+    case 'ch':
+      return { x: 0, y: -13, textAnchor: 'middle' }; // スイス: 真上
+    case 'at':
+      return { x: 16, y: -6, textAnchor: 'start' }; // オーストリア: 右横
+    case 'it':
+      return { x: 0, y: 16, textAnchor: 'middle' }; // イタリア: 下
+
+    // 東アフリカクラスタ
+    case 'et':
+      return { x: 12, y: -12, textAnchor: 'start' }; // エチオピア: 右上
+    case 'ug':
+      return { x: -12, y: -12, textAnchor: 'end' }; // ウガンダ: 左上
+    case 'ke':
+      return { x: 14, y: 0, textAnchor: 'start' }; // ケニア: 右横
+    case 'rw':
+      return { x: -14, y: 8, textAnchor: 'end' }; // ルワンダ: 左下
+    case 'tz':
+      return { x: 0, y: 18, textAnchor: 'middle' }; // タンザニア: 下
+
+    // 北米クラスタ
+    case 'us-ca':
+      return { x: -14, y: 0, textAnchor: 'end' }; // カリフォルニア: 左横
+    case 'us-ut':
+      return { x: 12, y: -12, textAnchor: 'start' }; // ユタ: 右上
+
+    default:
+      return { x: 0, y: -14, textAnchor: 'middle' };
+  }
+};
+
+function statusColor(status: CountryPvDetail['status']): string {
+  switch (status) {
+    case 'legal_plug':
+      return '#10b981';
+    case 'plug_exemption':
+      return '#06b6d4';
+    case 'appliance_notified':
+      return '#3b82f6';
+    case 'storage_only':
+      return '#f59e0b';
+    case 'productive_offgrid':
+      return '#8b5cf6';
+    case 'micro_solar_kit':
+      return '#f43f5e';
+    case 'strict_code':
+      return '#ef4444';
+    default:
+      return '#6b7280';
+  }
 }
 
-/** Map a region viewBox window into SVG user-space translate+scale (meet). */
-function viewBoxToTransform(vb: ViewBox): Transform {
-  const k = Math.min(SVG_W / vb.w, SVG_H / vb.h);
-  const tx = (SVG_W - vb.w * k) / 2 - vb.x * k;
-  const ty = (SVG_H - vb.h * k) / 2 - vb.y * k;
-  return { x: tx, y: ty, k };
+function historyPhaseRegion(
+  phase: MovementHistoryPhaseId | null
+): 'europe' | 'north_america' | null {
+  if (!phase) return null;
+  return phase === 'usSpread' ? 'north_america' : 'europe';
 }
 
-/** Relative zoom factor vs full-world fit (k=1 for "all"). */
-function relativeScale(k: number) {
-  return k / viewBoxToTransform(REGION_VIEW.all).k;
+const PHASE_CAMERA_ZOOM = 4.2;
+const MILESTONE_CAMERA_ZOOM = 5.5;
+
+function cameraForRegionIds(regionIds: string[]): MapCamera | null {
+  const pts = regionIds
+    .map((id) => WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === id)?.coordinates)
+    .filter((c): c is [number, number] => Boolean(c));
+  if (pts.length === 0) return null;
+  const lng = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+  const lat = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+  return { center: [lng, lat], zoom: PHASE_CAMERA_ZOOM };
 }
 
-function zoomAtPoint(prev: Transform, nextK: number, px: number, py: number): Transform {
-  const k = clampScale(nextK);
-  const ratio = k / prev.k;
-  return {
-    k,
-    x: px - (px - prev.x) * ratio,
-    y: py - (py - prev.y) * ratio,
-  };
-}
-
-function clientToSvgPoint(
-  svg: SVGSVGElement,
-  clientX: number,
-  clientY: number
-): { x: number; y: number } {
-  const pt = svg.createSVGPoint();
-  pt.x = clientX;
-  pt.y = clientY;
-  const ctm = svg.getScreenCTM();
-  if (!ctm) return { x: 0, y: 0 };
-  const local = pt.matrixTransform(ctm.inverse());
-  return { x: local.x, y: local.y };
-}
-
-export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapProps) {
+export function WorldPvMap({
+  selectedCountryId,
+  onSelectCountry,
+  isRankingOpen,
+  onRankingOpenChange,
+  isMovementHistoryOpen,
+  onMovementHistoryOpenChange,
+  historyPhase,
+  onHistoryPhaseChange,
+  historyFocusRegionId = null,
+}: WorldPvMapProps) {
   const t = useTranslations('worldPv');
   const [regionFocus, setRegionFocus] = useState<RegionFocus>('all');
-  const [showLegendMobile, setShowLegendMobile] = useState(false);
-  const [transform, setTransform] = useState<Transform>(() =>
-    viewBoxToTransform(REGION_VIEW.all)
-  );
-  const [isPanning, setIsPanning] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [selectedModelType, setSelectedModelType] = useState<string>('all');
+  const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
+  const [center, setCenter] = useState<[number, number]>(REGION_CAMERA.all.center);
+  const [zoom, setZoom] = useState(REGION_CAMERA.all.zoom);
+  const [isVendorsOpen, setIsVendorsOpen] = useState(false);
 
-  const svgRef = useRef<SVGSVGElement>(null);
-  const transformRef = useRef(transform);
-  transformRef.current = transform;
+  const activePhase = getMovementPhaseById(historyPhase);
+  const historyHighlightRegion = isMovementHistoryOpen
+    ? historyPhaseRegion(historyPhase)
+    : null;
+  const historyTargetIds = new Set(activePhase?.targetRegionIds ?? []);
+  const focusedMilestoneRegionId =
+    isMovementHistoryOpen && historyFocusRegionId ? historyFocusRegionId : null;
+
   const didInitRegionRef = useRef(false);
-
-  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const panStartRef = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
-  const pinchStartRef = useRef<{
-    dist: number;
-    k: number;
-    midX: number;
-    midY: number;
-    tx: number;
-    ty: number;
-  } | null>(null);
-  const movedRef = useRef(false);
-
-  const relK = relativeScale(transform.k);
-  const isTightZoom = relK >= 2.4;
-  const isZoomed = relK >= 1.3;
 
   // SP (< 768px) のみ初期リージョンを欧州に。SSR/ハイドレーション不一致を避けるためマウント後に判定。
   useLayoutEffect(() => {
@@ -138,495 +207,604 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
     const initial = getDefaultRegionFocus();
     if (initial !== 'all') {
       setRegionFocus(initial);
+      const cam = REGION_CAMERA[initial];
+      setCenter(cam.center);
+      setZoom(cam.zoom);
     }
   }, []);
 
-  useEffect(() => {
-    setIsAnimating(true);
-    setTransform(viewBoxToTransform(REGION_VIEW[regionFocus]));
-    const id = window.setTimeout(() => setIsAnimating(false), 320);
-    return () => window.clearTimeout(id);
-  }, [regionFocus]);
+  useLayoutEffect(() => {
+    if (!isMovementHistoryOpen || !historyPhase) return;
+    if (historyFocusRegionId) return;
+    const phase = getMovementPhaseById(historyPhase);
+    if (!phase) return;
+    const cam =
+      cameraForRegionIds(phase.targetRegionIds) ??
+      REGION_CAMERA[historyPhaseRegion(historyPhase) ?? 'europe'];
+    setCenter(cam.center);
+    setZoom(cam.zoom);
+    const macro = historyPhaseRegion(historyPhase);
+    if (macro) setRegionFocus(macro);
+  }, [isMovementHistoryOpen, historyPhase, historyFocusRegionId]);
 
-  useEffect(() => {
-    const svg = svgRef.current;
-    if (!svg) return;
+  useLayoutEffect(() => {
+    if (!isMovementHistoryOpen || !historyFocusRegionId) return;
+    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === historyFocusRegionId);
+    if (!country) return;
+    setCenter(country.coordinates);
+    setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
+    setHoveredRegionId(historyFocusRegionId);
+  }, [isMovementHistoryOpen, historyFocusRegionId]);
 
-    function onWheel(e: WheelEvent) {
-      e.preventDefault();
-      const el = svgRef.current;
-      if (!el) return;
-      const pt = clientToSvgPoint(el, e.clientX, e.clientY);
-      const factor = e.deltaY > 0 ? 1 / ZOOM_STEP : ZOOM_STEP;
-      const power = Math.min(3, Math.abs(e.deltaY) / 100);
-      setTransform((prev) =>
-        zoomAtPoint(prev, prev.k * Math.pow(factor, power), pt.x, pt.y)
-      );
+  // ランキング・伝播史が開いたら主要企業パネルを閉じる（排他）
+  useLayoutEffect(() => {
+    if (isRankingOpen || isMovementHistoryOpen) {
+      setIsVendorsOpen(false);
     }
-
-    svg.addEventListener('wheel', onWheel, { passive: false });
-    return () => svg.removeEventListener('wheel', onWheel);
-  }, []);
+  }, [isRankingOpen, isMovementHistoryOpen]);
 
   function focusRegion(region: RegionFocus) {
     setRegionFocus(region);
+    const cam = REGION_CAMERA[region];
+    setCenter(cam.center);
+    setZoom(cam.zoom);
   }
 
   function zoomBy(factor: number) {
-    setTransform((prev) => zoomAtPoint(prev, prev.k * factor, SVG_W / 2, SVG_H / 2));
+    setZoom((prev) => clampZoom(prev * factor));
   }
 
   function resetView() {
-    setIsAnimating(true);
-    setTransform(viewBoxToTransform(REGION_VIEW[regionFocus]));
-    window.setTimeout(() => setIsAnimating(false), 320);
+    const cam = REGION_CAMERA[regionFocus];
+    setCenter(cam.center);
+    setZoom(cam.zoom);
   }
 
-  function onPointerDown(e: ReactPointerEvent<SVGSVGElement>) {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
-    const target = e.target as Element;
-    const onCountry = Boolean(target.closest('[data-country-node]'));
+  const handleDeselect = () => {
+    onSelectCountry(null);
+    setHoveredRegionId(null);
+    onRankingOpenChange(false);
+    onMovementHistoryOpenChange(false);
+    onHistoryPhaseChange(null);
+    setIsVendorsOpen(false);
+  };
 
-    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    movedRef.current = false;
-    e.currentTarget.setPointerCapture(e.pointerId);
+  const openVendorsPanel = () => {
+    setIsVendorsOpen(true);
+    onSelectCountry(null);
+    onRankingOpenChange(false);
+    onMovementHistoryOpenChange(false);
+    onHistoryPhaseChange(null);
+  };
 
-    if (pointersRef.current.size === 2) {
-      const pts = [...pointersRef.current.values()];
-      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-      const mid = clientToSvgPoint(
-        e.currentTarget,
-        (pts[0].x + pts[1].x) / 2,
-        (pts[0].y + pts[1].y) / 2
-      );
-      const tform = transformRef.current;
-      pinchStartRef.current = {
-        dist,
-        k: tform.k,
-        midX: mid.x,
-        midY: mid.y,
-        tx: tform.x,
-        ty: tform.y,
-      };
-      panStartRef.current = null;
-      setIsPanning(true);
-      return;
-    }
-
-    // Pin/label hits: never arm pan — click must always select (bypass drag cancel).
-    if (onCountry) {
-      panStartRef.current = null;
-      return;
-    }
-
-    const tform = transformRef.current;
-    panStartRef.current = { x: e.clientX, y: e.clientY, tx: tform.x, ty: tform.y };
-    setIsPanning(true);
-  }
-
-  function onPointerMove(e: ReactPointerEvent<SVGSVGElement>) {
-    if (!pointersRef.current.has(e.pointerId)) return;
-    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    if (pointersRef.current.size >= 2 && pinchStartRef.current) {
-      const pts = [...pointersRef.current.values()];
-      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-      const start = pinchStartRef.current;
-      if (start.dist <= 0) return;
-      const nextK = clampScale(start.k * (dist / start.dist));
-      const ratio = nextK / start.k;
-      setTransform({
-        k: nextK,
-        x: start.midX - (start.midX - start.tx) * ratio,
-        y: start.midY - (start.midY - start.ty) * ratio,
-      });
-      movedRef.current = true;
-      return;
-    }
-
-    const start = panStartRef.current;
-    if (!start) return;
-    const dx = e.clientX - start.x;
-    const dy = e.clientY - start.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist > DRAG_THRESHOLD_PX) {
-      movedRef.current = true;
-      if (!isPanning) setIsPanning(true);
-    }
-    if (!movedRef.current) return;
-
-    const svg = svgRef.current;
-    if (!svg) return;
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return;
-    // Convert screen delta to SVG user units (viewBox space), then to pre-scale translate
-    const kScreen = ctm.a; // uniform scale from SVG → screen
-    const svgDx = dx / kScreen;
-    const svgDy = dy / kScreen;
-    setTransform((prev) => ({
-      ...prev,
-      x: start.tx + svgDx,
-      y: start.ty + svgDy,
-    }));
-  }
-
-  function onPointerUp(e: ReactPointerEvent<SVGSVGElement>) {
-    pointersRef.current.delete(e.pointerId);
-    if (pointersRef.current.size < 2) pinchStartRef.current = null;
-    if (pointersRef.current.size === 0) {
-      panStartRef.current = null;
-      setIsPanning(false);
-      // keep movedRef until click handler runs
-      window.setTimeout(() => {
-        movedRef.current = false;
-      }, 0);
-    } else if (pointersRef.current.size === 1) {
-      const remaining = [...pointersRef.current.entries()][0];
-      const tform = transformRef.current;
-      panStartRef.current = {
-        x: remaining[1].x,
-        y: remaining[1].y,
-        tx: tform.x,
-        ty: tform.y,
-      };
-    }
-  }
-
-  function onCountryPointerUp(e: ReactPointerEvent<SVGGElement>, country: CountryPvDetail) {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
-    e.stopPropagation();
-    // Pan is not armed on country nodes; only cancel if a real map drag occurred.
-    if (movedRef.current) return;
+  const focusVendorRegion = (regionId: string) => {
+    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === regionId);
+    if (!country) return;
+    setIsVendorsOpen(false);
+    onRankingOpenChange(false);
+    onMovementHistoryOpenChange(false);
+    onHistoryPhaseChange(null);
+    setCenter(country.coordinates);
+    setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
+    setHoveredRegionId(country.id);
     onSelectCountry(country);
+  };
+
+  const isInFocus = (country: CountryPvDetail) => {
+    if (regionFocus === 'all') return true;
+    if (regionFocus === 'asia-us') return resolveRegionCategory(country) === 'other';
+    return resolveRegionCategory(country) === regionFocus;
+  };
+
+  function mapLabel(labelKey: string, fallback: string) {
+    const key = `map.${labelKey}` as Parameters<typeof t>[0];
+    return t.has(key) ? t(key) : fallback;
   }
 
-  const getStatusColor = (status: CountryPvDetail['status']) => {
-    switch (status) {
-      case 'legal_plug':
-        return '#10b981';
-      case 'appliance_notified':
-        return '#3b82f6';
-      case 'storage_only':
-        return '#f59e0b';
-      case 'strict_code':
-        return '#ef4444';
-      default:
-        return '#6b7280';
-    }
-  };
+  function countryField(country: CountryPvDetail, field: 'name' | 'powerLimit') {
+    const key = `countries.${country.id}.${field}` as Parameters<typeof t>[0];
+    return t.has(key) ? t(key) : country[field];
+  }
 
-  const isInFocus = (id: string) => {
-    if (regionFocus === 'all') return true;
-    if (regionFocus === 'europe') return EUROPE_COUNTRY_IDS.has(id);
-    if (regionFocus === 'asia') return ASIA_COUNTRY_IDS.has(id);
-    return id === 'usa';
-  };
+  const isDetailZoom = zoom >= 2.6;
+
+  // ホバー/選択/フィルター一致ピンを DOM 末尾へ回し、ラベルが最前面に来るようにする
+  const sortedPinCountries = [...MAP_PIN_COUNTRIES].sort((a, b) => {
+    const aMatch = matchesModelFilter(a, selectedModelType) ? 1 : 0;
+    const bMatch = matchesModelFilter(b, selectedModelType) ? 1 : 0;
+    if (aMatch !== bMatch) return aMatch - bMatch;
+    const aHist =
+      a.id === focusedMilestoneRegionId ||
+      a.id === hoveredRegionId ||
+      historyTargetIds.has(a.id)
+        ? 1
+        : 0;
+    const bHist =
+      b.id === focusedMilestoneRegionId ||
+      b.id === hoveredRegionId ||
+      historyTargetIds.has(b.id)
+        ? 1
+        : 0;
+    if (aHist !== bHist) return aHist - bHist;
+    const aTop = a.id === selectedCountryId || a.id === hoveredRegionId ? 1 : 0;
+    const bTop = b.id === selectedCountryId || b.id === hoveredRegionId ? 1 : 0;
+    return aTop - bTop;
+  });
 
   return (
-    <div className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden bg-background/50 select-none">
-      {/* SP/PC共通: フォーカス切り替えコントロール（右上） */}
-      <div className="absolute top-2 right-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-0.5 rounded-md border border-border/50 bg-card/90 p-0.5 text-[11px] shadow-sm backdrop-blur">
-        <button
-          type="button"
-          onClick={() => focusRegion('all')}
-          className={`rounded px-2 py-0.5 transition-colors ${
-            regionFocus === 'all'
-              ? 'bg-primary font-semibold text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {t('map.focusAll')}
-        </button>
-        <button
-          type="button"
-          onClick={() => focusRegion('europe')}
-          className={`flex items-center gap-1 rounded px-2 py-0.5 transition-colors ${
-            regionFocus === 'europe'
-              ? 'bg-primary font-semibold text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <ZoomIn className="h-3 w-3" />
-          {t('map.focusEurope')}
-        </button>
-        <button
-          type="button"
-          onClick={() => focusRegion('asia')}
-          className={`flex items-center gap-1 rounded px-2 py-0.5 transition-colors ${
-            regionFocus === 'asia'
-              ? 'bg-primary font-semibold text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <ZoomIn className="h-3 w-3" />
-          {t('map.focusAsia')}
-        </button>
-        <button
-          type="button"
-          onClick={() => focusRegion('asia-us')}
-          className={`rounded px-2 py-0.5 transition-colors ${
-            regionFocus === 'asia-us'
-              ? 'bg-primary font-semibold text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {t('map.focusOthers')}
-        </button>
-      </div>
+    <div className="relative h-full w-full overflow-hidden bg-background/50 select-none">
+      {/* SP/PC共通: 地域フィルター + 実装モデル + 実装度ランキング（左側・サイドバーに隠れない） */}
+      <div className="absolute top-2 left-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center gap-1 rounded-md border border-border/50 bg-card/90 p-0.5 shadow-sm backdrop-blur sm:flex-nowrap lg:left-72">
+        <div className="relative inline-block">
+          <select
+            value={selectedModelType}
+            onChange={(e) => setSelectedModelType(e.target.value)}
+            aria-label="ソーラー普及モデルフィルター"
+            className="bg-slate-900/90 text-slate-100 text-sm font-medium py-1.5 px-3 rounded-lg border border-slate-700 hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer backdrop-blur shadow-sm"
+          >
+            <option value="all">⚡ すべての市場モデルを表示</option>
 
-      {/* SP向け 凡例トグルボタン */}
-      <div className="absolute top-2 left-2 z-20 lg:hidden">
+            <optgroup label="① 系統あり・プラグイン可（送電網連系・公認）" className="bg-slate-900 text-slate-200 font-semibold">
+              <option value="grid_plug_in">① 系統あり・プラグイン可（すべて）</option>
+              <option value="plug_800w">🟢 800Wプラグ公認（独・英・欧州各州）</option>
+              <option value="plug_1200w">🔵 1,200W免除（米ユタ・CA等）</option>
+              <option value="plug_600w">🔷 600W届出・都市BIPV（墺・シンガポール等）</option>
+              <option value="net_metering">🌐 余剰売電・ネット相殺（豪・伯・ケープタウン等）</option>
+            </optgroup>
+
+            <optgroup label="② 系統あり・プラグイン不可（送電網防衛・蓄電自衛）" className="bg-slate-900 text-slate-200 font-semibold">
+              <option value="grid_no_plug">② 系統あり・プラグイン不可（すべて）</option>
+              <option value="offgrid_storage">🟠 逆潮流禁止・蓄電自給（日・中・台湾・越等）</option>
+              <option value="nec_strict">🔴 直結不可・電気工事必須（米保守州等）</option>
+            </optgroup>
+
+            <optgroup label="③ 系統なし（未発達）・ソーラー勃興（リープフロッグ）" className="bg-slate-900 text-slate-200 font-semibold">
+              <option value="no_grid_leapfrog">③ 系統なし・ソーラー勃興（すべて）</option>
+              <option value="productive_offgrid">🟣 農業・保冷インフラ（太陽光揚水・保冷 / 東アフリカ等）</option>
+              <option value="micro_solar_kit">🌸 生活キット / PayGo（ルワンダ・ウガンダ等）</option>
+            </optgroup>
+          </select>
+        </div>
+        <div className="relative inline-block shrink-0">
+          <select
+            value={regionFocus}
+            onChange={(e) => focusRegion(e.target.value as RegionFocus)}
+            className="cursor-pointer rounded-lg border border-slate-700 bg-slate-900/90 py-1.5 px-3 text-sm font-medium text-slate-100 shadow-sm backdrop-blur hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+          >
+            {FOCUS_TABS.map((tab) => (
+              <option key={tab.id} value={tab.id}>
+                {tab.zoom ? '🔍 ' : ''}
+                {mapLabel(tab.labelKey, tab.label)}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           type="button"
-          onClick={() => setShowLegendMobile(!showLegendMobile)}
-          className="flex items-center gap-1.5 px-2 py-1 bg-card/90 backdrop-blur border border-border/50 rounded text-[10px] text-muted-foreground shadow-sm"
-        >
-          <Info className="w-3 h-3 text-emerald-500" />
-          {t('map.legendTitle')} {showLegendMobile ? '×' : '+'}
-        </button>
-      </div>
-
-      {/* 凡例パネル (PC: 常時表示 / SP: トグル開閉) */}
-      <div
-        className={`absolute top-2 left-2 lg:top-4 lg:left-4 z-10 bg-card/90 backdrop-blur-md border border-border/50 rounded-md p-2 lg:p-2.5 shadow-md space-y-1.5 text-[10px] lg:text-xs transition-all ${
-          showLegendMobile ? 'block mt-7' : 'hidden lg:block'
-        }`}
-      >
-        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-          {t('map.legendTitle')}
-        </div>
-        <div className="flex items-center gap-1.5 lg:gap-2">
-          <span className="h-2 w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
-          <span>{t('map.legendLegalPlug')}</span>
-        </div>
-        <div className="flex items-center gap-1.5 lg:gap-2">
-          <span className="h-2 w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-blue-500 ring-2 ring-blue-500/20" />
-          <span>{t('map.legendAppliance')}</span>
-        </div>
-        <div className="flex items-center gap-1.5 lg:gap-2">
-          <span className="h-2 w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20" />
-          <span>{t('map.legendStorage')}</span>
-        </div>
-        <div className="flex items-center gap-1.5 lg:gap-2">
-          <span className="h-2 w-2 lg:h-2.5 lg:w-2.5 rounded-full bg-red-500 ring-2 ring-red-500/20" />
-          <span>{t('map.legendStrictCode')}</span>
-        </div>
-      </div>
-
-      {/* SVG地図 */}
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        preserveAspectRatio="xMidYMid meet"
-        className={`world-pv-map-svg h-full w-full touch-none ${
-          isPanning ? 'cursor-grabbing' : 'cursor-grab'
-        }`}
-        style={{ touchAction: 'none' }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-      >
-        <g
-          className={isAnimating ? 'transition-transform duration-300 ease-out' : undefined}
-          style={{
-            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`,
-            transformOrigin: '0 0',
+          onClick={() => {
+            const next = !isRankingOpen;
+            onRankingOpenChange(next);
+            if (next) {
+              onSelectCountry(null);
+              onMovementHistoryOpenChange(false);
+              onHistoryPhaseChange(null);
+              setIsVendorsOpen(false);
+            }
           }}
+          className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
+            isRankingOpen
+              ? 'border-amber-500/50 bg-amber-500/20 text-amber-300'
+              : 'border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+          }`}
         >
-          {/* 海面（島国の離島感を強調する余白色） */}
-          <rect
-            x={0}
-            y={0}
-            width={1000}
-            height={460}
-            className="fill-[oklch(0.22_0.02_230)] dark:fill-[oklch(0.18_0.02_230)]"
-            opacity={0.55}
-          />
-
-          <g fill="currentColor" className="text-muted/60 transition-colors pointer-events-none">
-            {/* ユーラシア大陸：西端を東へ寄せ、イギリス海峡相当の海ギャップを確保 */}
-            <path d="M470,78 Q560,52 680,72 Q760,100 800,125 Q850,160 820,205 Q780,250 705,220 Q610,240 540,280 Q500,350 470,400 Q445,350 450,280 Q455,220 470,175 Q460,120 470,78 Z" />
-            {/* 南北アメリカ */}
-            <path d="M160,50 Q240,70 280,145 Q240,205 260,240 Q320,300 290,420 Q240,420 220,320 Q200,245 150,205 Q100,150 160,50 Z" />
-            {/* オーストラリア */}
-            <path d="M750,305 Q830,295 850,350 Q800,400 740,370 Z" />
-            {/* 日本列島（本州〜九州の離島シルエット。大陸東端から海を挟む） */}
-            <path d="M848,168 Q862,162 868,178 Q872,198 862,212 Q848,220 842,205 Q838,188 848,168 Z" />
-            <path d="M838,214 Q848,210 852,224 Q844,232 836,226 Q834,218 838,214 Z" />
-            <path d="M856,158 Q862,154 864,162 Q860,166 856,162 Z" />
-            {/* イギリス諸島（欧州西岸から海峡を隔てた島） */}
-            <path d="M418,118 Q438,112 442,128 Q440,148 428,158 Q416,152 412,138 Q410,124 418,118 Z" />
-            <path d="M422,162 Q430,160 432,170 Q426,176 420,170 Z" />
-          </g>
-
-          {WORLD_BALCONY_PV_COUNTRIES.map((country) => {
-            const isSelected = country.id === selectedCountryId;
-            const focused = isInFocus(country.id);
-            const color = getStatusColor(country.status);
-            const stars = filledStarCount(country.rating);
-            const countryName = t(
-              `countries.${country.id}.name` as Parameters<typeof t>[0]
-            );
-            const countryPowerLimit = t(
-              `countries.${country.id}.powerLimit` as Parameters<typeof t>[0]
-            );
-            const pinR = isTightZoom
-              ? isSelected
-                ? 3.5
-                : 2.5
-              : isZoomed
-                ? isSelected
-                  ? 5
-                  : 3.5
-                : isSelected
-                  ? 6
-                  : 4.5;
-            const hitR = isTightZoom ? 10 : isZoomed ? 16 : 24;
-            const fontSize = isTightZoom ? 5 : isZoomed ? 8 : isSelected ? 11 : 10;
-            const subFontSize = isTightZoom ? 4 : isZoomed ? 6.5 : 9;
-            const labelScale = isTightZoom ? 0.4 : isZoomed ? 0.6 : 1;
-            const isLeft = country.labelDx < 0;
-            const lx = country.x + country.labelDx * labelScale;
-            const ly = country.y + country.labelDy * labelScale;
-            const lineEndX =
-              country.x + country.labelDx * (isTightZoom ? 0.25 : isZoomed ? 0.35 : 0.45);
-            const lineEndY =
-              country.y + country.labelDy * (isTightZoom ? 0.35 : isZoomed ? 0.45 : 0.65);
-            const labelHitW = isTightZoom ? 52 : isZoomed ? 78 : 110;
-            const labelHitH = isTightZoom ? 14 : isZoomed ? 22 : 28;
-            const labelHitX = isLeft ? lx - labelHitW : lx;
-            const labelHitY = ly - (isTightZoom ? 5 : isZoomed ? 8 : 10);
-
-            return (
-              <g
-                key={country.id}
-                data-country-node
-                data-selected={isSelected ? 'true' : undefined}
-                className="group cursor-pointer"
-                opacity={focused ? 1 : 0.22}
-                onPointerDown={(e) => {
-                  // Keep selection path out of the SVG pan gesture pipeline.
-                  e.stopPropagation();
-                  movedRef.current = false;
-                }}
-                onPointerUp={(e) => onCountryPointerUp(e, country)}
-                onClick={(e) => {
-                  // Selection is handled on pointerUp; block leftover click after drag.
-                  e.stopPropagation();
-                  if (movedRef.current) e.preventDefault();
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSelectCountry(country);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={countryName}
-                aria-pressed={isSelected}
-              >
-                {/* ピン周辺ヒットエリア */}
-                <circle cx={country.x} cy={country.y} r={hitR} fill="transparent" />
-
-                {/* 国名ラベルヒットエリア（テキストクリックでサイドバーを開く） */}
-                <rect
-                  x={labelHitX}
-                  y={labelHitY}
-                  width={labelHitW}
-                  height={labelHitH}
-                  fill="transparent"
-                  className="pointer-events-auto"
-                />
-
-                {/* 引出線 */}
-                <line
-                  x1={country.x}
-                  y1={country.y}
-                  x2={lineEndX}
-                  y2={lineEndY}
-                  stroke={color}
-                  strokeWidth={isTightZoom ? 0.6 : isSelected ? 1.5 : 1}
-                  strokeDasharray={isTightZoom ? '1,1' : '2,2'}
-                  opacity={isSelected ? 0.9 : 0.4}
-                  className="pointer-events-none"
-                />
-
-                {/* パルス */}
-                <circle
-                  cx={country.x}
-                  cy={country.y}
-                  r={pinR * 1.8}
-                  fill={color}
-                  opacity={isSelected ? 0.6 : 0.2}
-                  className="pointer-events-none"
-                >
-                  <animate
-                    attributeName="r"
-                    values={`${pinR * 1.2};${pinR * 2.5};${pinR * 1.2}`}
-                    dur="2.5s"
-                    repeatCount="indefinite"
-                  />
-                  <animate attributeName="opacity" values="0.6;0;0.6" dur="2.5s" repeatCount="indefinite" />
-                </circle>
-
-                {/* ピン点 */}
-                <circle
-                  cx={country.x}
-                  cy={country.y}
-                  r={pinR}
-                  fill={color}
-                  stroke="var(--background)"
-                  strokeWidth={isTightZoom ? 0.8 : 2}
-                  className="pointer-events-none"
-                />
-
-                {/* 国名 + 進展度★ */}
-                <text
-                  x={lx}
-                  y={ly}
-                  textAnchor={isLeft ? 'end' : 'start'}
-                  fill="currentColor"
-                  fontSize={fontSize}
-                  fontWeight={isSelected ? 'bold' : '500'}
-                  className={`world-pv-map-label select-none pointer-events-auto ${
-                    isSelected
-                      ? 'fill-foreground drop-shadow font-bold'
-                      : 'fill-muted-foreground group-hover:fill-foreground'
-                  }`}
-                >
-                  {countryName}{' '}
-                  <tspan fill="#eab308" fontWeight="600">
-                    ★{stars}
-                  </tspan>
-                </text>
-
-                {/* 認可上限（2行目） */}
-                <text
-                  x={lx}
-                  y={ly + (isTightZoom ? 6 : isZoomed ? 10 : 13)}
-                  textAnchor={isLeft ? 'end' : 'start'}
-                  fontSize={subFontSize}
-                  className={`world-pv-map-label select-none pointer-events-auto ${
-                    isSelected
-                      ? 'fill-foreground/80'
-                      : 'fill-muted-foreground/70 group-hover:fill-foreground/70'
-                  }`}
-                >
-                  ({countryPowerLimit})
-                </text>
-              </g>
-            );
-          })}
-        </g>
-      </svg>
-
-      {/* ズームコントロール */}
-      <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-1 rounded-lg border border-border/50 bg-zinc-900/80 p-1 shadow-lg backdrop-blur-sm">
+          ★ 実装度ランキング
+        </button>
         <button
           type="button"
-          aria-label={t('map.zoomIn')}
+          onClick={() => {
+            const next = !isMovementHistoryOpen;
+            onMovementHistoryOpenChange(next);
+            if (next) {
+              onSelectCountry(null);
+              onRankingOpenChange(false);
+              setIsVendorsOpen(false);
+            } else {
+              onHistoryPhaseChange(null);
+            }
+          }}
+          className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+            isMovementHistoryOpen
+              ? 'border-cyan-500/50 bg-cyan-500/20 text-cyan-300'
+              : 'border-slate-700 bg-slate-900/90 text-slate-300 hover:bg-slate-800'
+          }`}
+        >
+          {t('movementHistory.toggleLabel')}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (isVendorsOpen) {
+              setIsVendorsOpen(false);
+            } else {
+              openVendorsPanel();
+            }
+          }}
+          className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
+            isVendorsOpen
+              ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300'
+              : 'border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700'
+          }`}
+        >
+          主要企業
+        </button>
+      </div>
+
+      {/* TopoJSON 地図 + ピン（サイドバー開閉に依存せず常に全面） */}
+      <div
+        className="absolute inset-0 h-full w-full outline-none focus:outline-none select-none [&_*]:outline-none [&_*]:focus:outline-none"
+        onClick={handleDeselect}
+      >
+        <ComposableMap
+          projection="geoMercator"
+          projectionConfig={{ scale: 120 }}
+          className="h-full w-full outline-none focus:outline-none select-none [&_*]:outline-none [&_*]:focus:outline-none"
+          style={{ width: '100%', height: '100%', outline: 'none' }}
+          tabIndex={-1}
+        >
+          <ZoomableGroup
+            center={center}
+            zoom={zoom}
+            minZoom={MIN_ZOOM}
+            maxZoom={MAX_ZOOM}
+            onMoveEnd={(pos) => {
+              setCenter(pos.coordinates as [number, number]);
+              setZoom(pos.zoom);
+            }}
+          >
+            <Geographies geography={GEO_URL}>
+              {({ geographies }) =>
+                geographies.map((geo) => (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    tabIndex={-1}
+                    onClick={handleDeselect}
+                    className="cursor-default select-none focus:outline-none focus:ring-0"
+                    style={{
+                      default: {
+                        fill: '#1e293b',
+                        stroke: '#334155',
+                        strokeWidth: 0.5,
+                        outline: 'none',
+                      },
+                      hover: {
+                        fill: '#334155',
+                        stroke: '#334155',
+                        strokeWidth: 0.5,
+                        outline: 'none',
+                      },
+                      pressed: {
+                        fill: '#475569',
+                        stroke: '#334155',
+                        strokeWidth: 0.5,
+                        outline: 'none',
+                      },
+                    }}
+                  />
+                ))
+              }
+            </Geographies>
+
+            {sortedPinCountries.map((country) => {
+              const isSelected = country.id === selectedCountryId;
+              const isHovered = hoveredRegionId === country.id;
+              const focused = isInFocus(country);
+              const isMatchFilter = matchesModelFilter(country, selectedModelType);
+              const isMilestoneFocus = focusedMilestoneRegionId === country.id;
+              const isPhaseTarget = historyTargetIds.has(country.id);
+              const inHistoryHighlight =
+                historyHighlightRegion !== null &&
+                (isMilestoneFocus ||
+                  (focusedMilestoneRegionId === null && isPhaseTarget) ||
+                  (focusedMilestoneRegionId === null &&
+                    historyTargetIds.size === 0 &&
+                    resolveRegionCategory(country) === historyHighlightRegion));
+              const markerOpacity =
+                historyHighlightRegion !== null
+                  ? inHistoryHighlight
+                    ? 1
+                    : isPhaseTarget
+                      ? 0.45
+                      : 0.12
+                  : !focused
+                    ? 0.22
+                    : isMatchFilter
+                      ? 1
+                      : 0.15;
+              const isFilterHighlight = selectedModelType !== 'all' && isMatchFilter;
+              const isHistoryEmphasized =
+                isMovementHistoryOpen && (isMilestoneFocus || (isPhaseTarget && !focusedMilestoneRegionId));
+              const pinScale =
+                (1 / zoom) *
+                (isFilterHighlight || isHistoryEmphasized ? 1.25 : 1) *
+                (isMilestoneFocus ? 1.15 : 1);
+              const color = statusColor(country.status);
+              const stars = getMaturityScore(country);
+              const countryName = countryField(country, 'name');
+              // 高ズーム時のみ全ピンラベル。未満はホバー/選択のみ表示（ディム時は非表示）
+              const showLabel =
+                isMatchFilter &&
+                (isHovered || isSelected || isDetailZoom || isMilestoneFocus || isHistoryEmphasized);
+              const emphasizeLabel = isHovered || isSelected || isMilestoneFocus;
+              const tooltipLabel = `${countryName} ★${stars}`;
+              // fontSize 12 に合わせた幅・高さ（文字がはみ出さないよう余白を確保）
+              const tooltipW = Math.max(tooltipLabel.length * 7.2 + 14, 48);
+              const tooltipH = 18;
+              const labelOffset = getLabelOffset(country.id);
+              const rectX =
+                labelOffset.textAnchor === 'start'
+                  ? -3
+                  : labelOffset.textAnchor === 'end'
+                    ? -tooltipW + 3
+                    : -tooltipW / 2;
+              const textY = tooltipH / 2 - 4;
+
+              const selectPin = (e?: { stopPropagation: () => void }) => {
+                if (!isMatchFilter) return;
+                e?.stopPropagation();
+                setIsVendorsOpen(false);
+                onRankingOpenChange(false);
+                onMovementHistoryOpenChange(false);
+                onHistoryPhaseChange(null);
+                onSelectCountry(country);
+              };
+              const hoverPin = () => {
+                if (!isMatchFilter) return;
+                setHoveredRegionId(country.id);
+              };
+              const leavePin = () => setHoveredRegionId(null);
+
+              return (
+                <Marker
+                  key={country.id}
+                  coordinates={country.coordinates}
+                  tabIndex={-1}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectPin();
+                  }}
+                  className={`group select-none focus:outline-none focus:ring-0 focus-visible:outline-none ${
+                    isMatchFilter ? 'cursor-pointer' : 'pointer-events-none'
+                  }`}
+                  style={{
+                    default: { outline: 'none' },
+                    hover: { outline: 'none' },
+                    pressed: { outline: 'none' },
+                    pointerEvents: isMatchFilter ? 'auto' : 'none',
+                  }}
+                >
+                  <g
+                    transform={`scale(${pinScale})`}
+                    data-country-node
+                    data-selected={isSelected ? 'true' : undefined}
+                    className={`select-none focus:outline-none focus:ring-0 focus-visible:outline-none ${
+                      isMatchFilter ? 'cursor-pointer' : 'pointer-events-none'
+                    }`}
+                    style={{ outline: 'none', pointerEvents: isMatchFilter ? 'auto' : 'none' }}
+                    opacity={markerOpacity}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      selectPin();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectPin();
+                      }
+                    }}
+                    role="button"
+                    tabIndex={-1}
+                    aria-label={countryName}
+                    aria-pressed={isSelected}
+                    aria-hidden={!isMatchFilter}
+                  >
+                    <circle
+                      r={10}
+                      fill="transparent"
+                      tabIndex={-1}
+                      className="cursor-pointer select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+                      style={{ outline: 'none' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectPin();
+                      }}
+                      onMouseEnter={hoverPin}
+                      onMouseLeave={leavePin}
+                    />
+                    {isSelected || isMilestoneFocus ? (
+                      <circle
+                        r={12}
+                        fill="none"
+                        stroke={isMilestoneFocus && !isSelected ? '#22d3ee' : '#38bdf8'}
+                        strokeWidth={2}
+                        tabIndex={-1}
+                        className="animate-ping opacity-75 select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+                        style={{ outline: 'none' }}
+                      />
+                    ) : null}
+                    <circle
+                      r={isFilterHighlight || isHistoryEmphasized ? 10 : 9}
+                      fill={color}
+                      opacity={
+                        isSelected || isFilterHighlight || isMilestoneFocus || isHistoryEmphasized
+                          ? 0.55
+                          : 0.22
+                      }
+                      tabIndex={-1}
+                      className="cursor-pointer select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+                      style={{ outline: 'none' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectPin();
+                      }}
+                      onMouseEnter={hoverPin}
+                      onMouseLeave={leavePin}
+                    />
+                    <circle
+                      r={isFilterHighlight || isMilestoneFocus ? 5.5 : 5}
+                      fill={color}
+                      stroke={
+                        isSelected
+                          ? '#38bdf8'
+                          : isMilestoneFocus
+                            ? '#22d3ee'
+                            : isFilterHighlight || isHistoryEmphasized
+                              ? '#f8fafc'
+                              : 'var(--background)'
+                      }
+                      strokeWidth={
+                        isSelected || isMilestoneFocus
+                          ? 2
+                          : isFilterHighlight || isHistoryEmphasized
+                            ? 2.5
+                            : 1.5
+                      }
+                      tabIndex={-1}
+                      className="cursor-pointer select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+                      style={{ outline: 'none' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectPin();
+                      }}
+                      onMouseEnter={hoverPin}
+                      onMouseLeave={leavePin}
+                    />
+                    {showLabel ? (
+                      <g
+                        transform={`translate(${labelOffset.x}, ${labelOffset.y})`}
+                        className="pointer-events-none select-none"
+                        tabIndex={-1}
+                        style={{ outline: 'none' }}
+                      >
+                        <rect
+                          x={rectX}
+                          y={-tooltipH / 2 - 1}
+                          width={tooltipW}
+                          height={tooltipH}
+                          rx={4}
+                          fill={emphasizeLabel ? '#0f172a' : '#1e293b'}
+                          opacity={emphasizeLabel ? 0.95 : 0.82}
+                          stroke="none"
+                          tabIndex={-1}
+                          className="select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+                          style={{ outline: 'none' }}
+                        />
+                        <text
+                          y={textY}
+                          textAnchor={labelOffset.textAnchor}
+                          tabIndex={-1}
+                          fontSize="12"
+                          fontWeight="600"
+                          className="select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+                          style={{ outline: 'none' }}
+                          fill={emphasizeLabel ? '#f8fafc' : '#cbd5e1'}
+                        >
+                          {tooltipLabel}
+                        </text>
+                      </g>
+                    ) : null}
+                  </g>
+                </Marker>
+              );
+            })}
+          </ZoomableGroup>
+        </ComposableMap>
+      </div>
+
+      {/* 主要企業（グローバルハードウェア）サイドバー */}
+      {isVendorsOpen ? (
+        <aside
+          className="absolute top-0 right-0 z-30 flex h-full w-[min(100%,22rem)] flex-col border-l border-border/60 bg-card/95 shadow-xl backdrop-blur-md sm:w-96"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-border/50 px-4 py-3">
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">主要企業</h2>
+              <p className="text-xs text-muted-foreground">グローバルハードウェア</p>
+            </div>
+            <button
+              type="button"
+              aria-label="閉じる"
+              className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={() => setIsVendorsOpen(false)}
+            >
+              閉じる
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
+            {GLOBAL_PV_VENDORS.map((vendor) => (
+              <article
+                key={vendor.id}
+                className="rounded-lg border border-border/50 bg-background/60 p-3"
+              >
+                <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">{vendor.name}</h3>
+                    <p className="text-xs text-muted-foreground">{vendor.nameJa}</p>
+                  </div>
+                  <span className="shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                    {vendor.category}
+                  </span>
+                </div>
+                <p className="mb-1 text-[11px] text-slate-400">本社: {vendor.hqCountry}</p>
+                <p className="mb-2 text-xs leading-relaxed text-slate-300">{vendor.description}</p>
+                {vendor.keyProducts.length > 0 ? (
+                  <p className="mb-2 text-[11px] text-muted-foreground">
+                    主力: {vendor.keyProducts.join(' / ')}
+                  </p>
+                ) : null}
+                <div className="mb-1 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                  展開・適合地域
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {vendor.targetRegionIds.map((regionId) => {
+                    const region = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === regionId);
+                    if (!region) return null;
+                    const label = countryField(region, 'name');
+                    return (
+                      <button
+                        key={regionId}
+                        type="button"
+                        onClick={() => focusVendorRegion(regionId)}
+                        className="rounded-md border border-slate-600/80 bg-slate-800/70 px-2 py-0.5 text-[11px] text-slate-200 transition-colors hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-200"
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {vendor.url ? (
+                  <a
+                    href={vendor.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-[11px] text-emerald-400/90 hover:underline"
+                  >
+                    公式サイト
+                  </a>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </aside>
+      ) : null}
+
+      {/* ズームコントロール（伝播史は親サイドバーに集約） */}
+      <div className={`absolute bottom-3 z-20 flex flex-col gap-1 rounded-lg border border-border/50 bg-zinc-900/80 p-1 shadow-lg backdrop-blur-sm ${isVendorsOpen ? 'right-[min(100%,22rem)] sm:right-96 mr-3' : 'right-3'}`}>
+        <button
+          type="button"
+          aria-label={mapLabel('zoomIn', '拡大')}
           className="flex size-8 items-center justify-center rounded-md text-zinc-200 transition-colors hover:bg-zinc-700/80"
           onClick={() => zoomBy(ZOOM_STEP)}
           onPointerDown={(e) => e.stopPropagation()}
@@ -635,7 +813,7 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
         </button>
         <button
           type="button"
-          aria-label={t('map.zoomOut')}
+          aria-label={mapLabel('zoomOut', '縮小')}
           className="flex size-8 items-center justify-center rounded-md text-zinc-200 transition-colors hover:bg-zinc-700/80"
           onClick={() => zoomBy(1 / ZOOM_STEP)}
           onPointerDown={(e) => e.stopPropagation()}
@@ -644,7 +822,7 @@ export function WorldPvMap({ selectedCountryId, onSelectCountry }: WorldPvMapPro
         </button>
         <button
           type="button"
-          aria-label={t('map.resetView')}
+          aria-label={mapLabel('resetView', '表示をリセット')}
           className="flex size-8 items-center justify-center rounded-md text-zinc-200 transition-colors hover:bg-zinc-700/80"
           onClick={resetView}
           onPointerDown={(e) => e.stopPropagation()}
