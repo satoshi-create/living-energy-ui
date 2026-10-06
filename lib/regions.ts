@@ -2,6 +2,24 @@
 
 export type AppLocale = 'ja' | 'en'
 
+/**
+ * World-implementation macro regions (4 poles).
+ * Used by balcony-pv map filters / country `regionCategory`.
+ */
+export const WORLD_MACRO_REGIONS = [
+  'europe',
+  'africa',
+  'asia-oceania',
+  'americas',
+] as const
+
+export type WorldMacroRegion = (typeof WORLD_MACRO_REGIONS)[number]
+
+/** Locale-independent filter ids including "all regions". */
+export const WORLD_MACRO_REGION_FILTERS = ['all', ...WORLD_MACRO_REGIONS] as const
+
+export type WorldMacroRegionFilter = (typeof WORLD_MACRO_REGION_FILTERS)[number]
+
 export type Region = {
   id: string
   label: string

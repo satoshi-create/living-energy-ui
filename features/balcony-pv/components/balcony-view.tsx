@@ -2,12 +2,14 @@
 
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Building2, ChevronDown, ExternalLink, Gauge, Landmark, PackageCheck, Users, X } from "lucide-react"
+import { Building2, ExternalLink, Gauge, Landmark, PackageCheck, Users, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { HomeView } from "@/features/living-sense"
+import { MajorVendorsListView } from "@/features/global-implementation/components/global-implementation-view"
 import type { CountryCode } from "@/lib/country-codes"
 import { cn } from "@/lib/utils"
 import { BalconyIllustration } from "./balcony-illustration"
@@ -15,10 +17,8 @@ import { WorldPvMap, type MovementHistoryPhaseId } from "./world-pv-map"
 import {
   DIRECTIONS,
   ECOSYSTEM_ACTOR_FILTERS,
-  MOVEMENT_HISTORY_PHASES,
   RAILING_TYPES,
   WORLD_BALCONY_PV_COUNTRIES,
-  WORLD_PV_ANALYSIS_LABELS,
   computeBalconyScore,
   getEcosystemActorsByCountry,
   getMaturityScore,
@@ -29,7 +29,6 @@ import {
   type Direction,
   type EcosystemActorFilter,
   type EcosystemActorType,
-  type MovementMilestone,
   type RailingType,
   type SystemModelType,
 } from "../data"
@@ -129,52 +128,22 @@ export type BalconyViewProps = {
   onNavigateToEcosystem?: (countryCode: CountryCode) => void
 }
 
+type WorldImplTab = "map" | "vendors"
+
 export function WorldImplementationView() {
   const t = useTranslations("worldPv")
   const tSidebar = useTranslations("worldPv.sidebar")
   const locale = useLocale()
   const isEn = locale === "en"
+  const [viewTab, setViewTab] = useState<WorldImplTab>("map")
   const [selectedId, setSelectedId] = useState<string | null>("germany")
   const [isRankingOpen, setIsRankingOpen] = useState(false)
   const [isMovementHistoryOpen, setIsMovementHistoryOpen] = useState(false)
   const [historyPhase, setHistoryPhase] = useState<MovementHistoryPhaseId | null>(null)
-  const [expandedPhaseId, setExpandedPhaseId] = useState<MovementHistoryPhaseId | null>(null)
-  const [focusedMilestoneId, setFocusedMilestoneId] = useState<string | null>(null)
-  const [historyFocusRegionId, setHistoryFocusRegionId] = useState<string | null>(null)
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH)
   const [actorFilter, setActorFilter] = useState<EcosystemActorFilter>("all")
   const sidebarRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
-
-  const clearHistoryFocus = useCallback(() => {
-    setFocusedMilestoneId(null)
-    setHistoryFocusRegionId(null)
-  }, [])
-
-  const focusHistoryPhase = useCallback(
-    (phaseId: MovementHistoryPhaseId) => {
-      setHistoryPhase(phaseId)
-      setExpandedPhaseId(phaseId)
-      clearHistoryFocus()
-    },
-    [clearHistoryFocus],
-  )
-
-  const focusHistoryMilestone = useCallback(
-    (milestone: MovementMilestone, openDetail: boolean) => {
-      setFocusedMilestoneId(milestone.id)
-      setHistoryFocusRegionId(milestone.regionId)
-      if (openDetail) {
-        const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === milestone.regionId)
-        if (country) {
-          setSelectedId(country.id)
-          setActorFilter("all")
-          setIsRankingOpen(false)
-        }
-      }
-    },
-    [],
-  )
 
   const selectedCountry = useMemo(
     () => WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === selectedId) ?? null,
@@ -192,9 +161,6 @@ export function WorldImplementationView() {
     setIsRankingOpen(false)
     setIsMovementHistoryOpen(false)
     setHistoryPhase(null)
-    setExpandedPhaseId(null)
-    setFocusedMilestoneId(null)
-    setHistoryFocusRegionId(null)
   }, [])
 
   const handleCloseSidebar = useCallback(() => {
@@ -202,9 +168,6 @@ export function WorldImplementationView() {
     setIsRankingOpen(false)
     setIsMovementHistoryOpen(false)
     setHistoryPhase(null)
-    setExpandedPhaseId(null)
-    setFocusedMilestoneId(null)
-    setHistoryFocusRegionId(null)
   }, [])
 
   const countryMsg = (field: string, defaultFallback: string = "") => {
@@ -268,14 +231,46 @@ export function WorldImplementationView() {
     document.body.style.userSelect = ""
   }, [])
 
-  const sidebarOpen =
-    selectedCountry !== null || isRankingOpen || isMovementHistoryOpen
+  // 欧米伝播史は WorldPvMap 内 TimelineSidebar に一元化（親 Card との二重表示を防ぐ）
+  const sidebarOpen = viewTab === "map" && (selectedCountry !== null || isRankingOpen)
 
   return (
-    <div className="relative h-[calc(100vh-4rem)] overflow-hidden">
-      {/* マップ: サイドバー開閉に依らず常に全面（幅連動による Layout Shift を防ぐ） */}
-      <div className="absolute inset-0 min-h-0 min-w-0 overflow-hidden">
-        <div className="flex h-full min-h-0 w-full items-center justify-center p-2 sm:p-4">
+    <Tabs
+      value={viewTab}
+      onValueChange={(v) => {
+        if (v === "map" || v === "vendors") {
+          setViewTab(v)
+          if (v === "vendors") {
+            setSelectedId(null)
+            setIsRankingOpen(false)
+            setIsMovementHistoryOpen(false)
+            setHistoryPhase(null)
+          }
+        }
+      }}
+      className="flex h-[calc(100vh-4rem)] min-h-0 flex-col gap-0 overflow-hidden"
+      style={{ ["--sidebar-w" as string]: `${sidebarWidth}px` }}
+    >
+      <div className="z-40 flex shrink-0 items-center justify-start gap-2 border-b border-border/50 bg-slate-950/90 px-2 py-2 backdrop-blur-md sm:px-3">
+        <TabsList className="h-8 w-full max-w-xl bg-black/60 sm:w-auto">
+          <TabsTrigger value="map" className="flex-1 px-2 text-xs sm:flex-none">
+            🗺️ {t("tabs.map")}
+          </TabsTrigger>
+          <TabsTrigger value="vendors" className="flex-1 px-2 text-xs sm:flex-none">
+            🏢 {t("tabs.vendors")}
+          </TabsTrigger>
+        </TabsList>
+      </div>
+
+      <TabsContent value="map" className="relative m-0 min-h-0 flex-1 overflow-hidden data-[hidden]:hidden">
+      {/* 国詳細／ランキング Card 展開時は右端を空け、コントロールバーが下敷きにならないよう可視域内に収める */}
+      <div
+        className={cn(
+          "absolute inset-0 min-h-0 min-w-0 overflow-hidden transition-[right] duration-300 ease-in-out",
+          sidebarOpen && "lg:right-[var(--sidebar-w)]",
+        )}
+      >
+        <div className="flex h-full min-h-0 w-full max-w-full items-center justify-center p-2 sm:p-4">
           <WorldPvMap
             selectedCountryId={selectedId ?? ""}
             isRankingOpen={isRankingOpen}
@@ -284,8 +279,6 @@ export function WorldImplementationView() {
               if (open) {
                 setIsMovementHistoryOpen(false)
                 setHistoryPhase(null)
-                setExpandedPhaseId(null)
-                clearHistoryFocus()
               }
             }}
             isMovementHistoryOpen={isMovementHistoryOpen}
@@ -294,24 +287,15 @@ export function WorldImplementationView() {
               if (open) {
                 setSelectedId(null)
                 setIsRankingOpen(false)
-                const phase = historyPhase ?? "guerrilla"
-                setHistoryPhase(phase)
-                setExpandedPhaseId(phase)
-                clearHistoryFocus()
+                setHistoryPhase(historyPhase ?? "guerrilla")
               } else {
                 setHistoryPhase(null)
-                setExpandedPhaseId(null)
-                clearHistoryFocus()
               }
             }}
             historyPhase={historyPhase}
             onHistoryPhaseChange={(phase) => {
               setHistoryPhase(phase)
-              if (phase) setExpandedPhaseId(phase)
-              else setExpandedPhaseId(null)
-              clearHistoryFocus()
             }}
-            historyFocusRegionId={historyFocusRegionId}
             onSelectCountry={(country) => {
               if (country) {
                 setSelectedId(country.id)
@@ -319,8 +303,6 @@ export function WorldImplementationView() {
                 setIsRankingOpen(false)
                 setIsMovementHistoryOpen(false)
                 setHistoryPhase(null)
-                setExpandedPhaseId(null)
-                clearHistoryFocus()
               } else {
                 setSelectedId(null)
               }
@@ -370,124 +352,37 @@ export function WorldImplementationView() {
           </button>
         </div>
 
-        {isMovementHistoryOpen ? (
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pl-5 text-sm">
-            <CardHeader className="shrink-0 space-y-1 p-0">
-              <CardTitle className="text-base font-bold leading-snug text-white">
-                {t("movementHistory.title")}
-              </CardTitle>
-            </CardHeader>
-            <div className="flex flex-col gap-2">
-              {MOVEMENT_HISTORY_PHASES.map((phase) => {
-                const isActive = historyPhase === phase.id
-                const isExpanded = expandedPhaseId === phase.id
-                return (
-                  <div
-                    key={phase.id}
-                    className={cn(
-                      "rounded-lg border transition-colors",
-                      isActive
-                        ? "border-cyan-500/50 bg-cyan-500/10"
-                        : "border-border/40 bg-muted/30 hover:border-cyan-500/30",
-                    )}
-                  >
-                    <button
-                      type="button"
-                      aria-expanded={isExpanded}
-                      className="flex w-full items-start gap-2 px-3 py-2.5 text-left"
-                      onClick={() => {
-                        const nextExpanded = !(isExpanded && isActive)
-                        if (nextExpanded) {
-                          focusHistoryPhase(phase.id)
-                        } else {
-                          setExpandedPhaseId(null)
-                          clearHistoryFocus()
-                        }
-                      }}
-                      onMouseEnter={() => {
-                        focusHistoryPhase(phase.id)
-                      }}
-                    >
-                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-[10px] font-bold text-cyan-300">
-                        {phase.milestones.length}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-semibold text-foreground">
-                          {t(`movementHistory.phases.${phase.id}.title`)}
-                        </span>
-                        <span className="block font-mono text-[11px] text-cyan-300/90">
-                          {t(`movementHistory.phases.${phase.id}.period`)}
-                        </span>
-                      </span>
-                      <ChevronDown
-                        aria-hidden
-                        className={cn(
-                          "mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform",
-                          isExpanded && "rotate-180",
-                        )}
-                      />
-                    </button>
-                    {isExpanded ? (
-                      <ol className="relative space-y-0 border-t border-border/40 px-3 pb-2.5 pt-2">
-                        {phase.milestones.map((ms, idx) => {
-                          const isMsActive = focusedMilestoneId === ms.id
-                          const dateLabel = ms.date.replace("-", ".")
-                          return (
-                            <li key={ms.id} className="relative flex gap-2.5 pb-3 last:pb-0">
-                              {idx < phase.milestones.length - 1 ? (
-                                <span
-                                  aria-hidden
-                                  className="absolute top-3 left-[5px] h-[calc(100%-4px)] w-px bg-border"
-                                />
-                              ) : null}
-                              <span
-                                className={cn(
-                                  "relative z-[1] mt-1 size-2.5 shrink-0 rounded-full ring-2",
-                                  isMsActive
-                                    ? "bg-cyan-400 ring-cyan-400/40"
-                                    : "bg-muted-foreground/50 ring-card",
-                                )}
-                              />
-                              <button
-                                type="button"
-                                className={cn(
-                                  "min-w-0 flex-1 rounded-md px-1.5 py-1 text-left transition-colors",
-                                  isMsActive ? "bg-cyan-500/15" : "hover:bg-muted/50",
-                                )}
-                                onMouseEnter={() => focusHistoryMilestone(ms, false)}
-                                onClick={() => focusHistoryMilestone(ms, true)}
-                              >
-                                <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                  <span className="font-mono text-[10px] text-cyan-300/90">
-                                    {dateLabel}
-                                  </span>
-                                  <span className="rounded-md bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-200">
-                                    {ms.regionName}
-                                  </span>
-                                </span>
-                                <span className="mt-0.5 block text-[11px] leading-snug text-slate-300">
-                                  {ms.summary}
-                                </span>
-                              </button>
-                            </li>
-                          )
-                        })}
-                      </ol>
-                    ) : null}
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        ) : isRankingOpen ? (
+        {isRankingOpen ? (
           <CardContent className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pl-5 text-sm">
             <p className="text-[11px] font-medium text-muted-foreground">
-              世界実装度ランキング（★5 → ★1）
+              {t("map.rankingTitle")}
             </p>
             <ul className="flex flex-col gap-1.5">
               {rankingRegions.map((region, index) => {
                 const score = getMaturityScore(region)
                 const isActive = region.id === selectedId
+                const regionName = (() => {
+                  try {
+                    const key = `countries.${region.id}.name` as Parameters<typeof t>[0]
+                    if (typeof (t as { has?: (k: string) => boolean }).has === "function" &&
+                      (t as { has: (k: string) => boolean }).has(key)) {
+                      return t(key)
+                    }
+                  } catch { /* fall through */ }
+                  return isEn && (region as { nameEn?: string }).nameEn
+                    ? (region as { nameEn?: string }).nameEn!
+                    : region.name
+                })()
+                const regionStatus = (() => {
+                  try {
+                    const key = `countries.${region.id}.statusLabel` as Parameters<typeof t>[0]
+                    if (typeof (t as { has?: (k: string) => boolean }).has === "function" &&
+                      (t as { has: (k: string) => boolean }).has(key)) {
+                      return t(key)
+                    }
+                  } catch { /* fall through */ }
+                  return region.statusLabel
+                })()
                 return (
                   <li key={region.id}>
                     <button
@@ -513,7 +408,7 @@ export function WorldImplementationView() {
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                           <span className="truncate text-sm font-medium text-foreground">
-                            {region.name}
+                            {regionName}
                           </span>
                           <span className="font-mono text-xs text-amber-400">★{score}</span>
                         </span>
@@ -521,7 +416,7 @@ export function WorldImplementationView() {
                           variant="secondary"
                           className="mt-1 max-w-full truncate text-[10px] font-normal"
                         >
-                          {region.statusLabel}
+                          {regionStatus}
                         </Badge>
                       </span>
                     </button>
@@ -537,7 +432,9 @@ export function WorldImplementationView() {
                 <CardTitle className="text-xl font-bold text-white">
                   {countryMsg(
                     "name",
-                    (selectedCountry as { nameJa?: string }).nameJa || selectedCountry.name,
+                    isEn && (selectedCountry as { nameEn?: string }).nameEn
+                      ? (selectedCountry as { nameEn?: string }).nameEn!
+                      : selectedCountry.name,
                   )}
                   <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
                     {selectedCountry.code}
@@ -567,7 +464,7 @@ export function WorldImplementationView() {
                   >
                     {countryMsg(
                       "statusLabel",
-                      selectedCountry.statusLabel || "オフグリッド蓄電",
+                      selectedCountry.statusLabel || t("analysis.offgridStorageFallback"),
                     )}
                   </Badge>
                 </div>
@@ -605,9 +502,18 @@ export function WorldImplementationView() {
                 <p className="text-sm leading-relaxed text-slate-300">
                   {countryMsg(
                     "summary",
-                    selectedCountry.keyDrivers?.join(" / ") ||
-                      selectedCountry.bottlenecks?.join(" / ") ||
-                      `${selectedCountry.name}の実装状況`,
+                    isEn && (selectedCountry as { summaryEn?: string }).summaryEn
+                      ? (selectedCountry as { summaryEn?: string }).summaryEn!
+                      : selectedCountry.keyDrivers?.join(" / ") ||
+                        selectedCountry.bottlenecks?.join(" / ") ||
+                        t("analysis.implStatus", {
+                          name: countryMsg(
+                            "name",
+                            isEn && (selectedCountry as { nameEn?: string }).nameEn
+                              ? (selectedCountry as { nameEn?: string }).nameEn!
+                              : selectedCountry.name,
+                          ),
+                        }),
                   )}
                 </p>
               </div>
@@ -615,28 +521,34 @@ export function WorldImplementationView() {
               {selectedCountry.keyDrivers && selectedCountry.keyDrivers.length > 0 && (
                 <div className="space-y-1.5 border-t border-slate-800 pt-2">
                   <div className="text-sm font-semibold text-emerald-400">
-                    {WORLD_PV_ANALYSIS_LABELS.drivers}
+                    {tSidebar("drivers")}
                   </div>
                   <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
-                    {selectedCountry.keyDrivers.map((driver, idx) => (
-                      <li key={idx}>
-                        {driver}
-                      </li>
-                    ))}
+                    {selectedCountry.keyDrivers.map((driver, idx) => {
+                      const enList = (selectedCountry as { keyDriversEn?: string[] }).keyDriversEn
+                      const fromMsg = countryMsg(`keyDrivers.${idx}`, "")
+                      const text =
+                        (fromMsg && fromMsg) ||
+                        (isEn && enList?.[idx] ? enList[idx] : driver)
+                      return <li key={idx}>{text}</li>
+                    })}
                   </ul>
                 </div>
               )}
               {selectedCountry.bottlenecks && selectedCountry.bottlenecks.length > 0 && (
                 <div className="space-y-1.5 border-t border-slate-800 pt-2">
                   <div className="text-sm font-semibold text-rose-400">
-                    {WORLD_PV_ANALYSIS_LABELS.bottlenecks}
+                    {tSidebar("bottlenecks")}
                   </div>
                   <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
-                    {selectedCountry.bottlenecks.map((bottle, idx) => (
-                      <li key={idx}>
-                        {bottle}
-                      </li>
-                    ))}
+                    {selectedCountry.bottlenecks.map((bottle, idx) => {
+                      const enList = (selectedCountry as { bottlenecksEn?: string[] }).bottlenecksEn
+                      const fromMsg = countryMsg(`bottlenecks.${idx}`, "")
+                      const text =
+                        (fromMsg && fromMsg) ||
+                        (isEn && enList?.[idx] ? enList[idx] : bottle)
+                      return <li key={idx}>{text}</li>
+                    })}
                   </ul>
                 </div>
               )}
@@ -711,7 +623,15 @@ export function WorldImplementationView() {
           </>
         ) : null}
       </Card>
-    </div>
+      </TabsContent>
+
+      <TabsContent
+        value="vendors"
+        className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
+      >
+        <MajorVendorsListView />
+      </TabsContent>
+    </Tabs>
   )
 }
 

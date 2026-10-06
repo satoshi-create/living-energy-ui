@@ -192,7 +192,8 @@
         "offgrid_bop": "系統未発達地域で農業揚水・PayGo生活キットが先行"
       },
       "modelFilter": {
-        "all": "⚡ すべての市場モデルを表示",
+        "all": "⚡ 市場モデル",
+        "allModels": "すべての市場モデルを表示",
         "ariaLabel": "ソーラー普及モデルフィルター",
         "groupGridPlugIn": "① 系統あり・プラグイン可（送電網連系・公認）",
         "groupGridNoPlug": "② 系統あり・プラグイン不可（送電網防衛・蓄電自衛）",
@@ -213,12 +214,68 @@
       "focusAll": "全域",
       "focusEurope": "欧州",
       "focusAsia": "アジア",
+      "focusAsiaOceania": "アジア・オセアニア",
       "focusAfrica": "アフリカ",
+      "focusAmericas": "北米・米州",
       "focusNorthAmerica": "北米（州別）",
       "focusOthers": "他地域",
       "zoomIn": "ズームイン",
       "zoomOut": "ズームアウト",
-      "resetView": "表示をリセット"
+      "resetView": "表示をリセット",
+      "ranking": "★ ランキング",
+      "rankingTitle": "世界実装度ランキング（★5 → ★1）",
+      "documents": "関連資料・年表",
+      "documentsShort": "関連資料",
+      "timelineWestern": "欧米の普及ムーブメント",
+      "timelineAfrica": "アフリカの跳躍史（Leapfrog）",
+      "timelineAsiaOceania": "アジア・オセアニアの転換史",
+      "keyFocus": "特出",
+      "regionAria": "地域"
+    },
+    "tabs": {
+      "map": "世界実装マップ",
+      "vendors": "主要企業・銘柄一覧"
+    },
+    "vendors": {
+      "title": "主要企業・銘柄一覧",
+      "lead": "マイクロインバータ〜PAYG/SHSまで、ベランダ・分散ソーラー実装の主要プレイヤーを俯瞰（デモ・{count}社）。",
+      "hqFilter": "本社所在地で絞り込み",
+      "categoryFilter": "カテゴリー",
+      "empty": "条件に一致する企業がありません",
+      "hq": "本社",
+      "overview": "概要 / 役割",
+      "products": "主力製品・ソリューション",
+      "markets": "主要展開市場",
+      "officialSite": "公式サイト",
+      "regions": {
+        "all": "すべて",
+        "europe": "欧州",
+        "africa": "アフリカ",
+        "asia-oceania": "アジア・オセアニア",
+        "americas": "北米・米州"
+      },
+      "categories": {
+        "all": "すべて",
+        "microinverter": "マイクロインバータ",
+        "balconyStorage": "ベランダ蓄電キット",
+        "portablePower": "ポータブル電源",
+        "homeStorage": "家庭用蓄電",
+        "offgridShs": "オフグリッドSHS",
+        "paygFintech": "PAYGフィンテック"
+      }
+    },
+    "analysis": {
+      "drivers": "主な推進要因",
+      "bottlenecks": "制度・経済の障壁",
+      "relatedOrgs": "関連組織",
+      "barrierOvercome": "突破した壁",
+      "keyMilestone": "勝ち取った成果",
+      "company": "企業",
+      "organization": "組織",
+      "externalLink": "外部リンク",
+      "close": "閉じる",
+      "implStatus": "{name}の実装状況",
+      "offgridStorageFallback": "オフグリッド蓄電"
     },
     "detail": {
       "close": "閉じる",
@@ -263,6 +320,8 @@
       "plugInEase": "導入の手軽さ",
       "excessPower": "余った電気のあつかい",
       "ruleSummary": "現地ルールの要点",
+      "drivers": "主な推進要因",
+      "bottlenecks": "制度・経済の障壁",
       "outlet": {
         "plugOk": "🟢 工事不要（コンセントに挿すだけ）",
         "netMetering": "🌐 メーター申請が必要（電力会社と連系）",
@@ -784,6 +843,8 @@
         "summary": "内線規程によりコンセント直結は不可。ポータブル電源での自給が合法な主流ルート。"
       },
       "au": {
+        "name": "オーストラリア",
+        "statusLabel": "プラグイン / 蓄電併用",
         "summary": "集合住宅・賃貸テナントの電力自給権を確立し、高騰する系統電気代に対抗する可搬プラグインが拡大。",
         "powerLimit": "約1,000W（配電会社協議）",
         "legalRights": "公認・テナント推奨",
@@ -791,24 +852,32 @@
         "systemStatus": "プラグイン / 蓄電併用"
       },
       "vn": {
+        "name": "ベトナム",
+        "statusLabel": "オフグリッド蓄電型",
         "summary": "送電線パンクによる売電停止を受け、都市部住宅で逆潮流防止インバーターを用いた自衛オフグリッドが急増。",
         "powerLimit": "オフグリッド自給規模",
         "legalRights": "系統連系不可（自家消費限定）",
         "systemStatus": "オフグリッド蓄電型"
       },
       "in": {
+        "name": "インド",
+        "statusLabel": "生活キット / 小型プラグイン",
         "summary": "1,000万世帯を支援する国策PM-Surya Gharを背景に、都市停電対策と連動した小型バルコニー導入が進む。",
         "powerLimit": "800W / 家電区分",
         "legalRights": "国策助成対象",
         "systemStatus": "生活キット / 小型プラグイン"
       },
       "sg": {
+        "name": "シンガポール",
+        "statusLabel": "高層都市BIPV",
         "summary": "人口の8割が暮らす高層HDB公営住宅において、厳格な耐風圧・防火基準を満たす垂直ベランダBIPVを実証。",
         "powerLimit": "600W（建材一体型）",
         "legalRights": "EMA・HDB審査要",
         "systemStatus": "高層都市BIPV"
       },
       "tw": {
+        "name": "台湾",
+        "statusLabel": "防災オフグリッド蓄電型",
         "summary": "台風・震災時のBCP（事業・生活継続）を見据え、集合住宅の出窓やベランダでの防災蓄電ハイブリッドが浸透。",
         "powerLimit": "ポータブル蓄電池・自給（300W〜800W目安）",
         "powerCapacity": "ポータブル蓄電池・自給（300W〜800W目安）",
@@ -817,6 +886,8 @@
         "systemStatus": "防災オフグリッド蓄電型"
       },
       "nz": {
+        "name": "ニュージーランド",
+        "statusLabel": "系統連系（ネットメータリング）",
         "summary": "スマートメーターの普及率がほぼ100%に達し、小規模余剰が日常的に相殺されている。",
         "powerLimit": "約1,000W（小規模連系枠）",
         "legalRights": "公認・メーター自動相殺",
@@ -824,6 +895,8 @@
         "systemStatus": "系統連系（ネットメータリング）"
       },
       "za-cpt": {
+        "name": "ケープタウン（南ア）",
+        "statusLabel": "市連系（Cash for Power公認）",
         "summary": "深刻な計画停電を克服するため、ケープタウン市が市民からの逆潮流を公式に買い取る「Cash for Power」を推進。",
         "powerLimit": "1,200W級（SSEG規程）",
         "legalRights": "市公認売電（Cash for Power）",
@@ -831,6 +904,8 @@
         "systemStatus": "市連系（Cash for Power公認）"
       },
       "br": {
+        "name": "ブラジル",
+        "statusLabel": "系統連系（ネット相殺型）",
         "summary": "高い電気代を背景に、小規模分散法で家庭用ソーラーの余剰相殺を保障し市場が急拡大。",
         "powerLimit": "1,200W級（分散発電枠）",
         "legalRights": "連邦法で権利保障",
@@ -863,6 +938,8 @@
     },
     "movementHistory": {
       "toggleLabel": "📖 欧米の普及ムーブメント",
+      "sidebarTitle": "欧米の普及ムーブメント",
+      "sidebarSubtitle": "ベランダソーラー伝播史",
       "title": "欧米ベランダソーラーの伝播史（DIYから法制化へ）",
       "phases": {
         "guerrilla": {
@@ -884,6 +961,50 @@
           "period": "2024〜2026",
           "title": "米国への波及（120V環境・1,200W免除）",
           "description": "高負荷住宅（120V・15A）に最適化した1,200Wモデル。ユタ州やCA州（SB 868）を皮切りに州別で公認拡大。"
+        }
+      }
+    },
+    "africaLeapfrog": {
+      "sidebarTitle": "アフリカの跳躍史",
+      "sidebarSubtitle": "Leapfrog Revolution",
+      "phases": {
+        "deKerosene": {
+          "period": "2010〜2015",
+          "title": "脱ケロシンとソーラーランタンの夜明け"
+        },
+        "paygExplosion": {
+          "period": "2015〜2020",
+          "title": "M-Pesa × PAYGによる非消費の爆発的解放"
+        },
+        "shsAppliance": {
+          "period": "2020〜2024",
+          "title": "SHSと生活家電（DCファン・TV）の統合"
+        },
+        "productiveUse": {
+          "period": "2024〜2026年以降",
+          "title": "生産の電化（PUE）とソーラー発電機への跳躍"
+        }
+      }
+    },
+    "asiaOceaniaTransition": {
+      "sidebarTitle": "アジア・オセアニアの転換史",
+      "sidebarSubtitle": "Storage · Tenant rights · National schemes",
+      "phases": {
+        "exportAndStorage": {
+          "period": "2019〜2022",
+          "title": "機器輸出拠点とオフグリッド蓄電の定着"
+        },
+        "tenantSelfSupply": {
+          "period": "2022〜2024",
+          "title": "賃貸・集合住宅テナントの自給権"
+        },
+        "nationalSchemes": {
+          "period": "2023〜2025",
+          "title": "国策キットと都市停電対策"
+        },
+        "urbanNetMetering": {
+          "period": "2025〜2026年以降",
+          "title": "都市ネット相殺と地域間の制度収束"
         }
       }
     },

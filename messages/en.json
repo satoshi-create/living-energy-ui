@@ -192,7 +192,8 @@
         "offgrid_bop": "Weak/absent grids where agri pumps and PayGo life kits lead"
       },
       "modelFilter": {
-        "all": "⚡ Show all market models",
+        "all": "⚡ Market Models",
+        "allModels": "All Models",
         "ariaLabel": "Solar adoption model filter",
         "groupGridPlugIn": "① Grid present · plug-in allowed (interconnect & authorized)",
         "groupGridNoPlug": "② Grid present · plug-in banned (grid defense · storage self-supply)",
@@ -213,12 +214,68 @@
       "focusAll": "Global",
       "focusEurope": "Europe",
       "focusAsia": "Asia",
+      "focusAsiaOceania": "Asia & Oceania",
       "focusAfrica": "Africa",
+      "focusAmericas": "Americas",
       "focusNorthAmerica": "North America (by state)",
       "focusOthers": "Others",
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
-      "resetView": "Reset view"
+      "resetView": "Reset view",
+      "ranking": "★ Rankings",
+      "rankingTitle": "World Implementation Ranking (★5 → ★1)",
+      "documents": "Documents & Timelines",
+      "documentsShort": "Documents & Timelines",
+      "timelineWestern": "Western PV Movements",
+      "timelineAfrica": "African Leapfrog Evolution",
+      "timelineAsiaOceania": "Asia-Oceania Transition",
+      "keyFocus": "Key Focus",
+      "regionAria": "Region"
+    },
+    "tabs": {
+      "map": "World Implementation Map",
+      "vendors": "Key Companies"
+    },
+    "vendors": {
+      "title": "Key Companies",
+      "lead": "From microinverters to PAYG/SHS — a demo overview of major balcony and distributed-solar players ({count} companies).",
+      "hqFilter": "Filter by headquarters",
+      "categoryFilter": "Category",
+      "empty": "No companies match these filters",
+      "hq": "HQ",
+      "overview": "Overview / Role",
+      "products": "Key products & solutions",
+      "markets": "Primary markets",
+      "officialSite": "Official site",
+      "regions": {
+        "all": "All",
+        "europe": "Europe",
+        "africa": "Africa",
+        "asia-oceania": "Asia & Oceania",
+        "americas": "Americas"
+      },
+      "categories": {
+        "all": "All",
+        "microinverter": "Microinverters",
+        "balconyStorage": "Balcony storage kits",
+        "portablePower": "Portable power stations",
+        "homeStorage": "Home storage",
+        "offgridShs": "Off-grid SHS",
+        "paygFintech": "PAYG fintech"
+      }
+    },
+    "analysis": {
+      "drivers": "Key Drivers",
+      "bottlenecks": "Institutional & Economic Barriers",
+      "relatedOrgs": "Related Organizations",
+      "barrierOvercome": "Barrier Overcome",
+      "keyMilestone": "Key Milestone",
+      "company": "Company",
+      "organization": "Organization",
+      "externalLink": "External link",
+      "close": "Close",
+      "implStatus": "{name} implementation status",
+      "offgridStorageFallback": "Off-grid storage"
     },
     "detail": {
       "close": "Close",
@@ -260,9 +317,11 @@
       "outletPlug": "Plug-in to Wall Outlet",
       "powerCapacity": "System Style & Capacity",
       "procedure": "Regulations & Procedures",
-      "plugInEase": "Installation Ease",
+      "plugInEase": "Ease of Installation",
       "excessPower": "Surplus Power Handling",
       "ruleSummary": "Key Regulatory Rules",
+      "drivers": "Key Drivers",
+      "bottlenecks": "Institutional & Economic Barriers",
       "outlet": {
         "plugOk": "🟢 No construction (just plug into an outlet)",
         "netMetering": "🌐 Meter application required (utility interconnection)",
@@ -784,58 +843,133 @@
         "summary": "Indoor wiring rules ban outlet plug-in. Self-supply via portable power stations is the lawful mainstream path."
       },
       "au": {
+        "name": "Australia",
+        "statusLabel": "Plug-in / storage hybrid",
         "summary": "Addressing tenant solar split in urban apartments, portable plug-in solar adoption is accelerating against soaring grid tariffs.",
         "powerLimit": "1000W (utility coordination)",
         "legalRights": "Permitted / Tenant friendly",
         "ruleSummary": "Guarantees surplus-offset rights for multifamily tenants. Export may be curtailed when the grid is congested.",
-        "systemStatus": "Plug-in / Storage Hybrid"
+        "systemStatus": "Plug-in / Storage Hybrid",
+        "keyDrivers": {
+          "0": "Closing the Solar Split gap for renters and multifamily tenants after rooftop solar took off",
+          "1": "Portable plug-in installs as a hedge against soaring grid tariffs"
+        },
+        "bottlenecks": {
+          "0": "DNSP export limits (zero-export constraints)"
+        }
       },
       "vn": {
+        "name": "Vietnam",
+        "statusLabel": "Off-grid storage",
         "summary": "Following grid curtailment of FIT, urban households rapidly adopt zero-export inverters for self-consumption.",
         "powerLimit": "Off-grid Self-use Scale",
         "legalRights": "Self-consumption only (No export)",
-        "systemStatus": "Off-grid Storage"
+        "systemStatus": "Off-grid Storage",
+        "keyDrivers": {
+          "0": "FIT export halt after transmission capacity bottlenecks",
+          "1": "Zero-export inverters + storage self-supply in Hanoi/HCMC multifamily housing"
+        },
+        "bottlenecks": {
+          "0": "Monsoon storm and typhoon hardening",
+          "1": "Self-supply only — grid export still unauthorized"
+        }
       },
       "in": {
+        "name": "India",
+        "statusLabel": "Life kits / compact plug-in",
         "summary": "Driven by PM-Surya Ghar scheme aiming for 10M homes, compact solar kits thrive against urban load shedding.",
         "powerLimit": "800W (Home appliance scale)",
         "legalRights": "Subsidized National Scheme",
-        "systemStatus": "Micro Solar Kit / Plug-in"
+        "systemStatus": "Micro Solar Kit / Plug-in",
+        "keyDrivers": {
+          "0": "National scheme supporting rooftop/small solar for 10 million households",
+          "1": "Urban load-shedding defense via balcony distributed self-supply"
+        },
+        "bottlenecks": {
+          "0": "Shared-roof rights in multifamily buildings",
+          "1": "Keeping counterfeit kits out of the market"
+        }
       },
       "sg": {
+        "name": "Singapore",
+        "statusLabel": "High-density urban BIPV",
         "summary": "Piloting vertical balcony and facade BIPV for high-rise HDB estates under rigorous wind-load and fire standards.",
         "powerLimit": "600W (BIPV Integrated)",
         "legalRights": "EMA / HDB Approval required",
-        "systemStatus": "High-density Urban BIPV"
+        "systemStatus": "High-density Urban BIPV",
+        "keyDrivers": {
+          "0": "Vertical balcony/facade BIPV pilots for HDB homes housing ~80% of residents",
+          "1": "Maximizing scarce urban land"
+        },
+        "bottlenecks": {
+          "0": "Extremely strict high-rise wind-load and fire-code review"
+        }
       },
       "tw": {
+        "name": "Taiwan",
+        "statusLabel": "Disaster-resilience off-grid",
         "summary": "Expanding balcony-mounted disaster resilience systems combining solar with portable power stations for typhoons.",
         "powerLimit": "Portable storage self-supply (~300–800W)",
         "powerCapacity": "Portable storage self-supply (~300–800W)",
         "procedure": "Taipower reverse-flow rules (storage / self-consumption only)",
         "legalRights": "Self-consumption only",
-        "systemStatus": "Disaster-resilience Off-grid"
+        "systemStatus": "Disaster-resilience Off-grid",
+        "keyDrivers": {
+          "0": "Portable balcony storage hybrids for typhoon- and quake-prone regions",
+          "1": "Community-led DIY rollout in multifamily housing"
+        },
+        "bottlenecks": {
+          "0": "Taipower rules blocking direct grid tie",
+          "1": "Condo association consent"
+        }
       },
       "nz": {
+        "name": "New Zealand",
+        "statusLabel": "Grid net metering",
         "summary": "With near 100% smart meter coverage, small-scale surplus is routinely offset on the bill.",
         "powerLimit": "1000W (small-scale interconnect)",
         "legalRights": "Permitted / Net Metering",
         "ruleSummary": "Smart-meter surplus offset is standard. Application steps still differ by lines company.",
-        "systemStatus": "Grid Net Metering"
+        "systemStatus": "Grid Net Metering",
+        "keyDrivers": {
+          "0": "230V grid + near-100% smart meters making bidirectional net metering routine"
+        },
+        "bottlenecks": {
+          "0": "Application steps still differ by lines company"
+        }
       },
       "za-cpt": {
+        "name": "Cape Town (South Africa)",
+        "statusLabel": "Municipal feed-in (Cash for Power)",
         "summary": "To overcome loadshedding, the City of Cape Town officially buys excess power from citizens under 'Cash for Power'.",
         "powerLimit": "1,200W (SSEG Guideline)",
         "legalRights": "Municipal feed-in (Cash for Power)",
         "procedure": "Municipal feed-in (Cash for Power)",
-        "systemStatus": "Cash for Power Authorized"
+        "systemStatus": "Cash for Power Authorized",
+        "keyDrivers": {
+          "0": "City-led Cash for Power buyback to beat load-shedding",
+          "1": "Official encouragement of citizen reverse flow onto the grid"
+        },
+        "bottlenecks": {
+          "0": "Bidirectional smart-meter install cost borne by households",
+          "1": "Infrastructure gaps vs. lower-income neighborhoods"
+        }
       },
       "br": {
+        "name": "Brazil",
+        "statusLabel": "Grid net billing",
         "summary": "Against high tariffs, a small distributed-generation law guarantees household surplus offsets and the market is expanding fast.",
         "powerLimit": "1,200W (Micro-GD Scale)",
         "legalRights": "Federal Net Metering Law",
         "ruleSummary": "Under the small distributed-generation law, surplus power can offset next month’s bill.",
-        "systemStatus": "Grid Net Billing"
+        "systemStatus": "Grid Net Billing",
+        "keyDrivers": {
+          "0": "Rapid net-metering growth against soaring grid tariffs",
+          "1": "South America’s largest small distributed-solar market"
+        },
+        "bottlenecks": {
+          "0": "Phased Fio B interconnection charges shifting project economics"
+        }
       }
     },
     "timeline": {
@@ -862,7 +996,9 @@
       }
     },
     "movementHistory": {
-      "toggleLabel": "📖 EU–US adoption movement",
+      "toggleLabel": "📖 Western PV Movements",
+      "sidebarTitle": "Western PV Movements",
+      "sidebarSubtitle": "Balcony solar adoption history",
       "title": "How balcony solar spread in the West (DIY to law)",
       "phases": {
         "guerrilla": {
@@ -884,6 +1020,50 @@
           "period": "2024–2026",
           "title": "U.S. spillover (120V homes · 1,200W waivers)",
           "description": "1,200W kits tuned for high-load 120V/15A homes. Utah and California (SB 868) led state-by-state authorization."
+        }
+      }
+    },
+    "africaLeapfrog": {
+      "sidebarTitle": "African Leapfrog Evolution",
+      "sidebarSubtitle": "Leapfrog Revolution",
+      "phases": {
+        "deKerosene": {
+          "period": "2010–2015",
+          "title": "Kerosene exit & the solar-lantern dawn"
+        },
+        "paygExplosion": {
+          "period": "2015–2020",
+          "title": "M-Pesa × PAYG unlocking non-consumers"
+        },
+        "shsAppliance": {
+          "period": "2020–2024",
+          "title": "SHS meets life appliances (DC fans & TVs)"
+        },
+        "productiveUse": {
+          "period": "2024–2026+",
+          "title": "Productive use (PUE) & solar-generator leap"
+        }
+      }
+    },
+    "asiaOceaniaTransition": {
+      "sidebarTitle": "Asia-Oceania Transition",
+      "sidebarSubtitle": "Storage · Tenant rights · National schemes",
+      "phases": {
+        "exportAndStorage": {
+          "period": "2019–2022",
+          "title": "Export hubs & off-grid storage take root"
+        },
+        "tenantSelfSupply": {
+          "period": "2022–2024",
+          "title": "Tenant self-supply rights in rentals & multifamily"
+        },
+        "nationalSchemes": {
+          "period": "2023–2025",
+          "title": "National kits & urban outage defense"
+        },
+        "urbanNetMetering": {
+          "period": "2025–2026+",
+          "title": "Urban net metering & institutional convergence"
         }
       }
     },

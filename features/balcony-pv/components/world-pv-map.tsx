@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { Minus, Plus, RotateCcw } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { ExternalLink, Minus, Plus, RotateCcw } from 'lucide-react';
 import {
   ComposableMap,
   Geographies,
@@ -12,13 +12,22 @@ import {
 } from 'react-simple-maps';
 import {
   CountryPvDetail,
-  GLOBAL_PV_VENDORS,
+  AFRICA_LEAPFROG_TIMELINE,
+  ASIA_OCEANIA_TRANSITION_TIMELINE,
+  MOVEMENT_HISTORY_PHASES,
   WORLD_BALCONY_PV_COUNTRIES,
+  getAfricaLeapfrogPhaseById,
+  getAsiaOceaniaPhaseById,
   getMaturityScore,
   getMovementPhaseById,
   matchesModelFilter,
   resolveRegionCategory,
+  type AfricaLeapfrogPhaseId,
+  type AsiaOceaniaPhaseId,
+  type MilestoneKeyActor,
   type MovementHistoryPhaseId,
+  type MovementMilestone,
+  type RegionCategory,
 } from '../data';
 
 export type { MovementHistoryPhaseId };
@@ -36,7 +45,7 @@ interface WorldPvMapProps {
   historyFocusRegionId?: string | null;
 }
 
-type RegionFocus = 'all' | 'europe' | 'asia' | 'africa' | 'north_america' | 'asia-us';
+type RegionFocus = 'all' | RegionCategory;
 
 type MapCamera = { center: [number, number]; zoom: number };
 
@@ -58,16 +67,16 @@ const MAP_PIN_COUNTRIES = WORLD_BALCONY_PV_COUNTRIES.filter(
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 8;
+const MAX_ZOOM = 14;
 const ZOOM_STEP = 1.25;
+const COUNTRY_CAMERA_ZOOM = 8;
 
 const REGION_CAMERA: Record<RegionFocus, MapCamera> = {
   all: { center: [10, 20], zoom: 1 },
   europe: { center: [15, 50], zoom: 3.5 },
-  north_america: { center: [-95, 40], zoom: 2.8 },
-  africa: { center: [20, 5], zoom: 2.5 },
-  asia: { center: [110, 30], zoom: 2.2 },
-  'asia-us': { center: [10, 20], zoom: 1 },
+  africa: { center: [25, 2], zoom: 3.2 },
+  'asia-oceania': { center: [120, 5], zoom: 2.0 },
+  americas: { center: [-70, 10], zoom: 2.2 },
 };
 
 const FOCUS_TABS: readonly {
@@ -76,12 +85,11 @@ const FOCUS_TABS: readonly {
   label: string;
   zoom?: boolean;
 }[] = [
-  { id: 'all', labelKey: 'focusAll', label: '全域' },
+  { id: 'all', labelKey: 'focusAll', label: '地域' },
   { id: 'europe', labelKey: 'focusEurope', label: '欧州', zoom: true },
-  { id: 'asia', labelKey: 'focusAsia', label: 'アジア', zoom: true },
   { id: 'africa', labelKey: 'focusAfrica', label: 'アフリカ', zoom: true },
-  { id: 'north_america', labelKey: 'focusNorthAmerica', label: '北米（州別）', zoom: true },
-  { id: 'asia-us', labelKey: 'focusOthers', label: '他地域' },
+  { id: 'asia-oceania', labelKey: 'focusAsiaOceania', label: 'アジア・オセアニア', zoom: true },
+  { id: 'americas', labelKey: 'focusAmericas', label: '北米・米州', zoom: true },
 ];
 
 function clampZoom(z: number) {
@@ -153,13 +161,272 @@ function statusColor(status: CountryPvDetail['status']): string {
 
 function historyPhaseRegion(
   phase: MovementHistoryPhaseId | null
-): 'europe' | 'north_america' | null {
+): 'europe' | 'americas' | null {
   if (!phase) return null;
-  return phase === 'usSpread' ? 'north_america' : 'europe';
+  return phase === 'usSpread' ? 'americas' : 'europe';
 }
 
+/** マイルストーン内の非営利団体・突破アクションサブカード（欧米・アフリカ共通） */
+function MilestoneKeyActorCard({
+  actor,
+  isEn,
+  barrierLabel,
+  milestoneLabel,
+}: {
+  actor: MilestoneKeyActor;
+  isEn: boolean;
+  barrierLabel: string;
+  milestoneLabel: string;
+}) {
+  const name = isEn && actor.nameEn ? actor.nameEn : actor.name;
+  const roleBadge = isEn && actor.roleBadgeEn ? actor.roleBadgeEn : actor.roleBadge;
+  const barrier = isEn && actor.barrierEn ? actor.barrierEn : actor.barrier;
+  const achievement = isEn && actor.achievementEn ? actor.achievementEn : actor.achievement;
+  return (
+    <div className="mt-1.5 rounded-md border border-slate-600/70 bg-slate-900/70 px-2.5 py-2">
+      <div className="mb-1.5 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold leading-relaxed text-slate-100">{name}</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{roleBadge}</p>
+        </div>
+        {actor.url ? (
+          <a
+            href={actor.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${name} official site`}
+            className="shrink-0 rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-700/80 hover:text-emerald-300"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <ExternalLink className="size-3.5" />
+          </a>
+        ) : null}
+      </div>
+      <p className="text-xs leading-relaxed text-orange-300/95">
+        ⚡ <span className="font-medium">{barrierLabel}</span>: {barrier}
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-emerald-300/95">
+        🎯 <span className="font-medium">{milestoneLabel}</span>: {achievement}
+      </p>
+    </div>
+  );
+}
+
+function MilestoneCard({
+  ms,
+  focused,
+  onFocus,
+  isEn,
+  barrierLabel,
+  milestoneLabel,
+}: {
+  ms: MovementMilestone;
+  focused: boolean;
+  onFocus: () => void;
+  isEn: boolean;
+  barrierLabel: string;
+  milestoneLabel: string;
+}) {
+  const regionName = isEn && ms.regionNameEn ? ms.regionNameEn : ms.regionName;
+  const summary = isEn && ms.summaryEn ? ms.summaryEn : ms.summary;
+  return (
+    <li className="relative pl-3">
+      <span
+        aria-hidden
+        className="absolute top-3 left-0 size-1.5 rounded-full bg-slate-500 ring-2 ring-slate-800"
+      />
+      <div
+        className={`rounded-md border transition-colors ${
+          focused
+            ? 'border-cyan-500/50 bg-cyan-500/15'
+            : 'border-transparent hover:border-slate-600 hover:bg-slate-800/60'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={onFocus}
+          className="w-full px-2.5 py-2 text-left"
+        >
+          <div className="mb-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="font-mono text-sm font-medium text-slate-400">{ms.date}</span>
+            <span className="text-sm font-medium text-emerald-300">{regionName}</span>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-300">{summary}</p>
+        </button>
+        {ms.keyActor ? (
+          <div className="px-2.5 pb-2">
+            <MilestoneKeyActorCard
+              actor={ms.keyActor}
+              isEn={isEn}
+              barrierLabel={barrierLabel}
+              milestoneLabel={milestoneLabel}
+            />
+          </div>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+type TimelinePhaseView = {
+  id: string;
+  period: string;
+  title: string;
+  milestones: MovementMilestone[];
+};
+
+type TimelineSidebarAccent = {
+  activeBorder: string;
+  activeBg: string;
+  chevron: string;
+  period: string;
+};
+
+type TimelineSidebarProps = {
+  title: string;
+  subtitle?: string;
+  phases: TimelinePhaseView[];
+  openPhaseIds: ReadonlySet<string>;
+  activePhaseId: string | null;
+  focusRegionId: string | null;
+  accent: TimelineSidebarAccent;
+  closeLabel: string;
+  isEn: boolean;
+  barrierLabel: string;
+  milestoneLabel: string;
+  onClose: () => void;
+  onTogglePhase: (id: string) => void;
+  onFocusMilestone: (phaseId: string, regionId: string) => void;
+};
+
+/** 欧米伝播史・アフリカ跳躍史で共用するタイムラインサイドバー */
+function TimelineSidebar({
+  title,
+  subtitle,
+  phases,
+  openPhaseIds,
+  activePhaseId,
+  focusRegionId,
+  accent,
+  closeLabel,
+  isEn,
+  barrierLabel,
+  milestoneLabel,
+  onClose,
+  onTogglePhase,
+  onFocusMilestone,
+}: TimelineSidebarProps) {
+  return (
+    <aside
+      className="absolute top-0 right-0 z-30 flex h-full w-[min(90vw,520px)] max-w-[90vw] flex-col border-l border-border/60 bg-card/95 shadow-xl backdrop-blur-md"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <div className="flex shrink-0 items-center justify-between border-b border-border/50 px-4 py-3">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">{title}</h2>
+          {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
+        </div>
+        <button
+          type="button"
+          aria-label={closeLabel}
+          className="rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          onClick={onClose}
+        >
+          {closeLabel}
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3">
+        {phases.map((phase) => {
+          const isOpen = openPhaseIds.has(phase.id);
+          const isActive = activePhaseId === phase.id;
+          return (
+            <div
+              key={phase.id}
+              className={`rounded-lg border ${
+                isActive
+                  ? `${accent.activeBorder} ${accent.activeBg}`
+                  : 'border-border/50 bg-background/60'
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => onTogglePhase(phase.id)}
+                className="flex w-full items-start gap-2 px-3 py-2.5 text-left"
+              >
+                <span className={`mt-0.5 text-sm ${accent.chevron}`}>{isOpen ? '▾' : '▸'}</span>
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={`block text-xs font-medium tracking-wide uppercase ${accent.period}`}
+                  >
+                    {phase.period}
+                  </span>
+                  <span className="block text-base font-semibold leading-snug text-foreground">
+                    {phase.title}
+                  </span>
+                </span>
+              </button>
+              {isOpen ? (
+                <ul className="relative space-y-1.5 border-t border-border/40 px-3 py-2.5 before:absolute before:top-3 before:bottom-3 before:left-[calc(0.75rem+3px)] before:w-px before:bg-slate-700/80">
+                  {phase.milestones.map((ms) => {
+                    const focused =
+                      focusRegionId === ms.regionId && activePhaseId === phase.id;
+                    return (
+                      <MilestoneCard
+                        key={ms.id}
+                        ms={ms}
+                        focused={focused}
+                        onFocus={() => onFocusMilestone(phase.id, ms.regionId)}
+                        isEn={isEn}
+                        barrierLabel={barrierLabel}
+                        milestoneLabel={milestoneLabel}
+                      />
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}
+
+const CYAN_TIMELINE_ACCENT: TimelineSidebarAccent = {
+  activeBorder: 'border-cyan-500/40',
+  activeBg: 'bg-cyan-500/10',
+  chevron: 'text-cyan-300',
+  period: 'text-cyan-300/90',
+};
+
+const VIOLET_TIMELINE_ACCENT: TimelineSidebarAccent = {
+  activeBorder: 'border-violet-500/40',
+  activeBg: 'bg-violet-500/10',
+  chevron: 'text-violet-300',
+  period: 'text-violet-300/90',
+};
+
+const EMERALD_TIMELINE_ACCENT: TimelineSidebarAccent = {
+  activeBorder: 'border-emerald-500/40',
+  activeBg: 'bg-emerald-500/10',
+  chevron: 'text-emerald-300',
+  period: 'text-emerald-300/90',
+};
+
+const MOVEMENT_PHASE_FALLBACKS: Record<
+  MovementHistoryPhaseId,
+  { period: string; title: string }
+> = {
+  guerrilla: { period: '2019〜2021', title: 'ドイツ・ゲリラ連系時代' },
+  energyCrisis: { period: '2020〜2023', title: 'エネルギー危機と欧州拡大' },
+  euDomino: { period: '2023〜2025', title: '欧州ドミノ / Solarpaket I' },
+  usSpread: { period: '2025〜2026', title: '米国 1,200W免除・蓄電シフト' },
+};
+
 const PHASE_CAMERA_ZOOM = 4.2;
-const MILESTONE_CAMERA_ZOOM = 5.5;
+const MILESTONE_CAMERA_ZOOM = 8;
 
 function cameraForRegionIds(regionIds: string[]): MapCamera | null {
   const pts = regionIds
@@ -183,20 +450,58 @@ export function WorldPvMap({
   historyFocusRegionId = null,
 }: WorldPvMapProps) {
   const t = useTranslations('worldPv');
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const closeLabel = t('detail.close');
+  const barrierLabel = t('analysis.barrierOvercome');
+  const milestoneLabel = t('analysis.keyMilestone');
   const [regionFocus, setRegionFocus] = useState<RegionFocus>('all');
   const [selectedModelType, setSelectedModelType] = useState<string>('all');
   const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
   const [center, setCenter] = useState<[number, number]>(REGION_CAMERA.all.center);
   const [zoom, setZoom] = useState(REGION_CAMERA.all.zoom);
-  const [isVendorsOpen, setIsVendorsOpen] = useState(false);
+  const [isAfricaLeapfrogOpen, setIsAfricaLeapfrogOpen] = useState(false);
+  const [africaPhase, setAfricaPhase] = useState<AfricaLeapfrogPhaseId | null>(null);
+  const [africaFocusRegionId, setAfricaFocusRegionId] = useState<string | null>(null);
+  const [africaOpenPhases, setAfricaOpenPhases] = useState<Set<AfricaLeapfrogPhaseId>>(
+    () => new Set()
+  );
+  const [isAsiaOceaniaOpen, setIsAsiaOceaniaOpen] = useState(false);
+  const [asiaPhase, setAsiaPhase] = useState<AsiaOceaniaPhaseId | null>(null);
+  const [asiaFocusRegionId, setAsiaFocusRegionId] = useState<string | null>(null);
+  const [asiaOpenPhases, setAsiaOpenPhases] = useState<Set<AsiaOceaniaPhaseId>>(() => new Set());
+  const [movementOpenPhases, setMovementOpenPhases] = useState<Set<MovementHistoryPhaseId>>(
+    () => new Set()
+  );
+  const [movementFocusRegionId, setMovementFocusRegionId] = useState<string | null>(null);
 
   const activePhase = getMovementPhaseById(historyPhase);
-  const historyHighlightRegion = isMovementHistoryOpen
+  const activeAfricaPhase = getAfricaLeapfrogPhaseById(africaPhase);
+  const activeAsiaPhase = getAsiaOceaniaPhaseById(asiaPhase);
+  const historyHighlightRegion: RegionCategory | null = isMovementHistoryOpen
     ? historyPhaseRegion(historyPhase)
-    : null;
-  const historyTargetIds = new Set(activePhase?.targetRegionIds ?? []);
+    : isAfricaLeapfrogOpen
+      ? 'africa'
+      : isAsiaOceaniaOpen
+        ? 'asia-oceania'
+        : null;
+  const historyTargetIds = new Set(
+    isAfricaLeapfrogOpen
+      ? (activeAfricaPhase?.targetRegionIds ?? [])
+      : isAsiaOceaniaOpen
+        ? (activeAsiaPhase?.targetRegionIds ?? [])
+        : (activePhase?.targetRegionIds ?? [])
+  );
   const focusedMilestoneRegionId =
-    isMovementHistoryOpen && historyFocusRegionId ? historyFocusRegionId : null;
+    isAfricaLeapfrogOpen && africaFocusRegionId
+      ? africaFocusRegionId
+      : isAsiaOceaniaOpen && asiaFocusRegionId
+        ? asiaFocusRegionId
+        : isMovementHistoryOpen && (movementFocusRegionId || historyFocusRegionId)
+          ? (movementFocusRegionId ?? historyFocusRegionId)
+          : null;
+  const isAnyHistoryOpen =
+    isMovementHistoryOpen || isAfricaLeapfrogOpen || isAsiaOceaniaOpen;
 
   const didInitRegionRef = useRef(false);
 
@@ -215,7 +520,7 @@ export function WorldPvMap({
 
   useLayoutEffect(() => {
     if (!isMovementHistoryOpen || !historyPhase) return;
-    if (historyFocusRegionId) return;
+    if (movementFocusRegionId || historyFocusRegionId) return;
     const phase = getMovementPhaseById(historyPhase);
     if (!phase) return;
     const cam =
@@ -225,23 +530,90 @@ export function WorldPvMap({
     setZoom(cam.zoom);
     const macro = historyPhaseRegion(historyPhase);
     if (macro) setRegionFocus(macro);
-  }, [isMovementHistoryOpen, historyPhase, historyFocusRegionId]);
+  }, [isMovementHistoryOpen, historyPhase, historyFocusRegionId, movementFocusRegionId]);
 
   useLayoutEffect(() => {
-    if (!isMovementHistoryOpen || !historyFocusRegionId) return;
-    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === historyFocusRegionId);
+    const focusId = movementFocusRegionId || historyFocusRegionId;
+    if (!isMovementHistoryOpen || !focusId) return;
+    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === focusId);
     if (!country) return;
     setCenter(country.coordinates);
     setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
-    setHoveredRegionId(historyFocusRegionId);
-  }, [isMovementHistoryOpen, historyFocusRegionId]);
+    setHoveredRegionId(focusId);
+  }, [isMovementHistoryOpen, historyFocusRegionId, movementFocusRegionId]);
 
-  // ランキング・伝播史が開いたら主要企業パネルを閉じる（排他）
+  // アフリカ跳躍史オープン時: 大陸中心へパン＆ズーム
   useLayoutEffect(() => {
-    if (isRankingOpen || isMovementHistoryOpen) {
-      setIsVendorsOpen(false);
+    if (!isAfricaLeapfrogOpen) return;
+    if (africaFocusRegionId) return;
+    if (africaPhase) {
+      const phase = getAfricaLeapfrogPhaseById(africaPhase);
+      if (phase) {
+        const cam = cameraForRegionIds(phase.targetRegionIds) ?? REGION_CAMERA.africa;
+        setCenter(cam.center);
+        setZoom(cam.zoom);
+        setRegionFocus('africa');
+        return;
+      }
     }
-  }, [isRankingOpen, isMovementHistoryOpen]);
+    const cam = REGION_CAMERA.africa;
+    setCenter(cam.center);
+    setZoom(cam.zoom);
+    setRegionFocus('africa');
+  }, [isAfricaLeapfrogOpen, africaPhase, africaFocusRegionId]);
+
+  useLayoutEffect(() => {
+    if (!isAfricaLeapfrogOpen || !africaFocusRegionId) return;
+    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === africaFocusRegionId);
+    if (!country) return;
+    setCenter(country.coordinates);
+    setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
+    setHoveredRegionId(africaFocusRegionId);
+  }, [isAfricaLeapfrogOpen, africaFocusRegionId]);
+
+  // アジア・オセアニア転換史オープン時: 域内中心へパン＆ズーム
+  useLayoutEffect(() => {
+    if (!isAsiaOceaniaOpen) return;
+    if (asiaFocusRegionId) return;
+    if (asiaPhase) {
+      const phase = getAsiaOceaniaPhaseById(asiaPhase);
+      if (phase) {
+        const cam = cameraForRegionIds(phase.targetRegionIds) ?? REGION_CAMERA['asia-oceania'];
+        setCenter(cam.center);
+        setZoom(cam.zoom);
+        setRegionFocus('asia-oceania');
+        return;
+      }
+    }
+    const cam = REGION_CAMERA['asia-oceania'];
+    setCenter(cam.center);
+    setZoom(cam.zoom);
+    setRegionFocus('asia-oceania');
+  }, [isAsiaOceaniaOpen, asiaPhase, asiaFocusRegionId]);
+
+  useLayoutEffect(() => {
+    if (!isAsiaOceaniaOpen || !asiaFocusRegionId) return;
+    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === asiaFocusRegionId);
+    if (!country) return;
+    setCenter(country.coordinates);
+    setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
+    setHoveredRegionId(asiaFocusRegionId);
+  }, [isAsiaOceaniaOpen, asiaFocusRegionId]);
+
+  // 欧米伝播史が親から開いたら他年表を閉じる（排他）
+  useLayoutEffect(() => {
+    if (isMovementHistoryOpen) {
+      setIsAfricaLeapfrogOpen(false);
+      setAfricaPhase(null);
+      setAfricaFocusRegionId(null);
+      setIsAsiaOceaniaOpen(false);
+      setAsiaPhase(null);
+      setAsiaFocusRegionId(null);
+      if (historyPhase) {
+        setMovementOpenPhases(new Set([historyPhase]));
+      }
+    }
+  }, [isMovementHistoryOpen, historyPhase]);
 
   function focusRegion(region: RegionFocus) {
     setRegionFocus(region);
@@ -260,39 +632,160 @@ export function WorldPvMap({
     setZoom(cam.zoom);
   }
 
+  const closeAllTimelines = () => {
+    onMovementHistoryOpenChange(false);
+    onHistoryPhaseChange(null);
+    setIsAfricaLeapfrogOpen(false);
+    setAfricaPhase(null);
+    setAfricaFocusRegionId(null);
+    setIsAsiaOceaniaOpen(false);
+    setAsiaPhase(null);
+    setAsiaFocusRegionId(null);
+    setMovementOpenPhases(new Set());
+    setMovementFocusRegionId(null);
+  };
+
   const handleDeselect = () => {
     onSelectCountry(null);
     setHoveredRegionId(null);
     onRankingOpenChange(false);
-    onMovementHistoryOpenChange(false);
-    onHistoryPhaseChange(null);
-    setIsVendorsOpen(false);
+    closeAllTimelines();
   };
 
-  const openVendorsPanel = () => {
-    setIsVendorsOpen(true);
-    onSelectCountry(null);
-    onRankingOpenChange(false);
-    onMovementHistoryOpenChange(false);
-    onHistoryPhaseChange(null);
+  /** 欧米普及ムーブメント: クリック時のみ排他トグル（ホバー開閉なし） */
+  const openMovementHistory = () => {
+    const next = !isMovementHistoryOpen;
+    onMovementHistoryOpenChange(next);
+    if (next) {
+      onSelectCountry(null);
+      onRankingOpenChange(false);
+      setIsAfricaLeapfrogOpen(false);
+      setAfricaPhase(null);
+      setAfricaFocusRegionId(null);
+      setIsAsiaOceaniaOpen(false);
+      setAsiaPhase(null);
+      setAsiaFocusRegionId(null);
+      setMovementFocusRegionId(null);
+      if (!historyPhase) {
+        onHistoryPhaseChange('guerrilla');
+        setMovementOpenPhases(new Set(['guerrilla']));
+      }
+    } else {
+      onHistoryPhaseChange(null);
+      setMovementOpenPhases(new Set());
+      setMovementFocusRegionId(null);
+    }
   };
 
-  const focusVendorRegion = (regionId: string) => {
-    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === regionId);
-    if (!country) return;
-    setIsVendorsOpen(false);
-    onRankingOpenChange(false);
-    onMovementHistoryOpenChange(false);
-    onHistoryPhaseChange(null);
-    setCenter(country.coordinates);
-    setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
-    setHoveredRegionId(country.id);
-    onSelectCountry(country);
+  const openAfricaLeapfrog = () => {
+    const next = !isAfricaLeapfrogOpen;
+    setIsAfricaLeapfrogOpen(next);
+    if (next) {
+      onSelectCountry(null);
+      onRankingOpenChange(false);
+      onMovementHistoryOpenChange(false);
+      onHistoryPhaseChange(null);
+      setIsAsiaOceaniaOpen(false);
+      setAsiaPhase(null);
+      setAsiaFocusRegionId(null);
+      setAfricaFocusRegionId(null);
+      setMovementOpenPhases(new Set());
+      setMovementFocusRegionId(null);
+      if (!africaPhase) {
+        setAfricaPhase('deKerosene');
+        setAfricaOpenPhases(new Set(['deKerosene']));
+      }
+    } else {
+      setAfricaPhase(null);
+      setAfricaFocusRegionId(null);
+    }
+  };
+
+  const openAsiaOceania = () => {
+    const next = !isAsiaOceaniaOpen;
+    setIsAsiaOceaniaOpen(next);
+    if (next) {
+      onSelectCountry(null);
+      onRankingOpenChange(false);
+      onMovementHistoryOpenChange(false);
+      onHistoryPhaseChange(null);
+      setIsAfricaLeapfrogOpen(false);
+      setAfricaPhase(null);
+      setAfricaFocusRegionId(null);
+      setAsiaFocusRegionId(null);
+      setMovementOpenPhases(new Set());
+      setMovementFocusRegionId(null);
+      if (!asiaPhase) {
+        setAsiaPhase('exportAndStorage');
+        setAsiaOpenPhases(new Set(['exportAndStorage']));
+      }
+    } else {
+      setAsiaPhase(null);
+      setAsiaFocusRegionId(null);
+    }
+  };
+
+  const toggleMovementPhase = (id: MovementHistoryPhaseId) => {
+    if (movementOpenPhases.has(id)) {
+      setMovementOpenPhases(new Set());
+      if (historyPhase === id) {
+        onHistoryPhaseChange(null);
+        setMovementFocusRegionId(null);
+      }
+    } else {
+      setMovementOpenPhases(new Set([id]));
+      onHistoryPhaseChange(id);
+      setMovementFocusRegionId(null);
+    }
+  };
+
+  const toggleAfricaPhase = (id: AfricaLeapfrogPhaseId) => {
+    if (africaOpenPhases.has(id)) {
+      setAfricaOpenPhases(new Set());
+      if (africaPhase === id) {
+        setAfricaPhase(null);
+        setAfricaFocusRegionId(null);
+      }
+    } else {
+      setAfricaOpenPhases(new Set([id]));
+      setAfricaPhase(id);
+      setAfricaFocusRegionId(null);
+    }
+  };
+
+  const toggleAsiaPhase = (id: AsiaOceaniaPhaseId) => {
+    if (asiaOpenPhases.has(id)) {
+      setAsiaOpenPhases(new Set());
+      if (asiaPhase === id) {
+        setAsiaPhase(null);
+        setAsiaFocusRegionId(null);
+      }
+    } else {
+      setAsiaOpenPhases(new Set([id]));
+      setAsiaPhase(id);
+      setAsiaFocusRegionId(null);
+    }
+  };
+
+  const focusAfricaMilestone = (regionId: string) => {
+    setAfricaFocusRegionId(regionId);
+    setHoveredRegionId(regionId);
+  };
+
+  const focusAsiaMilestone = (regionId: string) => {
+    setAsiaFocusRegionId(regionId);
+    setHoveredRegionId(regionId);
+  };
+
+  const focusMovementMilestone = (phaseId: MovementHistoryPhaseId, regionId: string) => {
+    onHistoryPhaseChange(phaseId);
+    setMovementOpenPhases(new Set([phaseId]));
+    setMovementFocusRegionId(regionId);
+    setHoveredRegionId(regionId);
   };
 
   const isInFocus = (country: CountryPvDetail) => {
     if (regionFocus === 'all') return true;
-    if (regionFocus === 'asia-us') return resolveRegionCategory(country) === 'other';
     return resolveRegionCategory(country) === regionFocus;
   };
 
@@ -301,10 +794,63 @@ export function WorldPvMap({
     return t.has(key) ? t(key) : fallback;
   }
 
-  function countryField(country: CountryPvDetail, field: 'name' | 'powerLimit') {
+  function countryField(country: CountryPvDetail, field: 'name' | 'powerLimit' | 'statusLabel') {
     const key = `countries.${country.id}.${field}` as Parameters<typeof t>[0];
-    return t.has(key) ? t(key) : country[field];
+    if (t.has(key)) return t(key);
+    if (field === 'name' && isEn && country.nameEn) return country.nameEn;
+    return country[field === 'statusLabel' ? 'statusLabel' : field];
   }
+
+  function movementPhaseLabel(id: MovementHistoryPhaseId, field: 'period' | 'title') {
+    const key = `movementHistory.phases.${id}.${field}` as Parameters<typeof t>[0];
+    return t.has(key) ? t(key) : MOVEMENT_PHASE_FALLBACKS[id][field];
+  }
+
+  function africaPhaseLabel(id: AfricaLeapfrogPhaseId, field: 'period' | 'title') {
+    const key = `africaLeapfrog.phases.${id}.${field}` as Parameters<typeof t>[0];
+    const phase = AFRICA_LEAPFROG_TIMELINE.find((p) => p.id === id);
+    if (t.has(key)) return t(key);
+    if (isEn && phase) {
+      return field === 'period' ? (phase.periodEn ?? phase.period) : (phase.titleEn ?? phase.title);
+    }
+    return phase ? phase[field] : id;
+  }
+
+  function asiaPhaseLabel(id: AsiaOceaniaPhaseId, field: 'period' | 'title') {
+    const key = `asiaOceaniaTransition.phases.${id}.${field}` as Parameters<typeof t>[0];
+    const phase = ASIA_OCEANIA_TRANSITION_TIMELINE.find((p) => p.id === id);
+    if (t.has(key)) return t(key);
+    if (isEn && phase) {
+      return field === 'period' ? (phase.periodEn ?? phase.period) : (phase.titleEn ?? phase.title);
+    }
+    return phase ? phase[field] : id;
+  }
+
+  const movementTimelinePhases: TimelinePhaseView[] = MOVEMENT_HISTORY_PHASES.map((phase) => ({
+    id: phase.id,
+    period: movementPhaseLabel(phase.id, 'period'),
+    title: movementPhaseLabel(phase.id, 'title'),
+    milestones: phase.milestones,
+  }));
+
+  const africaTimelinePhases: TimelinePhaseView[] = AFRICA_LEAPFROG_TIMELINE.map((phase) => ({
+    id: phase.id,
+    period: africaPhaseLabel(phase.id, 'period'),
+    title: africaPhaseLabel(phase.id, 'title'),
+    milestones: phase.milestones,
+  }));
+
+  const asiaTimelinePhases: TimelinePhaseView[] = ASIA_OCEANIA_TRANSITION_TIMELINE.map((phase) => ({
+    id: phase.id,
+    period: asiaPhaseLabel(phase.id, 'period'),
+    title: asiaPhaseLabel(phase.id, 'title'),
+    milestones: phase.milestones,
+  }));
+
+  const modelFilterLabel = (key: string, fallback: string) => {
+    const full = `map.modelFilter.${key}` as Parameters<typeof t>[0];
+    return t.has(full) ? t(full) : fallback;
+  };
 
   const isDetailZoom = zoom >= 2.6;
 
@@ -333,35 +879,41 @@ export function WorldPvMap({
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-background/50 select-none">
-      {/* SP/PC共通: 地域フィルター + 実装モデル + 実装度ランキング（左側・サイドバーに隠れない） */}
-      <div className="absolute top-2 left-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center gap-1 rounded-md border border-border/50 bg-card/90 p-0.5 shadow-sm backdrop-blur sm:flex-nowrap lg:left-72">
-        <div className="relative inline-block">
+      {/* SP/PC共通: 市場モデル → 地域 → 実装度ランキング → 関連資料（左寄せ・折り返し対応） */}
+      <div
+        className={`absolute top-2 left-2 z-20 flex flex-wrap items-center justify-start gap-2 rounded-md border border-border/50 bg-card/90 p-0.5 shadow-sm backdrop-blur ${
+          isAfricaLeapfrogOpen || isMovementHistoryOpen || isAsiaOceaniaOpen
+            ? 'max-w-[calc(100%-min(90vw,520px)-0.75rem)]'
+            : 'max-w-[calc(100%-1rem)]'
+        }`}
+      >
+        <div className="relative inline-block shrink-0">
           <select
             value={selectedModelType}
             onChange={(e) => setSelectedModelType(e.target.value)}
-            aria-label="ソーラー普及モデルフィルター"
-            className="bg-slate-900/90 text-slate-100 text-sm font-medium py-1.5 px-3 rounded-lg border border-slate-700 hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer backdrop-blur shadow-sm"
+            aria-label={modelFilterLabel('ariaLabel', 'Solar adoption model filter')}
+            className="cursor-pointer rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs font-medium text-slate-100 shadow-sm backdrop-blur hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
           >
-            <option value="all">⚡ すべての市場モデルを表示</option>
+            <option value="all">{modelFilterLabel('all', '⚡ Market Models')}</option>
 
-            <optgroup label="① 系統あり・プラグイン可（送電網連系・公認）" className="bg-slate-900 text-slate-200 font-semibold">
-              <option value="grid_plug_in">① 系統あり・プラグイン可（すべて）</option>
-              <option value="plug_800w">🟢 800Wプラグ公認（独・英・欧州各州）</option>
-              <option value="plug_1200w">🔵 1,200W免除（米ユタ・CA等）</option>
-              <option value="plug_600w">🔷 600W届出・都市BIPV（墺・シンガポール等）</option>
-              <option value="net_metering">🌐 余剰売電・ネット相殺（豪・伯・ケープタウン等）</option>
+            <optgroup label={modelFilterLabel('groupGridPlugIn', '① Grid present · plug-in allowed')} className="bg-slate-900 text-slate-200 font-semibold">
+              <option value="grid_plug_in">{modelFilterLabel('grid_plug_in', '① Grid present · plug-in allowed (all)')}</option>
+              <option value="plug_800w">{modelFilterLabel('plug_800w', '🟢 800W plug certified')}</option>
+              <option value="plug_1200w">{modelFilterLabel('plug_1200w', '🔵 1,200W waiver')}</option>
+              <option value="plug_600w">{modelFilterLabel('plug_600w', '🔷 600W notice / urban BIPV')}</option>
+              <option value="net_metering">{modelFilterLabel('net_metering', '🌐 Export / net metering')}</option>
             </optgroup>
 
-            <optgroup label="② 系統あり・プラグイン不可（送電網防衛・蓄電自衛）" className="bg-slate-900 text-slate-200 font-semibold">
-              <option value="grid_no_plug">② 系統あり・プラグイン不可（すべて）</option>
-              <option value="offgrid_storage">🟠 逆潮流禁止・蓄電自給（日・中・台湾・越等）</option>
-              <option value="nec_strict">🔴 直結不可・電気工事必須（米保守州等）</option>
+            <optgroup label={modelFilterLabel('groupGridNoPlug', '② Grid present · plug-in banned')} className="bg-slate-900 text-slate-200 font-semibold">
+              <option value="grid_no_plug">{modelFilterLabel('grid_no_plug', '② Grid present · plug-in banned (all)')}</option>
+              <option value="offgrid_storage">{modelFilterLabel('offgrid_storage', '🟠 No export · storage self-supply')}</option>
+              <option value="nec_strict">{modelFilterLabel('nec_strict', '🔴 No outlet tie · licensed work')}</option>
             </optgroup>
 
-            <optgroup label="③ 系統なし（未発達）・ソーラー勃興（リープフロッグ）" className="bg-slate-900 text-slate-200 font-semibold">
-              <option value="no_grid_leapfrog">③ 系統なし・ソーラー勃興（すべて）</option>
-              <option value="productive_offgrid">🟣 農業・保冷インフラ（太陽光揚水・保冷 / 東アフリカ等）</option>
-              <option value="micro_solar_kit">🌸 生活キット / PayGo（ルワンダ・ウガンダ等）</option>
+            <optgroup label={modelFilterLabel('groupNoGridLeapfrog', '③ No/weak grid · solar leapfrog')} className="bg-slate-900 text-slate-200 font-semibold">
+              <option value="no_grid_leapfrog">{modelFilterLabel('no_grid_leapfrog', '③ No/weak grid · solar leapfrog (all)')}</option>
+              <option value="productive_offgrid">{modelFilterLabel('productive_offgrid', '🟣 Agri & cold-chain infra')}</option>
+              <option value="micro_solar_kit">{modelFilterLabel('micro_solar_kit', '🌸 Life kits / PayGo')}</option>
             </optgroup>
           </select>
         </div>
@@ -369,7 +921,8 @@ export function WorldPvMap({
           <select
             value={regionFocus}
             onChange={(e) => focusRegion(e.target.value as RegionFocus)}
-            className="cursor-pointer rounded-lg border border-slate-700 bg-slate-900/90 py-1.5 px-3 text-sm font-medium text-slate-100 shadow-sm backdrop-blur hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+            aria-label={mapLabel('regionAria', 'Region')}
+            className="cursor-pointer rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs font-medium text-slate-100 shadow-sm backdrop-blur hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
           >
             {FOCUS_TABS.map((tab) => (
               <option key={tab.id} value={tab.id}>
@@ -386,57 +939,45 @@ export function WorldPvMap({
             onRankingOpenChange(next);
             if (next) {
               onSelectCountry(null);
-              onMovementHistoryOpenChange(false);
-              onHistoryPhaseChange(null);
-              setIsVendorsOpen(false);
+              closeAllTimelines();
             }
           }}
-          className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
-            isRankingOpen
-              ? 'border-amber-500/50 bg-amber-500/20 text-amber-300'
-              : 'border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700'
-          }`}
+          className="shrink-0 rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs font-medium text-slate-100 transition-colors hover:border-slate-500"
         >
-          ★ 実装度ランキング
+          {mapLabel('ranking', '★ Rankings')}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            const next = !isMovementHistoryOpen;
-            onMovementHistoryOpenChange(next);
-            if (next) {
-              onSelectCountry(null);
-              onRankingOpenChange(false);
-              setIsVendorsOpen(false);
-            } else {
-              onHistoryPhaseChange(null);
+        <div className="relative inline-block shrink-0">
+          <select
+            value={
+              isMovementHistoryOpen
+                ? 'movement'
+                : isAfricaLeapfrogOpen
+                  ? 'africa'
+                  : isAsiaOceaniaOpen
+                    ? 'asia-oceania'
+                    : ''
             }
-          }}
-          className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-            isMovementHistoryOpen
-              ? 'border-cyan-500/50 bg-cyan-500/20 text-cyan-300'
-              : 'border-slate-700 bg-slate-900/90 text-slate-300 hover:bg-slate-800'
-          }`}
-        >
-          {t('movementHistory.toggleLabel')}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (isVendorsOpen) {
-              setIsVendorsOpen(false);
-            } else {
-              openVendorsPanel();
-            }
-          }}
-          className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
-            isVendorsOpen
-              ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300'
-              : 'border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700'
-          }`}
-        >
-          主要企業
-        </button>
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === 'movement') {
+                if (!isMovementHistoryOpen) openMovementHistory();
+              } else if (value === 'africa') {
+                if (!isAfricaLeapfrogOpen) openAfricaLeapfrog();
+              } else if (value === 'asia-oceania') {
+                if (!isAsiaOceaniaOpen) openAsiaOceania();
+              } else {
+                closeAllTimelines();
+              }
+            }}
+            aria-label={mapLabel('documents', 'Documents & Timelines')}
+            className="cursor-pointer rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs font-medium text-slate-100 shadow-sm backdrop-blur hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+          >
+            <option value="">📚 {mapLabel('documentsShort', 'Documents & Timelines')}</option>
+            <option value="movement">📖 {mapLabel('timelineWestern', 'Western PV Movements')}</option>
+            <option value="africa">🌍 {mapLabel('timelineAfrica', 'African Leapfrog Evolution')}</option>
+            <option value="asia-oceania">🌏 {mapLabel('timelineAsiaOceania', 'Asia-Oceania Transition')}</option>
+          </select>
+        </div>
       </div>
 
       {/* TopoJSON 地図 + ピン（サイドバー開閉に依存せず常に全面） */}
@@ -523,7 +1064,7 @@ export function WorldPvMap({
                       : 0.15;
               const isFilterHighlight = selectedModelType !== 'all' && isMatchFilter;
               const isHistoryEmphasized =
-                isMovementHistoryOpen && (isMilestoneFocus || (isPhaseTarget && !focusedMilestoneRegionId));
+                isAnyHistoryOpen && (isMilestoneFocus || (isPhaseTarget && !focusedMilestoneRegionId));
               const pinScale =
                 (1 / zoom) *
                 (isFilterHighlight || isHistoryEmphasized ? 1.25 : 1) *
@@ -536,7 +1077,9 @@ export function WorldPvMap({
                 isMatchFilter &&
                 (isHovered || isSelected || isDetailZoom || isMilestoneFocus || isHistoryEmphasized);
               const emphasizeLabel = isHovered || isSelected || isMilestoneFocus;
-              const tooltipLabel = `${countryName} ★${stars}`;
+              const keyFocusSuffix =
+                country.id === 'in' ? ` (${mapLabel('keyFocus', 'Key Focus')})` : '';
+              const tooltipLabel = `${countryName} ★${stars}${keyFocusSuffix}`;
               // fontSize 12 に合わせた幅・高さ（文字がはみ出さないよう余白を確保）
               const tooltipW = Math.max(tooltipLabel.length * 7.2 + 14, 48);
               const tooltipH = 18;
@@ -552,10 +1095,10 @@ export function WorldPvMap({
               const selectPin = (e?: { stopPropagation: () => void }) => {
                 if (!isMatchFilter) return;
                 e?.stopPropagation();
-                setIsVendorsOpen(false);
                 onRankingOpenChange(false);
-                onMovementHistoryOpenChange(false);
-                onHistoryPhaseChange(null);
+                closeAllTimelines();
+                setCenter(country.coordinates);
+                setZoom(clampZoom(COUNTRY_CAMERA_ZOOM));
                 onSelectCountry(country);
               };
               const hoverPin = () => {
@@ -721,87 +1264,107 @@ export function WorldPvMap({
         </ComposableMap>
       </div>
 
-      {/* 主要企業（グローバルハードウェア）サイドバー */}
-      {isVendorsOpen ? (
-        <aside
-          className="absolute top-0 right-0 z-30 flex h-full w-[min(100%,22rem)] flex-col border-l border-border/60 bg-card/95 shadow-xl backdrop-blur-md sm:w-96"
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <div className="flex shrink-0 items-center justify-between border-b border-border/50 px-4 py-3">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">主要企業</h2>
-              <p className="text-xs text-muted-foreground">グローバルハードウェア</p>
-            </div>
-            <button
-              type="button"
-              aria-label="閉じる"
-              className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              onClick={() => setIsVendorsOpen(false)}
-            >
-              閉じる
-            </button>
-          </div>
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
-            {GLOBAL_PV_VENDORS.map((vendor) => (
-              <article
-                key={vendor.id}
-                className="rounded-lg border border-border/50 bg-background/60 p-3"
-              >
-                <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">{vendor.name}</h3>
-                    <p className="text-xs text-muted-foreground">{vendor.nameJa}</p>
-                  </div>
-                  <span className="shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                    {vendor.category}
-                  </span>
-                </div>
-                <p className="mb-1 text-[11px] text-slate-400">本社: {vendor.hqCountry}</p>
-                <p className="mb-2 text-xs leading-relaxed text-slate-300">{vendor.description}</p>
-                {vendor.keyProducts.length > 0 ? (
-                  <p className="mb-2 text-[11px] text-muted-foreground">
-                    主力: {vendor.keyProducts.join(' / ')}
-                  </p>
-                ) : null}
-                <div className="mb-1 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-                  展開・適合地域
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {vendor.targetRegionIds.map((regionId) => {
-                    const region = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === regionId);
-                    if (!region) return null;
-                    const label = countryField(region, 'name');
-                    return (
-                      <button
-                        key={regionId}
-                        type="button"
-                        onClick={() => focusVendorRegion(regionId)}
-                        className="rounded-md border border-slate-600/80 bg-slate-800/70 px-2 py-0.5 text-[11px] text-slate-200 transition-colors hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-200"
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-                {vendor.url ? (
-                  <a
-                    href={vendor.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-block text-[11px] text-emerald-400/90 hover:underline"
-                  >
-                    公式サイト
-                  </a>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        </aside>
+      {/* 欧米伝播史・アフリカ跳躍史（共通 TimelineSidebar） */}
+      {isMovementHistoryOpen ? (
+        <TimelineSidebar
+          title={(() => {
+            const key = 'movementHistory.sidebarTitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : mapLabel('timelineWestern', 'Western PV Movements');
+          })()}
+          subtitle={(() => {
+            const key = 'movementHistory.sidebarSubtitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : 'Balcony solar adoption history';
+          })()}
+          phases={movementTimelinePhases}
+          openPhaseIds={movementOpenPhases}
+          activePhaseId={historyPhase}
+          focusRegionId={movementFocusRegionId ?? historyFocusRegionId ?? null}
+          accent={CYAN_TIMELINE_ACCENT}
+          closeLabel={closeLabel}
+          isEn={isEn}
+          barrierLabel={barrierLabel}
+          milestoneLabel={milestoneLabel}
+          onClose={() => {
+            onMovementHistoryOpenChange(false);
+            onHistoryPhaseChange(null);
+            setMovementOpenPhases(new Set());
+            setMovementFocusRegionId(null);
+          }}
+          onTogglePhase={(id) => toggleMovementPhase(id as MovementHistoryPhaseId)}
+          onFocusMilestone={(phaseId, regionId) =>
+            focusMovementMilestone(phaseId as MovementHistoryPhaseId, regionId)
+          }
+        />
+      ) : null}
+
+      {isAfricaLeapfrogOpen ? (
+        <TimelineSidebar
+          title={(() => {
+            const key = 'africaLeapfrog.sidebarTitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : mapLabel('timelineAfrica', 'African Leapfrog Evolution');
+          })()}
+          subtitle={(() => {
+            const key = 'africaLeapfrog.sidebarSubtitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : 'Leapfrog Revolution';
+          })()}
+          phases={africaTimelinePhases}
+          openPhaseIds={africaOpenPhases}
+          activePhaseId={africaPhase}
+          focusRegionId={africaFocusRegionId}
+          accent={VIOLET_TIMELINE_ACCENT}
+          closeLabel={closeLabel}
+          isEn={isEn}
+          barrierLabel={barrierLabel}
+          milestoneLabel={milestoneLabel}
+          onClose={() => {
+            setIsAfricaLeapfrogOpen(false);
+            setAfricaPhase(null);
+            setAfricaFocusRegionId(null);
+          }}
+          onTogglePhase={(id) => toggleAfricaPhase(id as AfricaLeapfrogPhaseId)}
+          onFocusMilestone={(phaseId, regionId) => {
+            setAfricaPhase(phaseId as AfricaLeapfrogPhaseId);
+            setAfricaOpenPhases(new Set([phaseId as AfricaLeapfrogPhaseId]));
+            focusAfricaMilestone(regionId);
+          }}
+        />
+      ) : null}
+
+      {isAsiaOceaniaOpen ? (
+        <TimelineSidebar
+          title={(() => {
+            const key = 'asiaOceaniaTransition.sidebarTitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : mapLabel('timelineAsiaOceania', 'Asia-Oceania Transition');
+          })()}
+          subtitle={(() => {
+            const key = 'asiaOceaniaTransition.sidebarSubtitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : 'Storage · Tenant rights · National schemes';
+          })()}
+          phases={asiaTimelinePhases}
+          openPhaseIds={asiaOpenPhases}
+          activePhaseId={asiaPhase}
+          focusRegionId={asiaFocusRegionId}
+          accent={EMERALD_TIMELINE_ACCENT}
+          closeLabel={closeLabel}
+          isEn={isEn}
+          barrierLabel={barrierLabel}
+          milestoneLabel={milestoneLabel}
+          onClose={() => {
+            setIsAsiaOceaniaOpen(false);
+            setAsiaPhase(null);
+            setAsiaFocusRegionId(null);
+          }}
+          onTogglePhase={(id) => toggleAsiaPhase(id as AsiaOceaniaPhaseId)}
+          onFocusMilestone={(phaseId, regionId) => {
+            setAsiaPhase(phaseId as AsiaOceaniaPhaseId);
+            setAsiaOpenPhases(new Set([phaseId as AsiaOceaniaPhaseId]));
+            focusAsiaMilestone(regionId);
+          }}
+        />
       ) : null}
 
       {/* ズームコントロール（伝播史は親サイドバーに集約） */}
-      <div className={`absolute bottom-3 z-20 flex flex-col gap-1 rounded-lg border border-border/50 bg-zinc-900/80 p-1 shadow-lg backdrop-blur-sm ${isVendorsOpen ? 'right-[min(100%,22rem)] sm:right-96 mr-3' : 'right-3'}`}>
+      <div className={`absolute bottom-3 z-20 flex flex-col gap-1 rounded-lg border border-border/50 bg-zinc-900/80 p-1 shadow-lg backdrop-blur-sm ${isAfricaLeapfrogOpen || isMovementHistoryOpen || isAsiaOceaniaOpen ? 'right-[min(90vw,520px)] mr-3' : 'right-3'}`}>
         <button
           type="button"
           aria-label={mapLabel('zoomIn', '拡大')}
