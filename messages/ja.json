@@ -234,7 +234,8 @@
     },
     "tabs": {
       "map": "世界実装マップ",
-      "vendors": "主要企業・銘柄一覧"
+      "vendors": "主要企業・銘柄一覧",
+      "nonprofits": "非営利・推進団体一覧"
     },
     "vendors": {
       "title": "主要企業・銘柄一覧",
@@ -262,6 +263,24 @@
         "homeStorage": "家庭用蓄電",
         "offgridShs": "オフグリッドSHS",
         "paygFintech": "PAYGフィンテック"
+      }
+    },
+    "nonprofits": {
+      "title": "非営利・推進団体一覧",
+      "lead": "法制化・系統安全・品質認証を牽引したNPO・業界団体・標準化機関・コモンズを俯瞰（デモ・{count}団体）。",
+      "regionFilter": "地域で絞り込み",
+      "empty": "条件に一致する団体がありません",
+      "hq": "拠点",
+      "overview": "役割・概要",
+      "barrierOvercome": "⚡ 突破した壁（Barrier Overcome）",
+      "keyMilestone": "🎯 勝ち取った成果（Key Milestone）",
+      "officialSite": "公式サイト",
+      "regions": {
+        "all": "すべて",
+        "europe": "欧州",
+        "africa": "アフリカ",
+        "asia-oceania": "アジア・オセアニア",
+        "americas": "北米・米州"
       }
     },
     "analysis": {

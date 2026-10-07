@@ -9,7 +9,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
 import { HomeView } from "@/features/living-sense"
-import { MajorVendorsListView } from "@/features/global-implementation/components/global-implementation-view"
+import {
+  MajorVendorsListView,
+  NonProfitOrgsListView,
+} from "@/features/global-implementation/components/global-implementation-view"
 import type { CountryCode } from "@/lib/country-codes"
 import { cn } from "@/lib/utils"
 import { BalconyIllustration } from "./balcony-illustration"
@@ -128,7 +131,7 @@ export type BalconyViewProps = {
   onNavigateToEcosystem?: (countryCode: CountryCode) => void
 }
 
-type WorldImplTab = "map" | "vendors"
+type WorldImplTab = "map" | "vendors" | "nonprofits"
 
 export function WorldImplementationView() {
   const t = useTranslations("worldPv")
@@ -238,9 +241,9 @@ export function WorldImplementationView() {
     <Tabs
       value={viewTab}
       onValueChange={(v) => {
-        if (v === "map" || v === "vendors") {
+        if (v === "map" || v === "vendors" || v === "nonprofits") {
           setViewTab(v)
-          if (v === "vendors") {
+          if (v === "vendors" || v === "nonprofits") {
             setSelectedId(null)
             setIsRankingOpen(false)
             setIsMovementHistoryOpen(false)
@@ -252,12 +255,15 @@ export function WorldImplementationView() {
       style={{ ["--sidebar-w" as string]: `${sidebarWidth}px` }}
     >
       <div className="z-40 flex shrink-0 items-center justify-start gap-2 border-b border-border/50 bg-slate-950/90 px-2 py-2 backdrop-blur-md sm:px-3">
-        <TabsList className="h-8 w-full max-w-xl bg-black/60 sm:w-auto">
+        <TabsList className="h-8 w-full max-w-3xl bg-black/60 sm:w-auto">
           <TabsTrigger value="map" className="flex-1 px-2 text-xs sm:flex-none">
             🗺️ {t("tabs.map")}
           </TabsTrigger>
           <TabsTrigger value="vendors" className="flex-1 px-2 text-xs sm:flex-none">
             🏢 {t("tabs.vendors")}
+          </TabsTrigger>
+          <TabsTrigger value="nonprofits" className="flex-1 px-2 text-xs sm:flex-none">
+            🌐 {t("tabs.nonprofits")}
           </TabsTrigger>
         </TabsList>
       </div>
@@ -630,6 +636,13 @@ export function WorldImplementationView() {
         className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
       >
         <MajorVendorsListView />
+      </TabsContent>
+
+      <TabsContent
+        value="nonprofits"
+        className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
+      >
+        <NonProfitOrgsListView />
       </TabsContent>
     </Tabs>
   )

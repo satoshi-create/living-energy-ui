@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Building2, ExternalLink, Globe2, Landmark, MapPin, Scale, Shield } from "lucide-react"
+import { Building2, ExternalLink, Globe2, Landmark, MapPin, Scale, Shield, Users } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -11,13 +11,17 @@ import {
   ASIA_OCEANIA_TRANSITION_TIMELINE,
   GLOBAL_PV_VENDORS,
   MOVEMENT_HISTORY_PHASES,
+  NON_PROFIT_ORGS,
+  NON_PROFIT_REGION_FILTERS,
   VENDOR_CATEGORY_FILTERS,
   VENDOR_REGION_FILTERS,
   filterGlobalPvVendors,
+  filterNonProfitOrgs,
   type GlobalPvVendorCategory,
   type MilestoneKeyActor,
   type MovementHistoryPhaseId,
   type MovementMilestone,
+  type NonProfitRegionFilter,
   type RegionCategory,
   type VendorCategoryFilter,
   type VendorRegionFilter,
@@ -213,6 +217,134 @@ export function MajorVendorsListView() {
                         </Badge>
                       ))}
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 非営利・推進団体の比較グリッド（世界実装マップのタブ3）。 */
+export function NonProfitOrgsListView() {
+  const t = useTranslations("worldPv.nonprofits")
+  const locale = useLocale()
+  const isEn = locale === "en"
+  const [regionFilter, setRegionFilter] = useState<NonProfitRegionFilter>("all")
+
+  const orgs = useMemo(() => filterNonProfitOrgs(regionFilter), [regionFilter])
+
+  const regionLabel = (id: NonProfitRegionFilter | RegionCategory) =>
+    t(`regions.${id}` as "regions.all")
+
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto bg-slate-950/80 p-3 sm:p-4">
+      <div className="shrink-0 space-y-3 rounded-xl border border-border/50 bg-black/60 p-3 sm:p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+            <Users className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t("lead", { count: NON_PROFIT_ORGS.length })}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {t("regionFilter")}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {NON_PROFIT_REGION_FILTERS.map((id) => (
+              <FilterChip
+                key={id}
+                active={regionFilter === id}
+                label={regionLabel(id)}
+                onClick={() => setRegionFilter(id)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {orgs.length === 0 ? (
+        <p className="rounded-xl border border-border/40 bg-black/40 px-4 py-8 text-center text-sm text-muted-foreground">
+          {t("empty")}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {orgs.map((org) => {
+            const displayName = isEn ? org.nameEn : org.name
+            const hq = isEn ? org.headquartersEn : org.headquarters
+            const category = isEn ? org.categoryEn : org.category
+            const overview = isEn ? org.overviewEn : org.overview
+            const barrier = isEn ? org.barrierOvercomeEn : org.barrierOvercome
+            const milestone = isEn ? org.keyMilestoneEn : org.keyMilestone
+            return (
+              <Card
+                key={org.id}
+                className="flex flex-col border-border/50 bg-slate-900/90 shadow-none"
+              >
+                <CardHeader className="gap-2 space-y-0 pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <CardTitle className="text-sm font-semibold text-foreground">
+                        {displayName}
+                      </CardTitle>
+                      {!isEn ? (
+                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                          {org.nameEn}
+                        </p>
+                      ) : null}
+                    </div>
+                    <a
+                      href={org.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/50 bg-black/40 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                      aria-label={`${org.nameEn} ${t("officialSite")}`}
+                    >
+                      <ExternalLink className="size-3.5" />
+                    </a>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-border/60 text-[10px] font-normal text-slate-300"
+                    >
+                      <MapPin className="size-3" />
+                      {t("hq")}: {hq}
+                    </Badge>
+                    <Badge className="border-primary/30 bg-primary/15 text-[10px] text-primary">
+                      {category}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-3 pt-0 text-xs">
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                      {t("overview")}
+                    </p>
+                    <p className="leading-relaxed text-slate-200">{overview}</p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                      {t("barrierOvercome")}
+                    </p>
+                    <p className="leading-relaxed text-slate-200">{barrier}</p>
+                  </div>
+                  <div className="mt-auto">
+                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                      {t("keyMilestone")}
+                    </p>
+                    <p className="rounded-md bg-black/50 px-2.5 py-1.5 leading-relaxed text-slate-200">
+                      {milestone}
+                    </p>
                   </div>
                 </CardContent>
               </Card>

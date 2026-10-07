@@ -788,6 +788,290 @@ export function filterGlobalPvVendors(
   })
 }
 
+/** Non-profit / commons / standards actor for the world-implementation tab. */
+export type NonProfitOrg = {
+  id: string
+  name: string
+  nameEn: string
+  /** 拠点国・都市（表示ラベル）。 */
+  headquarters: string
+  headquartersEn: string
+  /** 4大地域区分。 */
+  region: RegionCategory
+  /** 活動種別（JA）。 */
+  category: string
+  categoryEn: string
+  overview: string
+  overviewEn: string
+  barrierOvercome: string
+  barrierOvercomeEn: string
+  keyMilestone: string
+  keyMilestoneEn: string
+  websiteUrl: string
+}
+
+/** Locale-independent region filter ids for the non-profit orgs list. */
+export const NON_PROFIT_REGION_FILTERS = VENDOR_REGION_FILTERS
+
+export type NonProfitRegionFilter = VendorRegionFilter
+
+/**
+ * 非営利・推進団体・コモンズ（各地域の制度突破プレイヤー）。
+ * タイムラインの重要アクターを企業一覧と同型のカードデータへ整理。
+ */
+export const NON_PROFIT_ORGS: NonProfitOrg[] = [
+  {
+    id: 'dgs',
+    name: 'DGS（Deutsche Gesellschaft für Sonnenenergie）',
+    nameEn: 'DGS (Deutsche Gesellschaft für Sonnenenergie)',
+    headquarters: 'ドイツ',
+    headquartersEn: 'Germany',
+    region: 'europe',
+    category: '工学安全立証・規格策定',
+    categoryEn: 'Engineering safety proof & standards',
+    overview:
+      'ドイツ太陽エネルギー協会。ベランダプラグインPVの配線熱安全を工学的に立証し、市民・政策側の安全議論を規格レベルへ引き上げた。',
+    overviewEn:
+      'German Solar Energy Society. Proved balcony plug-in PV wiring thermal safety in engineering terms and lifted citizen/policy debates to standards level.',
+    barrierOvercome:
+      '「コンセント直結は危険・違法」という電力会社・規格側の前提と、安全マージン未証明による法制化停滞',
+    barrierOvercomeEn:
+      'Utility/standards assumptions that outlet ties are dangerous/illegal, and stalled legalization without proven safety margins',
+    keyMilestone: '自社安全基準 DGS 0001、800W配線無害性の実証',
+    keyMilestoneEn: 'In-house safety standard DGS 0001; proved 800W wiring harmlessness',
+    websiteUrl: 'https://www.dgs.de/',
+  },
+  {
+    id: 'stecker-solar',
+    name: '欧州プラグインソーラー連盟（Stecker-Solar）',
+    nameEn: 'European Plug-in Solar Alliance (Stecker-Solar)',
+    headquarters: 'ドイツ・EU',
+    headquartersEn: 'Germany / EU',
+    region: 'europe',
+    category: '市民普及・コモンズ',
+    categoryEn: 'Citizen adoption & commons',
+    overview:
+      '市民・メーカー連合の欧州コモンズ。プラグインPV合法化の市民運動と Solarpaket I ロビーを牽引し、賃貸・集合住宅への普及を加速した。',
+    overviewEn:
+      'Citizen–maker European commons. Drove plug-in PV legalization campaigns and Solarpaket I lobbying, accelerating rental/multifamily adoption.',
+    barrierOvercome:
+      'ゲリラ連系と厳格届出の二極化、賃貸設置権の不在、市民向け安全規格の空白',
+    barrierOvercomeEn:
+      'Polarization between guerrilla ties and strict filings, missing tenant install rights, and a blank in citizen-facing safety standards',
+    keyMilestone: 'プラグインPV合法化市民運動、Solarpaket Iロビー',
+    keyMilestoneEn: 'Citizen plug-in PV legalization movement; Solarpaket I lobbying',
+    websiteUrl: 'https://www.balkon.solar/',
+  },
+  {
+    id: 'gogla',
+    name: 'GOGLA（Global Off-Grid Lighting Association）',
+    nameEn: 'GOGLA (Global Off-Grid Lighting Association)',
+    headquarters: 'オランダ / ケニア',
+    headquartersEn: 'Netherlands / Kenya',
+    region: 'africa',
+    category: '品質保証フレームワーク',
+    categoryEn: 'Quality assurance framework',
+    overview:
+      'オフグリッド照明・SHSの国際業界団体。PAYG機器の品質標準と市場データ共有で、粗悪品排除と非消費層の電化を両立させる枠組みを整備した。',
+    overviewEn:
+      'Global off-grid lighting/SHS industry association. Built quality standards and market-data sharing for PAYG gear—cutting counterfeits while unlocking non-consumer electrification.',
+    barrierOvercome: '粗悪品乱立とPAYG契約・課金モデルのばらつき、品質未検証キットの火災・故障リスク',
+    barrierOvercomeEn:
+      'Counterfeit flood, fragmented PAYG contract/billing models, and fire/failure risk from unverified kits',
+    keyMilestone: 'SHS・PAYG機器の国際品質標準化、粗悪品排除',
+    keyMilestoneEn: 'International quality standardization for SHS/PAYG gear; counterfeit exclusion',
+    websiteUrl: 'https://www.gogla.org/',
+  },
+  {
+    id: 'cec',
+    name: 'Clean Energy Council (CEC)',
+    nameEn: 'Clean Energy Council (CEC)',
+    headquarters: 'オーストラリア',
+    headquartersEn: 'Australia',
+    region: 'asia-oceania',
+    category: '系統接続規格・認証',
+    categoryEn: 'Grid interconnection standards & certification',
+    overview:
+      '豪州の再エネ業界団体。系統混雑下の動的出力制御と賃貸テナント自給枠の検証を進め、戸建て普及後の Solar Split 解消を制度面から支援する。',
+    overviewEn:
+      'Australia’s clean-energy industry body. Advances Dynamic Export under grid congestion and renter self-supply trials—institutionally closing the post-rooftop Solar Split.',
+    barrierOvercome: '戸建て普及後の系統逆潮限制約と賃貸テナントの自給格差',
+    barrierOvercomeEn: 'Export limits after the rooftop boom and renter self-supply gaps',
+    keyMilestone: '動的出力制御（Dynamic Export）策定、賃貸自給枠検証',
+    keyMilestoneEn: 'Dynamic Export framework; rental self-supply verification',
+    websiteUrl: 'https://www.cleanenergycouncil.org.au/',
+  },
+  {
+    id: 'jpea',
+    name: 'JPEA（太陽光発電協会）',
+    nameEn: 'JPEA (Japan Photovoltaic Energy Association)',
+    headquarters: '日本',
+    headquartersEn: 'Japan',
+    region: 'asia-oceania',
+    category: '自律給電・自主指針',
+    categoryEn: 'Autonomous supply & industry guidance',
+    overview:
+      '日本の太陽光発電業界団体。内線規程によりコンセント直結が難しい環境で、系統非連携・ポータブル電源によるオフグリッド自給枠の定着を業界指針として支えた。',
+    overviewEn:
+      'Japan’s PV industry association. Under wiring rules that block outlet ties, supported industry guidance for non-export and portable-power off-grid self-supply.',
+    barrierOvercome: '内線規程による直結禁止と、合法な自給ルートの不明確さ',
+    barrierOvercomeEn: 'Outlet-tie bans under indoor wiring rules and unclear lawful self-supply paths',
+    keyMilestone: '系統非連携・ポータブル電源オフグリッド自給枠の定着',
+    keyMilestoneEn: 'Normalized non-export / portable-power off-grid self-supply frameworks',
+    websiteUrl: 'https://www.jpea.gr.jp/',
+  },
+  {
+    id: 'bnetza',
+    name: '連邦ネットワーク庁（BNetzA）',
+    nameEn: 'Federal Network Agency (BNetzA)',
+    headquarters: 'ドイツ',
+    headquartersEn: 'Germany',
+    region: 'europe',
+    category: '登録簡素化・規制緩和',
+    categoryEn: 'Registration simplification & deregulation',
+    overview:
+      'ドイツのエネルギー規制当局。MaStR登録の一本化と旧型メーター逆回転の一時容認により、ベランダPVの届出摩擦を劇的に下げた公的アクター。',
+    overviewEn:
+      'Germany’s energy regulator. Unified MaStR registration and temporarily allowed reverse-spin on legacy meters—dramatically cutting balcony-PV filing friction.',
+    barrierOvercome: '複線的な届出・登録手続きと、旧メーター逆回転を理由とした導入拒否',
+    barrierOvercomeEn:
+      'Fragmented filing/registration processes and refusals based on reverse-spin of legacy meters',
+    keyMilestone: 'MaStR登録の一本化、逆回転メーター一時容認',
+    keyMilestoneEn: 'Unified MaStR registration; temporary allowance of reverse-spin meters',
+    websiteUrl: 'https://www.bundesnetzagentur.de/',
+  },
+  {
+    id: 'solar-united-neighbors',
+    name: 'Solar United Neighbors (SUN)',
+    nameEn: 'Solar United Neighbors (SUN)',
+    headquarters: 'アメリカ・ワシントンD.C.',
+    headquartersEn: 'United States (Washington, D.C.)',
+    region: 'americas',
+    category: '市民コモンズ・共同調達',
+    categoryEn: 'Citizen commons & group purchasing',
+    overview:
+      '全米最大の市民ソーラー推進NPO。市民共同購入（Solar Co-op）や屋根・バルコニー設置権の擁護活動を展開。',
+    overviewEn:
+      'The largest U.S. citizen solar advocacy NPO. Runs Solar Co-op group buying and defends rooftop/balcony install rights.',
+    barrierOvercome: '大手電力によるネットメータリング廃止攻勢と高額な個別導入コスト',
+    barrierOvercomeEn:
+      'Utility campaigns to end net metering and high individual install costs',
+    keyMilestone: '共同購買モデルの全国展開と州レベルでのソーラー設置権利（Solar Rights）の保護',
+    keyMilestoneEn:
+      'Nationwide co-op purchasing model and state-level Solar Rights protection',
+    websiteUrl: 'https://www.solarunitedneighbors.org',
+  },
+  {
+    id: 'vote-solar',
+    name: 'Vote Solar',
+    nameEn: 'Vote Solar',
+    headquarters: 'アメリカ・カリフォルニア',
+    headquartersEn: 'United States (California)',
+    region: 'americas',
+    category: '政策提言・法制化',
+    categoryEn: 'Policy advocacy & legislation',
+    overview:
+      '市民のエネルギーアクセス権を掲げ、全米各州で系統接続規制緩和や小型分散ソーラーの普及を促すNPO。',
+    overviewEn:
+      'NPO advancing citizen energy-access rights—pushing state-level interconnect relief and small distributed solar nationwide.',
+    barrierOvercome: '州ごとの硬直的な許認可手続きと電力会社による接続妨害',
+    barrierOvercomeEn:
+      'Rigid state-by-state permitting and utility interconnection obstruction',
+    keyMilestone: '分散型ソーラーに対する公平な系統アクセス権と低所得層向け自給支援策の法制化',
+    keyMilestoneEn:
+      'Legislation for fair grid access for distributed solar and low-income self-supply support',
+    websiteUrl: 'https://votesolar.org',
+  },
+  {
+    id: 'utah-clean-energy',
+    name: 'Utah Clean Energy',
+    nameEn: 'Utah Clean Energy',
+    headquarters: 'アメリカ・ユタ州',
+    headquartersEn: 'United States (Utah)',
+    region: 'americas',
+    category: '市民権利擁護・系統協議免除',
+    categoryEn: 'Civic rights advocacy & grid-study exemption',
+    overview:
+      '全米初の1,200Wプラグイン系統協議完全免除法の成立を主導した市民環境団体。',
+    overviewEn:
+      "Civic clean energy coalition that spearheaded the nation's first complete 1,200W plug-in grid-study exemption law.",
+    barrierOvercome: '大手電力による系統協議の長期化と高額な連系手数料によるプラグイン封殺',
+    barrierOvercomeEn:
+      'Plug-in solar blockage caused by protracted grid interconnection studies and punitive utility fees',
+    keyMilestone: '全米初となる1,200W系統協議完全免除法の成立',
+    keyMilestoneEn: "Passage of the nation's first 1,200W complete grid-study exemption law",
+    websiteUrl: 'https://utahcleanenergy.org',
+  },
+  {
+    id: 'calssa',
+    name: 'CALSSA (California Solar & Storage Association)',
+    nameEn: 'CALSSA (California Solar & Storage Association)',
+    headquarters: 'アメリカ・カリフォルニア州',
+    headquartersEn: 'United States (California)',
+    region: 'americas',
+    category: '自給防衛・蓄電シフト',
+    categoryEn: 'Self-supply defense & storage shift',
+    overview:
+      'カリフォルニアの太陽光・蓄電業界連盟。NEM 3.0下の売電単価激変に対抗し、プラグイン蓄電・自家消費の標準化を推進。',
+    overviewEn:
+      "California's premier solar & storage alliance, defending self-consumption and plug-in storage standards amid NEM 3.0 export cuts.",
+    barrierOvercome: '電力大手によるNEM 3.0売電単価75%削減と高額な系統連系工事義務',
+    barrierOvercomeEn:
+      '75% export rate slashing under NEM 3.0 and utility-mandated costly interconnection upgrades',
+    keyMilestone: 'プラグイン蓄電・自家消費型（Solar+Storage）の普及標準化',
+    keyMilestoneEn:
+      'Standardization of plug-in storage and solar-plus-storage self-consumption pathways',
+    websiteUrl: 'https://calssa.org',
+  },
+  {
+    id: 'isep',
+    name: '環境エネルギー政策研究所（ISEP）',
+    nameEn: 'Institute for Sustainable Energy Policies (ISEP)',
+    headquarters: '日本・東京',
+    headquartersEn: 'Japan (Tokyo)',
+    region: 'asia-oceania',
+    category: '政策提言・市民エネルギー',
+    categoryEn: 'Policy advocacy & citizen energy',
+    overview:
+      '地域分散型エネルギーと市民共同発電の草分け的シンクタンク。系統制約の可視化と制度改革を提言。',
+    overviewEn:
+      'Pioneer think tank for regional distributed energy and citizen co-owned generation. Visualizes grid constraints and proposes institutional reform.',
+    barrierOvercome: '既存電力会社による送電網独占と「空き容量ゼロ」による系統連系拒絶',
+    barrierOvercomeEn:
+      'Incumbent utility grid monopolies and interconnection refusals citing “zero available capacity”',
+    keyMilestone: '日本国内の再エネ接続可能容量の工学的検証と市民出資型分散発電モデルの確立',
+    keyMilestoneEn:
+      'Engineering verification of Japan’s renewable interconnect capacity and establishment of citizen-funded distributed generation models',
+    websiteUrl: 'https://www.isep.or.jp',
+  },
+  {
+    id: 'lighting-global',
+    name: 'Lighting Global（世界銀行・IFC）',
+    nameEn: 'Lighting Global (World Bank / IFC)',
+    headquarters: 'ケニア・ナイロビ / 米国',
+    headquartersEn: 'Kenya (Nairobi) / United States',
+    region: 'africa',
+    category: '品質保証・未電化普及',
+    categoryEn: 'Quality assurance & unelectrified-market access',
+    overview:
+      'GOGLAと連携し、サブサハラアフリカにおけるオフグリッドPV機器の国際品質試験と市場開拓を支援。',
+    overviewEn:
+      'In partnership with GOGLA, supports international quality testing and market development for off-grid PV products across sub-Saharan Africa.',
+    barrierOvercome: '市場に蔓延する粗悪・偽造ソーラー機器による住民の不信と普及停滞',
+    barrierOvercomeEn:
+      'Public distrust and stalled adoption caused by widespread counterfeit/substandard solar products',
+    keyMilestone: '世界共通のオフグリッド品質基準（Quality Standards）策定と市場健全化',
+    keyMilestoneEn:
+      'Global off-grid Quality Standards and market clean-up',
+    websiteUrl: 'https://www.lightingglobal.org',
+  },
+]
+
+/** 非営利・推進団体一覧の地域フィルター。 */
+export function filterNonProfitOrgs(region: NonProfitRegionFilter = 'all'): NonProfitOrg[] {
+  return NON_PROFIT_ORGS.filter((o) => region === 'all' || o.region === region)
+}
+
 /** Sidebar rows for world balcony-PV status (labels: `worldPv.sidebar.*`). */
 export const COUNTRY_PV_SIDEBAR_FIELDS = [
   { key: 'powerLimit', labelKey: 'powerLimit' },

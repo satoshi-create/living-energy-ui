@@ -234,7 +234,8 @@
     },
     "tabs": {
       "map": "World Implementation Map",
-      "vendors": "Key Companies"
+      "vendors": "Key Companies",
+      "nonprofits": "Non-Profit & Commons"
     },
     "vendors": {
       "title": "Key Companies",
@@ -262,6 +263,24 @@
         "homeStorage": "Home storage",
         "offgridShs": "Off-grid SHS",
         "paygFintech": "PAYG fintech"
+      }
+    },
+    "nonprofits": {
+      "title": "Non-Profit & Commons",
+      "lead": "NPOs, industry bodies, standards orgs, and commons that drove legalization, grid safety, and quality frameworks (demo · {count} orgs).",
+      "regionFilter": "Filter by region",
+      "empty": "No organizations match these filters",
+      "hq": "HQ",
+      "overview": "Role / Overview",
+      "barrierOvercome": "⚡ Barrier Overcome",
+      "keyMilestone": "🎯 Key Milestone",
+      "officialSite": "Official site",
+      "regions": {
+        "all": "All",
+        "europe": "Europe",
+        "africa": "Africa",
+        "asia-oceania": "Asia & Oceania",
+        "americas": "Americas"
       }
     },
     "analysis": {
