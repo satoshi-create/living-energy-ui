@@ -35,6 +35,9 @@ const CATEGORY_MSG_KEY: Record<"all" | GlobalPvVendorCategory, string> = {
   家庭用蓄電: "homeStorage",
   オフグリッドSHS: "offgridShs",
   PAYGフィンテック: "paygFintech",
+  "スマートインバータ・DCオプティマイザ": "smartInverterDcOptimizer",
+  "家庭用蓄電・分散型VPP": "homeStorageVpp",
+  "PAYGフィンテック・クリーンエネルギーローン": "paygCleanEnergyLoan",
 }
 
 function FilterChip({

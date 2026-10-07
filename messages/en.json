@@ -262,7 +262,13 @@
         "portablePower": "Portable power stations",
         "homeStorage": "Home storage",
         "offgridShs": "Off-grid SHS",
-        "paygFintech": "PAYG fintech"
+        "paygFintech": "PAYG fintech",
+        "smartInverterDcOptimizer": "Smart Inverters & DC Optimizers",
+        "homeStorageVpp": "Residential Storage & Distributed VPP",
+        "paygCleanEnergyLoan": "PAYG Fintech & Clean-Energy Loans",
+        "スマートインバータ・DCオプティマイザ": "Smart Inverters & DC Optimizers",
+        "家庭用蓄電・分散型VPP": "Residential Storage & Distributed VPP",
+        "PAYGフィンテック・クリーンエネルギーローン": "PAYG Fintech & Clean-Energy Loans"
       }
     },
     "nonprofits": {

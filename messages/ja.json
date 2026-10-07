@@ -262,7 +262,13 @@
         "portablePower": "ポータブル電源",
         "homeStorage": "家庭用蓄電",
         "offgridShs": "オフグリッドSHS",
-        "paygFintech": "PAYGフィンテック"
+        "paygFintech": "PAYGフィンテック",
+        "smartInverterDcOptimizer": "スマートインバータ・DCオプティマイザ",
+        "homeStorageVpp": "家庭用蓄電・分散型VPP",
+        "paygCleanEnergyLoan": "PAYGフィンテック・クリーンエネルギーローン",
+        "スマートインバータ・DCオプティマイザ": "スマートインバータ・DCオプティマイザ",
+        "家庭用蓄電・分散型VPP": "家庭用蓄電・分散型VPP",
+        "PAYGフィンテック・クリーンエネルギーローン": "PAYGフィンテック・クリーンエネルギーローン"
       }
     },
     "nonprofits": {

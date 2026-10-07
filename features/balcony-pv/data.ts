@@ -152,6 +152,9 @@ export type AdoptedVendorId =
   | 'dlight'
   | 'priwatt'
   | 'yuma'
+  | 'solaredge'
+  | 'sunrun'
+  | 'goodleap'
 
 export interface CountryPvDetail {
   id: string
@@ -418,6 +421,27 @@ export const PV_VENDORS: Record<AdoptedVendorId, PvVendor> = {
     roleEn: 'Balcony-railing plug-in kits',
     url: 'https://yuma.de',
   },
+  solaredge: {
+    id: 'solaredge',
+    name: 'SolarEdge',
+    role: 'スマートインバータ・DCオプティマイザ',
+    roleEn: 'Smart inverters & DC optimizers',
+    url: 'https://www.solaredge.com',
+  },
+  sunrun: {
+    id: 'sunrun',
+    name: 'Sunrun',
+    role: '家庭用蓄電・分散型VPP',
+    roleEn: 'Residential storage & distributed VPP',
+    url: 'https://www.sunrun.com',
+  },
+  goodleap: {
+    id: 'goodleap',
+    name: 'GoodLeap',
+    role: 'PAYGフィンテック・クリーンエネルギーローン',
+    roleEn: 'PAYG fintech & clean-energy loans',
+    url: 'https://goodleap.com',
+  },
 }
 
 /** Product category for global hardware vendors (display labels). */
@@ -428,12 +452,18 @@ export type GlobalPvVendorCategory =
   | '家庭用蓄電'
   | 'オフグリッドSHS'
   | 'PAYGフィンテック'
+  | 'スマートインバータ・DCオプティマイザ'
+  | '家庭用蓄電・分散型VPP'
+  | 'PAYGフィンテック・クリーンエネルギーローン'
 
 /** Global hardware vendor card for the major-vendors sidebar. */
 export type GlobalPvVendor = {
   id: AdoptedVendorId
   name: string
   nameJa: string
+  /** 銘柄・上場区分（例: `NASDAQ: SEDG` / `未上場`）。 */
+  ticker?: string
+  tickerEn?: string
   /** 本社所在地（国・都市の表示ラベル）。 */
   hqCountry: string
   hqCountryEn?: string
@@ -443,6 +473,7 @@ export type GlobalPvVendor = {
    */
   headquartersRegion: RegionCategory
   category: GlobalPvVendorCategory
+  categoryEn?: string
   description: string
   descriptionEn?: string
   keyProducts: string[]
@@ -708,7 +739,90 @@ export const GLOBAL_PV_VENDORS: GlobalPvVendor[] = [
     targetRegions: ['europe'],
     url: 'https://yuma.de',
   },
+  {
+    id: 'solaredge',
+    name: 'SolarEdge',
+    nameJa: 'ソーラーエッジ',
+    ticker: 'NASDAQ: SEDG',
+    hqCountry: 'アメリカ合衆国（カリフォルニア / イスラエル）',
+    hqCountryEn: 'United States (California / Israel)',
+    headquartersRegion: 'americas',
+    category: 'スマートインバータ・DCオプティマイザ',
+    categoryEn: 'Smart Inverters & DC Optimizers',
+    description:
+      'モジュール単位の電力最適化（DCオプティマイザ）とスマートインバータの世界的リーダー。急速遮断（Rapid Shutdown）安全基準を確立。',
+    descriptionEn:
+      'Global leader in module-level power electronics (DC optimizers) and smart inverters, setting safety benchmarks for Rapid Shutdown.',
+    keyProducts: [
+      'SolarEdge Home Hub Inverter',
+      'Power Optimizer',
+      'SolarEdge Home Battery',
+    ],
+    targetRegionIds: [
+      'usa',
+      'us-ca',
+      'us-ut',
+      'us-az',
+      'us-tx',
+      'germany',
+      'uk',
+      'au',
+      'japan',
+    ],
+    targetRegions: ['americas', 'europe', 'asia-oceania'],
+    url: 'https://www.solaredge.com',
+  },
+  {
+    id: 'sunrun',
+    name: 'Sunrun',
+    nameJa: 'サンラン',
+    ticker: 'NASDAQ: RUN',
+    hqCountry: 'アメリカ合衆国（カリフォルニア）',
+    hqCountryEn: 'United States (California)',
+    headquartersRegion: 'americas',
+    category: '家庭用蓄電・分散型VPP',
+    categoryEn: 'Residential Storage & Distributed VPP',
+    description:
+      '全米最大の住宅用太陽光・蓄電池リース（PPA）事業者。NEM 3.0下の家庭用蓄電シフトと家庭用VPP（仮想発電所）網を主導。',
+    descriptionEn:
+      'The largest residential solar and battery storage installer/PPA provider in the US, spearheading the storage shift and residential VPP networks under NEM 3.0.',
+    keyProducts: [
+      'Sunrun Brightbox (Solar+Storage)',
+      'Virtual Power Plant (VPP)',
+      'Residential Solar PPA',
+    ],
+    targetRegionIds: ['usa', 'us-ca', 'us-az', 'us-tx', 'us-fl', 'us-ny'],
+    targetRegions: ['americas'],
+    url: 'https://www.sunrun.com',
+  },
+  {
+    id: 'goodleap',
+    name: 'GoodLeap',
+    nameJa: 'グッドリープ',
+    ticker: '未上場',
+    tickerEn: 'Unlisted',
+    hqCountry: 'アメリカ合衆国（カリフォルニア）',
+    hqCountryEn: 'United States (California)',
+    headquartersRegion: 'americas',
+    category: 'PAYGフィンテック・クリーンエネルギーローン',
+    categoryEn: 'PAYG Fintech & Clean-Energy Loans',
+    description:
+      '米国の住宅用太陽光・蓄電池導入を支える最大手フィンテック。即時融資プラットフォームにより初期費用の壁を取り払い普及を加速。',
+    descriptionEn:
+      'Leading sustainable home fintech platform in the US, driving residential solar and storage adoption through seamless point-of-sale financing.',
+    keyProducts: [
+      'GoodLeap Sustainable Home Loan',
+      'Installer POS Financing Platform',
+      'Flexible Energy Pay-over-time',
+    ],
+    targetRegionIds: ['usa', 'us-ca', 'us-az', 'us-tx', 'us-fl'],
+    targetRegions: ['americas'],
+    url: 'https://goodleap.com',
+  },
 ]
+
+/** Alias used by company/ticker list UIs (`COMPANIES.length` / count badges). */
+export const COMPANIES = GLOBAL_PV_VENDORS
 
 export function getAdoptedVendors(country: CountryPvDetail): PvVendor[] {
   return (country.adoptedVendors ?? [])
@@ -769,6 +883,9 @@ export const VENDOR_CATEGORY_FILTERS = [
   '家庭用蓄電',
   'オフグリッドSHS',
   'PAYGフィンテック',
+  'スマートインバータ・DCオプティマイザ',
+  '家庭用蓄電・分散型VPP',
+  'PAYGフィンテック・クリーンエネルギーローン',
 ] as const satisfies readonly ('all' | GlobalPvVendorCategory)[]
 
 export type VendorCategoryFilter = (typeof VENDOR_CATEGORY_FILTERS)[number]
