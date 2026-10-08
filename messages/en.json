@@ -228,6 +228,8 @@
       "documentsShort": "Documents & Timelines",
       "timelineWestern": "Western PV Movements",
       "timelineAfrica": "African Leapfrog Evolution",
+      "timelineIndia": "India's Livelihood Revolution",
+      "timelineSoutheastAsia": "Southeast Asia's Island & Microgrid Leap",
       "timelineAsiaOceania": "Asia-Oceania Transition",
       "keyFocus": "Key Focus",
       "regionAria": "Region"
@@ -930,6 +932,38 @@
           "0": "Extremely strict high-rise wind-load and fire-code review"
         }
       },
+      "indonesia": {
+        "name": "Indonesia ★3",
+        "statusLabel": "ACE HQ & Island Microgrid Deployment",
+        "summary": "Driving diesel-to-solar hybrid microgrids across 17,000+ isolated islands.",
+        "powerLimit": "Island microgrid scale",
+        "legalRights": "Island community / operator deployment",
+        "systemStatus": "ACE HQ & Island Microgrid Deployment",
+        "keyDrivers": {
+          "0": "Driving diesel-to-solar hybrid microgrids across 17,000+ isolated islands",
+          "1": "Island electrification standards led from ASEAN Centre for Energy (ACE) HQ"
+        },
+        "bottlenecks": {
+          "0": "Logistics and O&M costs across remote islands",
+          "1": "Phased exit from diesel dependency"
+        }
+      },
+      "philippines": {
+        "name": "Philippines ★3",
+        "statusLabel": "High-Tariff Defense & Autonomous Microgrids",
+        "summary": "Overcoming extreme electricity tariffs with island-scale solar microgrids in Palawan and beyond.",
+        "powerLimit": "Autonomous island microgrid scale",
+        "legalRights": "Island operator / community deployment",
+        "systemStatus": "High-Tariff Defense & Autonomous Microgrids",
+        "keyDrivers": {
+          "0": "Overcoming extreme electricity tariffs with island-scale solar microgrids in Palawan and beyond",
+          "1": "Early solar-plus-storage microgrids on diesel-dependent islands"
+        },
+        "bottlenecks": {
+          "0": "Import tariffs and equipment cost pressure",
+          "1": "Typhoon-hardening for coastal island sites"
+        }
+      },
       "tw": {
         "name": "Taiwan",
         "statusLabel": "Disaster-resilience off-grid",
@@ -1067,6 +1101,50 @@
         "productiveUse": {
           "period": "2024–2026+",
           "title": "Productive use (PUE) & solar-generator leap"
+        }
+      }
+    },
+    "indiaLivelihood": {
+      "sidebarTitle": "India's Livelihood Revolution",
+      "sidebarSubtitle": "Livelihood & Asset Creation",
+      "phases": {
+        "dawnLightingMicrofinance": {
+          "period": "2010–2015",
+          "title": "Dawn of Night Lighting & Microfinance"
+        },
+        "livelihoodPue": {
+          "period": "2015–2020",
+          "title": "DC BLDC Motors & Productive Use Electrification"
+        },
+        "healthcareColdStorage": {
+          "period": "2020–2024",
+          "title": "Healthcare & Solar Cold Storage"
+        },
+        "pmKusumAgriSolar": {
+          "period": "2024–2026+",
+          "title": "PM-KUSUM & National Agri-Solar Leap"
+        }
+      }
+    },
+    "southeastAsiaIsland": {
+      "sidebarTitle": "Southeast Asia's Island & Microgrid Leap",
+      "sidebarSubtitle": "Island & River Basin Microgrids",
+      "phases": {
+        "isolatedDieselPicoHydro": {
+          "period": "2010–2016",
+          "title": "Limits of Isolated Diesel & Pico-Hydro"
+        },
+        "islandMicrogridsHybrid": {
+          "period": "2016–2020",
+          "title": "Island Microgrids & Solar Hybridization"
+        },
+        "vietnamRooftopFloatingPv": {
+          "period": "2020–2023",
+          "title": "Vietnam Rooftop Boom & Floating PV"
+        },
+        "coldChainPueAutonomy": {
+          "period": "2024–2026+",
+          "title": "Cold-Chain PUE & Resilient Autonomy"
         }
       }
     },

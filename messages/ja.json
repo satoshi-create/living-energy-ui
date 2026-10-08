@@ -228,6 +228,8 @@
       "documentsShort": "関連資料",
       "timelineWestern": "欧米の普及ムーブメント",
       "timelineAfrica": "アフリカの跳躍史（Leapfrog）",
+      "timelineIndia": "インドの生計跳躍史（Livelihood Revolution）",
+      "timelineSoutheastAsia": "東南アジアの島嶼・分散跳躍史（Island & Microgrid Leap）",
       "timelineAsiaOceania": "アジア・オセアニアの転換史",
       "keyFocus": "特出",
       "regionAria": "地域"
@@ -900,6 +902,22 @@
         "legalRights": "EMA・HDB審査要",
         "systemStatus": "高層都市BIPV"
       },
+      "indonesia": {
+        "name": "インドネシア ★3",
+        "statusLabel": "ACE本部・島嶼マイクログリッド推進",
+        "summary": "1万超の離島を抱え、ディーゼル発電から太陽光・蓄電池ハイブリッド独立系統への転換を国策推進。",
+        "powerLimit": "島嶼マイクログリッド規模",
+        "legalRights": "島嶼コミュニティ／事業体導入",
+        "systemStatus": "ACE本部・島嶼マイクログリッド推進"
+      },
+      "philippines": {
+        "name": "フィリピン ★3",
+        "statusLabel": "高電気代防衛・自立型マイクログリッド先行",
+        "summary": "アジア最高水準の高額な電気代と島嶼の脆弱性を克服するため、パラワン島等で自立型再エネ系統が普及。",
+        "powerLimit": "島嶼自立マイクログリッド規模",
+        "legalRights": "島嶼事業体・コミュニティ導入",
+        "systemStatus": "高電気代防衛・自立型マイクログリッド先行"
+      },
       "tw": {
         "name": "台湾",
         "statusLabel": "防災オフグリッド蓄電型",
@@ -1008,6 +1026,50 @@
         "productiveUse": {
           "period": "2024〜2026年以降",
           "title": "生産の電化（PUE）とソーラー発電機への跳躍"
+        }
+      }
+    },
+    "indiaLivelihood": {
+      "sidebarTitle": "インドの生計跳躍史",
+      "sidebarSubtitle": "Livelihood & Asset Creation (生計・資産形成の自律分散)",
+      "phases": {
+        "dawnLightingMicrofinance": {
+          "period": "2010〜2015",
+          "title": "夜間照明と小口金融の夜明け"
+        },
+        "livelihoodPue": {
+          "period": "2015〜2020",
+          "title": "高効率BLDCと作業機器の電化（Livelihood PUE）"
+        },
+        "healthcareColdStorage": {
+          "period": "2020〜2024",
+          "title": "母子医療・コールドチェーンと生命インフラ"
+        },
+        "pmKusumAgriSolar": {
+          "period": "2024〜2026年以降",
+          "title": "PM-KUSUMと分散アグリソーラーの国家跳躍"
+        }
+      }
+    },
+    "southeastAsiaIsland": {
+      "sidebarTitle": "東南アジアの島嶼・分散跳躍史",
+      "sidebarSubtitle": "Island & River Basin Microgrids (島嶼・流域マイクログリッドと自給分散)",
+      "phases": {
+        "isolatedDieselPicoHydro": {
+          "period": "2010〜2016",
+          "title": "孤立ディーゼルと小水力の限界"
+        },
+        "islandMicrogridsHybrid": {
+          "period": "2016〜2020",
+          "title": "島嶼マイクログリッドとハイブリッド化"
+        },
+        "vietnamRooftopFloatingPv": {
+          "period": "2020〜2023",
+          "title": "ベトナム屋根上爆発と水上ソーラー"
+        },
+        "coldChainPueAutonomy": {
+          "period": "2024〜2026年以降",
+          "title": "水産加工・冷熱PUEと自律分散の二層化"
         }
       }
     },

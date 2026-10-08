@@ -124,6 +124,8 @@ export type PvRegionCode =
   | 'VN'
   | 'IN'
   | 'SG'
+  | 'ID'
+  | 'PH'
   | 'TW'
   | 'US-UT'
   | 'US-CA'
@@ -288,7 +290,11 @@ export function resolveRegionCategory(country: CountryPvDetail): RegionCategory 
   ) {
     return 'africa'
   }
-  if (['china', 'japan', 'au', 'vn', 'in', 'sg', 'tw', 'nz'].includes(country.id)) {
+  if (
+    ['china', 'japan', 'au', 'vn', 'in', 'sg', 'indonesia', 'philippines', 'tw', 'nz'].includes(
+      country.id,
+    )
+  ) {
     return 'asia-oceania'
   }
   if (
@@ -1181,6 +1187,87 @@ export const NON_PROFIT_ORGS: NonProfitOrg[] = [
     keyMilestoneEn:
       'Global off-grid Quality Standards and market clean-up',
     websiteUrl: 'https://www.lightingglobal.org',
+  },
+  {
+    id: 'selco-foundation',
+    name: 'セルコ財団 (SELCO Foundation)',
+    nameEn: 'SELCO Foundation',
+    headquarters: 'インド・バンガロール',
+    headquartersEn: 'India (Bengaluru)',
+    region: 'asia-oceania',
+    category: 'BoP分散自給・生計電化',
+    categoryEn: 'BoP decentralized self-supply & livelihood electrification',
+    overview:
+      'インドの低所得層・露天商向けに小口金融と分散ソーラーを結合し、生活と生計を支えるエネルギー自給モデルを確立した先駆的財団。',
+    overviewEn:
+      'Pioneering non-profit enabling decentralized solar and micro-financing for low-income households and street vendors across India.',
+    barrierOvercome: '貧困層の初期費用不足と送電網不在によるエネルギー排除',
+    barrierOvercomeEn:
+      'Financial exclusion and lack of grid access among underserved rural populations',
+    keyMilestone: '露店・小型農機・医療施設のオフグリッド分散電化エコシステムの確立',
+    keyMilestoneEn: 'Establishment of decentralized solar livelihood and healthcare ecosystems',
+    websiteUrl: 'https://selcofoundation.org',
+  },
+  {
+    id: 'asean-centre-for-energy',
+    name: 'ASEANエネルギーセンター (ACE)',
+    nameEn: 'ASEAN Centre for Energy (ACE)',
+    headquarters: 'インドネシア・ジャカルタ',
+    headquartersEn: 'Indonesia (Jakarta)',
+    region: 'asia-oceania',
+    category: '地域標準化・島嶼部電化',
+    categoryEn: 'Regional standardization & island electrification',
+    overview:
+      '東南アジア諸国連合（ASEAN）のエネルギー機関。島嶼部や農村部でのマイクログリッド・分散太陽光の標準化を推進。',
+    overviewEn:
+      'Intergovernmental energy center driving distributed solar, microgrids, and off-grid standards across Southeast Asia.',
+    barrierOvercome: '東南アジア島嶼部の送電網延伸困難と各国規格の分断',
+    barrierOvercomeEn:
+      'Geographical isolation of island communities and fragmented regional technical standards',
+    keyMilestone: 'ASEAN分散再エネ統合ガイドラインの策定',
+    keyMilestoneEn: 'Formulation of ASEAN distributed renewable energy integration guidelines',
+    websiteUrl: 'https://aseanenergy.org',
+  },
+  {
+    id: 'rescoop-eu',
+    name: '欧州市民エネルギー協同組合連盟 (REScoop.eu)',
+    nameEn: 'REScoop.eu',
+    headquarters: 'ベルギー・ブリュッセル',
+    headquartersEn: 'Belgium (Brussels)',
+    region: 'europe',
+    category: '市民コモンズ・エネルギー民主化',
+    categoryEn: 'Citizen commons & energy democracy',
+    overview:
+      '欧州全域の市民エネルギー協同組合2,250団体・150万人を代表する連盟。EU法レベルで市民のエネルギー生産・自給権を確立。',
+    overviewEn:
+      'European federation of 2,250 citizen energy cooperatives defending citizen energy rights under EU directives.',
+    barrierOvercome: '巨大電力企業による卸・小売電力市場と送電網の寡占',
+    barrierOvercomeEn:
+      'Monopolistic utility control over wholesale energy markets and transmission grids',
+    keyMilestone: 'EU指令における「エネルギーコミュニティ（市民自給権）」の明文化',
+    keyMilestoneEn: 'Legal recognition of Energy Communities in EU Clean Energy Directives',
+    websiteUrl: 'https://www.rescoop.eu',
+  },
+  {
+    id: 'pv-austria',
+    name: 'オーストリア太陽光発電協会 (PV-Austria)',
+    nameEn: 'PV-Austria',
+    headquarters: 'オーストリア・ウィーン',
+    headquartersEn: 'Austria (Vienna)',
+    region: 'europe',
+    category: '800W先行法制化・業界連盟',
+    categoryEn: 'Early 800W legalization & industry federation',
+    overview:
+      '欧州に先駆けて800W小型プラグインソーラーの制度免除（届出制）を勝ち取ったオーストリアの再エネ推進連盟。',
+    overviewEn:
+      'Austrian solar association that pioneered early legal exemptions for 800W plug-in solar devices in Central Europe.',
+    barrierOvercome: '旧型電力メーターの逆回転禁止と個別連系申請の硬直性',
+    barrierOvercomeEn:
+      'Rigid grid interconnection approvals and utility bans on reverse-spinning meters',
+    keyMilestone: '連邦電器法における800Wプラグインソーラー簡易連系ルールの確立',
+    keyMilestoneEn:
+      'Enactment of simplified notification rules for 800W plug-in PV under federal energy law',
+    websiteUrl: 'https://pvaustria.at',
   },
 ]
 
@@ -2735,6 +2822,97 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     adoptedVendors: ['hoymiles', 'enphase'],
   },
   {
+    id: 'indonesia',
+    name: 'インドネシア ★3',
+    nameEn: 'Indonesia ★3',
+    code: 'ID',
+    rating: '★★★☆☆',
+    status: 'storage_only',
+    statusLabel: 'ACE本部・島嶼マイクログリッド推進',
+    systemModel: 'offgrid_storage',
+    regionCategory: 'asia-oceania',
+    keyDrivers: [
+      '1万超の離島を抱え、ディーゼル発電から太陽光・蓄電池ハイブリッド独立系統への転換を国策推進',
+      'ASEANエネルギーセンター（ACE）本部を拠点とした島嶼電化標準化',
+    ],
+    keyDriversEn: [
+      'Driving diesel-to-solar hybrid microgrids across 17,000+ isolated islands',
+      'Island electrification standards led from ASEAN Centre for Energy (ACE) HQ',
+    ],
+    bottlenecks: ['離島間の物流・保守コスト', 'ディーゼル依存からの段階移行'],
+    bottlenecksEn: [
+      'Logistics and O&M costs across remote islands',
+      'Phased exit from diesel dependency',
+    ],
+    powerLimit: '島嶼マイクログリッド規模',
+    connectionMethod: '太陽光・蓄電池ハイブリッド独立系統',
+    connectionMethodEn: 'Solar–battery hybrid island microgrid',
+    tenantRights: '島嶼コミュニティ／事業体導入',
+    tenantRightsEn: 'Island community / operator deployment',
+    regulation: 'ACE島嶼マイクログリッド指針 / 国策電化',
+    regulationEn: 'ACE island microgrid guidelines / national electrification',
+    costRange: 'ディーゼル置換ハイブリッド（島規模）',
+    paybackYears: '燃料輸送費削減との比較で短縮',
+    baseLoadCoverage: '島内基幹負荷・夜間蓄電供給',
+    incentives: '国策島嶼電化・ACE標準連携',
+    antiIslanding: '独立系統（系統連系前提なし）',
+    meterRequirement: '島内独立系統の計量・運用規程',
+    windSafety: '熱帯低気圧・沿岸強風時の固定確認',
+    mountingRules: '島嶼サイト条件に応じた架台・コンテナ設置',
+    summary:
+      '1万超の離島を抱え、ディーゼル発電から太陽光・蓄電池ハイブリッド独立系統への転換を国策推進。',
+    summaryEn: 'Driving diesel-to-solar hybrid microgrids across 17,000+ isolated islands.',
+    coordinates: [106.8, -6.2],
+    lastUpdated: '2026-10-08',
+    adoptedVendors: ['ecoflow', 'anker-solix', 'hoymiles'],
+  },
+  {
+    id: 'philippines',
+    name: 'フィリピン ★3',
+    nameEn: 'Philippines ★3',
+    code: 'PH',
+    rating: '★★★☆☆',
+    status: 'storage_only',
+    statusLabel: '高電気代防衛・自立型マイクログリッド先行',
+    systemModel: 'offgrid_storage',
+    regionCategory: 'asia-oceania',
+    keyDrivers: [
+      'アジア最高水準の高額な電気代と島嶼の脆弱性を克服するため、パラワン島等で自立型再エネ系統が普及',
+      'ディーゼル依存島嶼での太陽光＋蓄電池マイクログリッド先行導入',
+    ],
+    keyDriversEn: [
+      'Overcoming extreme electricity tariffs with island-scale solar microgrids in Palawan and beyond',
+      'Early solar-plus-storage microgrids on diesel-dependent islands',
+    ],
+    bottlenecks: ['高関税・輸入コスト', '台風常襲地域の耐候設計'],
+    bottlenecksEn: [
+      'Import tariffs and equipment cost pressure',
+      'Typhoon-hardening for coastal island sites',
+    ],
+    powerLimit: '島嶼自立マイクログリッド規模',
+    connectionMethod: '自立型太陽光マイクログリッド',
+    connectionMethodEn: 'Autonomous solar microgrid',
+    tenantRights: '島嶼事業体・コミュニティ導入',
+    tenantRightsEn: 'Island operator / community deployment',
+    regulation: '島嶼電化・分散再エネ指針',
+    regulationEn: 'Island electrification & distributed RE guidelines',
+    costRange: '高電気代回避・燃料置換（島規模）',
+    paybackYears: '高電気代・ディーゼル燃料費比較で短縮',
+    baseLoadCoverage: '島内電力の大半を太陽光＋蓄電池で供給',
+    incentives: '島嶼電化・高料金防衛案件',
+    antiIslanding: '独立系統（系統連系前提なし）',
+    meterRequirement: '島内独立系統の計量・運用規程',
+    windSafety: '台風常襲地域の出仕舞い・耐風設計必須',
+    mountingRules: 'パラワン等島嶼サイトの自立架台・コンテナ設置',
+    summary:
+      'アジア最高水準の高額な電気代と島嶼の脆弱性を克服するため、パラワン島等で自立型再エネ系統が普及。',
+    summaryEn:
+      'Overcoming extreme electricity tariffs with island-scale solar microgrids in Palawan and beyond.',
+    coordinates: [121.0, 14.6],
+    lastUpdated: '2026-10-08',
+    adoptedVendors: ['ecoflow', 'anker-solix', 'hoymiles'],
+  },
+  {
     id: 'tw',
     name: '台湾',
     nameEn: 'Taiwan',
@@ -3749,4 +3927,364 @@ export function getAsiaOceaniaPhaseById(
 ): AsiaOceaniaPhase | undefined {
   if (!id) return undefined
   return ASIA_OCEANIA_TRANSITION_TIMELINE.find((p) => p.id === id)
+}
+
+/** インド生計跳躍史フェーズ ID（ロケール非依存）。 */
+export type IndiaLivelihoodPhaseId =
+  | 'dawnLightingMicrofinance'
+  | 'livelihoodPue'
+  | 'healthcareColdStorage'
+  | 'pmKusumAgriSolar'
+
+/** インド生計跳躍史の1フェーズ（アフリカ跳躍史と同型構造）。 */
+export type IndiaLivelihoodPhase = {
+  id: IndiaLivelihoodPhaseId
+  /** 表示用期間（例: 2010〜2015） */
+  period: string
+  periodEn?: string
+  /** フェーズ見出し */
+  title: string
+  titleEn?: string
+  /** その期に地図強調する国 id（`in` = インド） */
+  targetRegionIds: string[]
+  milestones: MovementMilestone[]
+}
+
+/**
+ * インドの生計跳躍史（India's Livelihood Revolution）。
+ * 夜間照明・小口金融 → Livelihood PUE → 医療・コールドチェーン → PM-KUSUM。
+ * マップピン / 地域キー: `in`（india）・`asia-oceania`（インド選択時）。
+ */
+export const INDIA_LIVELIHOOD_TIMELINE: IndiaLivelihoodPhase[] = [
+  {
+    id: 'dawnLightingMicrofinance',
+    period: '2010〜2015',
+    periodEn: '2010–2015',
+    title: '夜間照明と小口金融の夜明け',
+    titleEn: 'Dawn of Night Lighting & Microfinance',
+    targetRegionIds: ['in'],
+    milestones: [
+      {
+        id: 'in-2010-selco',
+        date: '2010-08',
+        regionId: 'in',
+        regionName: 'カルナータカ州',
+        regionNameEn: 'Karnataka',
+        summary:
+          'SELCO Foundation始動。露天商の夜間営業電化と灯油代替が定着。',
+        summaryEn:
+          'SELCO Foundation launches; street vendor solar lighting replaces kerosene.',
+        keyActor: {
+          name: 'SELCO Foundation',
+          roleBadge: '生計連動型分散エネルギー開発',
+          roleBadgeEn: 'Livelihood Decentralized Solar Development',
+          barrier: '貧困層の初期費用不足と銀行の信用審査の壁',
+          barrierEn: 'Financial exclusion and collateral barriers for low-income vendors',
+          achievement: '太陽光機器そのものを担保とする小口融資スキームの確立',
+          achievementEn: 'Establishment of asset-based financing for solar equipment',
+          url: 'https://selcofoundation.org',
+          kind: 'npo',
+        },
+      },
+      {
+        id: 'in-2012-asset-finance',
+        date: '2012-04',
+        regionId: 'in',
+        regionName: 'タミル・ナードゥ州',
+        regionNameEn: 'Tamil Nadu',
+        summary:
+          '機器担保融資（Asset-based Financing）が地域協同組合銀行へ拡大。',
+        summaryEn: 'Asset-based financing expands across regional cooperative banks.',
+      },
+    ],
+  },
+  {
+    id: 'livelihoodPue',
+    period: '2015〜2020',
+    periodEn: '2015–2020',
+    title: '高効率BLDCと作業機器の電化（Livelihood PUE）',
+    titleEn: 'DC BLDC Motors & Productive Use Electrification',
+    targetRegionIds: ['in'],
+    milestones: [
+      {
+        id: 'in-2016-sewing-charkha',
+        date: '2016-11',
+        regionId: 'in',
+        regionName: 'ウッタル・プラデーシュ州',
+        regionNameEn: 'Uttar Pradesh',
+        summary:
+          'ソーラー電動ミシン・チャルカ（綿紡ぎ機）の配備。インバータ排除の直流直結で女性職人の生産着数が倍増。',
+        summaryEn:
+          'Deployment of solar DC sewing machines and charkhas, doubling artisan production.',
+      },
+      {
+        id: 'in-2018-smithing-milling',
+        date: '2018-06',
+        regionId: 'in',
+        regionName: 'オリッサ州',
+        regionNameEn: 'Odisha',
+        summary:
+          '鍛冶・小型精米のオフグリッド分散化。高価なディーゼル燃料依存を克服。',
+        summaryEn:
+          'Decentralized off-grid solar for smithing and milling, displacing expensive diesel.',
+      },
+    ],
+  },
+  {
+    id: 'healthcareColdStorage',
+    period: '2020〜2024',
+    periodEn: '2020–2024',
+    title: '母子医療・コールドチェーンと生命インフラ',
+    titleEn: 'Healthcare & Solar Cold Storage',
+    targetRegionIds: ['in'],
+    milestones: [
+      {
+        id: 'in-2021-phc',
+        date: '2021-03',
+        regionId: 'in',
+        regionName: 'メガラヤ州 / ビハール州',
+        regionNameEn: 'Meghalaya / Bihar',
+        summary:
+          'オフグリッド一次診療所（PHC）の電化。ワクチン用ソーラー冷蔵庫と出産用照明を完全自律化。',
+        summaryEn:
+          'Electrification of rural health clinics (PHCs) with solar vaccine refrigerators.',
+      },
+      {
+        id: 'in-2023-cold-storage',
+        date: '2023-09',
+        regionId: 'in',
+        regionName: 'マハラシュトラ州',
+        regionNameEn: 'Maharashtra',
+        summary:
+          '集落共用ソーラーコールドストレージ普及。農産物の収穫後ロスを劇的に削減。',
+        summaryEn:
+          'Village-level solar cold storage adoption, drastically cutting post-harvest crop loss.',
+      },
+    ],
+  },
+  {
+    id: 'pmKusumAgriSolar',
+    period: '2024〜2026年以降',
+    periodEn: '2024–2026+',
+    title: 'PM-KUSUMと分散アグリソーラーの国家跳躍',
+    titleEn: 'PM-KUSUM & National Agri-Solar Leap',
+    targetRegionIds: ['in'],
+    milestones: [
+      {
+        id: 'in-2025-pm-kusum',
+        date: '2025-02',
+        regionId: 'in',
+        regionName: '全インド展開',
+        regionNameEn: 'Nationwide (India)',
+        summary:
+          '農業用自律ソーラー灌漑ポンプの本格普及。乾季作付けとエネルギー自立を達成。',
+        summaryEn:
+          'Nationwide adoption of decentralized solar irrigation pumps via PM-KUSUM.',
+      },
+    ],
+  },
+]
+
+/** インド生計跳躍史を開く地域キー（マップピン `in` / `india` / インド選択時の `asia-oceania`）。 */
+export const INDIA_LIVELIHOOD_REGION_KEYS = ['in', 'india', 'asia-oceania'] as const
+
+export function isIndiaLivelihoodRegion(regionKey: string | null | undefined): boolean {
+  if (!regionKey) return false
+  return (INDIA_LIVELIHOOD_REGION_KEYS as readonly string[]).includes(regionKey.toLowerCase())
+}
+
+export function getIndiaLivelihoodPhaseById(
+  id: IndiaLivelihoodPhaseId | null,
+): IndiaLivelihoodPhase | undefined {
+  if (!id) return undefined
+  return INDIA_LIVELIHOOD_TIMELINE.find((p) => p.id === id)
+}
+
+/** 東南アジア島嶼・分散跳躍史フェーズ ID（ロケール非依存）。 */
+export type SoutheastAsiaIslandPhaseId =
+  | 'isolatedDieselPicoHydro'
+  | 'islandMicrogridsHybrid'
+  | 'vietnamRooftopFloatingPv'
+  | 'coldChainPueAutonomy'
+
+/** 東南アジア島嶼・分散跳躍史の1フェーズ（インド・アフリカ跳躍史と同型構造）。 */
+export type SoutheastAsiaIslandPhase = {
+  id: SoutheastAsiaIslandPhaseId
+  /** 表示用期間（例: 2010〜2016） */
+  period: string
+  periodEn?: string
+  /** フェーズ見出し */
+  title: string
+  titleEn?: string
+  /** その期に地図強調する国 id（`vn` / `sg` / `indonesia` / `philippines` 等） */
+  targetRegionIds: string[]
+  milestones: MovementMilestone[]
+}
+
+/**
+ * 東南アジアの島嶼・分散跳躍史（Southeast Asia's Island & Microgrid Leap）。
+ * 孤立ディーゼル／小水力限界 → 島嶼マイクログリッド → ベトナム屋根上／水上PV → 冷熱PUE。
+ * マップピン / 地域キー: `southeast-asia`・`vn`・`sg`・`indonesia`・`philippines`。
+ */
+export const SOUTHEAST_ASIA_ISLAND_TIMELINE: SoutheastAsiaIslandPhase[] = [
+  {
+    id: 'isolatedDieselPicoHydro',
+    period: '2010〜2016',
+    periodEn: '2010–2016',
+    title: '孤立ディーゼルと小水力の限界',
+    titleEn: 'Limits of Isolated Diesel & Pico-Hydro',
+    targetRegionIds: ['vn', 'sg', 'indonesia', 'philippines'],
+    milestones: [
+      {
+        id: 'sea-2012-islands',
+        date: '2012-05',
+        regionId: 'indonesia',
+        regionName: 'インドネシア・フィリピン島嶼部',
+        regionNameEn: 'Indonesian & Philippine islands',
+        summary:
+          '離島集落における燃料輸送コスト高騰と停電常態化。小水力の雨季水害リスクが顕在化。',
+        summaryEn:
+          'Remote islands struggle with extreme diesel transport costs and vulnerable pico-hydro.',
+      },
+      {
+        id: 'sea-2015-mekong',
+        date: '2015-08',
+        regionId: 'vn',
+        regionName: 'メコン流域（ラオス・カンボジア）',
+        regionNameEn: 'Mekong Basin (Laos & Cambodia)',
+        summary:
+          '乾季・雨季の水位変動による小水力不安定化。太陽光によるハイブリッド自律電源の模索。',
+        summaryEn:
+          'Seasonal river fluctuations expose mini-hydro limits, sparking hybrid solar exploration.',
+      },
+    ],
+  },
+  {
+    id: 'islandMicrogridsHybrid',
+    period: '2016〜2020',
+    periodEn: '2016–2020',
+    title: '島嶼マイクログリッドとハイブリッド化',
+    titleEn: 'Island Microgrids & Solar Hybridization',
+    targetRegionIds: ['vn', 'sg', 'indonesia', 'philippines'],
+    milestones: [
+      {
+        id: 'sea-2017-ace',
+        date: '2017-04',
+        regionId: 'indonesia',
+        regionName: 'インドネシア・ジャカルタ (ACE)',
+        regionNameEn: 'Jakarta, Indonesia (ACE)',
+        summary:
+          'ASEANエネルギーセンター（ACE）が島嶼マイクログリッド技術ガイドライン策定。ディーゼル置換を牽引。',
+        summaryEn:
+          'ASEAN Centre for Energy (ACE) launches technical guidelines for island solar-diesel microgrids.',
+        keyActor: {
+          name: 'ASEANエネルギーセンター (ACE)',
+          nameEn: 'ASEAN Centre for Energy (ACE)',
+          roleBadge: '地域標準化・島嶼部電化推進',
+          roleBadgeEn: 'Regional Standards & Island Electrification',
+          barrier:
+            '数万の離島・山間部における送電線延伸の物理的限界と各国規格の分断',
+          barrierEn:
+            'Physical impossibility of submarine grid cables across thousands of islands',
+          achievement:
+            'ASEAN分散再エネ統合ガイドライン策定とディーゼルハイブリッド標準化',
+          achievementEn:
+            'Formulation of ASEAN Distributed RE Integration Guidelines & Diesel Hybrid Standards',
+          url: 'https://aseanenergy.org',
+          kind: 'npo',
+        },
+      },
+      {
+        id: 'sea-2019-palawan',
+        date: '2019-11',
+        regionId: 'philippines',
+        regionName: 'フィリピン（パラワン島等）',
+        regionNameEn: 'Philippines (Palawan & islands)',
+        summary:
+          '自律分散型スマート太陽光マイクログリッド稼働。島内電力の70%以上を太陽光＋蓄電池で供給。',
+        summaryEn:
+          'Autonomous solar microgrids launch in Palawan, covering 70%+ local demand with PV + storage.',
+      },
+    ],
+  },
+  {
+    id: 'vietnamRooftopFloatingPv',
+    period: '2020〜2023',
+    periodEn: '2020–2023',
+    title: 'ベトナム屋根上爆発と水上ソーラー',
+    titleEn: 'Vietnam Rooftop Boom & Floating PV',
+    targetRegionIds: ['vn', 'sg', 'indonesia', 'philippines'],
+    milestones: [
+      {
+        id: 'sea-2020-vn-rooftop',
+        date: '2020-12',
+        regionId: 'vn',
+        regionName: 'ベトナム全土',
+        regionNameEn: 'Vietnam (nationwide)',
+        summary:
+          '屋根置きソーラー（Rooftop PV）が9GW超へ爆発急増。送電網パンクから自家消費・蓄電自立への転換。',
+        summaryEn:
+          'Vietnam rooftop solar surges past 9GW; grid bottlenecks accelerate self-consumption models.',
+      },
+      {
+        id: 'sea-2022-floating-pv',
+        date: '2022-03',
+        regionId: 'sg',
+        regionName: 'シンガポール / マレーシア',
+        regionNameEn: 'Singapore / Malaysia',
+        summary:
+          '貯水池・湖沼での水上ソーラー（Floating PV）実用化。モンスーンの土地制約を水面利用で克服。',
+        summaryEn:
+          'Floating PV deployed on reservoirs, bypassing strict land constraints across ASEAN waters.',
+      },
+    ],
+  },
+  {
+    id: 'coldChainPueAutonomy',
+    period: '2024〜2026年以降',
+    periodEn: '2024–2026+',
+    title: '水産加工・冷熱PUEと自律分散の二層化',
+    titleEn: 'Cold-Chain PUE & Resilient Autonomy',
+    targetRegionIds: ['vn', 'sg', 'indonesia', 'philippines'],
+    milestones: [
+      {
+        id: 'sea-2025-cold-chain',
+        date: '2025-06',
+        regionId: 'vn',
+        regionName: 'ASEAN全域',
+        regionNameEn: 'ASEAN-wide',
+        summary:
+          '島嶼・漁村向けソーラー製氷機・保冷コンテナ普及。水産物の鮮度維持と燃料費ゼロ自活を両立。',
+        summaryEn:
+          'Solar ice-making and cold storage expand to coastal fishing villages, securing zero-fuel livelihoods.',
+      },
+    ],
+  },
+]
+
+/** 東南アジア島嶼・分散跳躍史を開く地域キー（マップピン `vn` / `sg` / `indonesia` / `philippines` / `southeast-asia`）。 */
+export const SOUTHEAST_ASIA_ISLAND_REGION_KEYS = [
+  'southeast-asia',
+  'vn',
+  'sg',
+  'indonesia',
+  'philippines',
+  'vietnam',
+  'singapore',
+] as const
+
+export function isSoutheastAsiaIslandRegion(
+  regionKey: string | null | undefined,
+): boolean {
+  if (!regionKey) return false
+  return (SOUTHEAST_ASIA_ISLAND_REGION_KEYS as readonly string[]).includes(
+    regionKey.toLowerCase(),
+  )
+}
+
+export function getSoutheastAsiaIslandPhaseById(
+  id: SoutheastAsiaIslandPhaseId | null,
+): SoutheastAsiaIslandPhase | undefined {
+  if (!id) return undefined
+  return SOUTHEAST_ASIA_ISLAND_TIMELINE.find((p) => p.id === id)
 }

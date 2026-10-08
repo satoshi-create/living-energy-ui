@@ -14,20 +14,26 @@ import {
   CountryPvDetail,
   AFRICA_LEAPFROG_TIMELINE,
   ASIA_OCEANIA_TRANSITION_TIMELINE,
+  INDIA_LIVELIHOOD_TIMELINE,
   MOVEMENT_HISTORY_PHASES,
+  SOUTHEAST_ASIA_ISLAND_TIMELINE,
   WORLD_BALCONY_PV_COUNTRIES,
   getAfricaLeapfrogPhaseById,
   getAsiaOceaniaPhaseById,
+  getIndiaLivelihoodPhaseById,
   getMaturityScore,
   getMovementPhaseById,
+  getSoutheastAsiaIslandPhaseById,
   matchesModelFilter,
   resolveRegionCategory,
   type AfricaLeapfrogPhaseId,
   type AsiaOceaniaPhaseId,
+  type IndiaLivelihoodPhaseId,
   type MilestoneKeyActor,
   type MovementHistoryPhaseId,
   type MovementMilestone,
   type RegionCategory,
+  type SoutheastAsiaIslandPhaseId,
 } from '../data';
 
 export type { MovementHistoryPhaseId };
@@ -415,6 +421,22 @@ const EMERALD_TIMELINE_ACCENT: TimelineSidebarAccent = {
   period: 'text-emerald-300/90',
 };
 
+const AMBER_TIMELINE_ACCENT: TimelineSidebarAccent = {
+  activeBorder: 'border-amber-500/40',
+  activeBg: 'bg-amber-500/10',
+  chevron: 'text-amber-300',
+  period: 'text-amber-300/90',
+};
+
+const SKY_TIMELINE_ACCENT: TimelineSidebarAccent = {
+  activeBorder: 'border-sky-500/40',
+  activeBg: 'bg-sky-500/10',
+  chevron: 'text-sky-300',
+  period: 'text-sky-300/90',
+};
+
+const SOUTHEAST_ASIA_PIN_IDS = new Set(['vn', 'sg', 'indonesia', 'philippines']);
+
 const MOVEMENT_PHASE_FALLBACKS: Record<
   MovementHistoryPhaseId,
   { period: string; title: string }
@@ -470,6 +492,18 @@ export function WorldPvMap({
   const [asiaPhase, setAsiaPhase] = useState<AsiaOceaniaPhaseId | null>(null);
   const [asiaFocusRegionId, setAsiaFocusRegionId] = useState<string | null>(null);
   const [asiaOpenPhases, setAsiaOpenPhases] = useState<Set<AsiaOceaniaPhaseId>>(() => new Set());
+  const [isIndiaLivelihoodOpen, setIsIndiaLivelihoodOpen] = useState(false);
+  const [indiaPhase, setIndiaPhase] = useState<IndiaLivelihoodPhaseId | null>(null);
+  const [indiaFocusRegionId, setIndiaFocusRegionId] = useState<string | null>(null);
+  const [indiaOpenPhases, setIndiaOpenPhases] = useState<Set<IndiaLivelihoodPhaseId>>(
+    () => new Set()
+  );
+  const [isSoutheastAsiaOpen, setIsSoutheastAsiaOpen] = useState(false);
+  const [seaPhase, setSeaPhase] = useState<SoutheastAsiaIslandPhaseId | null>(null);
+  const [seaFocusRegionId, setSeaFocusRegionId] = useState<string | null>(null);
+  const [seaOpenPhases, setSeaOpenPhases] = useState<Set<SoutheastAsiaIslandPhaseId>>(
+    () => new Set()
+  );
   const [movementOpenPhases, setMovementOpenPhases] = useState<Set<MovementHistoryPhaseId>>(
     () => new Set()
   );
@@ -478,30 +512,44 @@ export function WorldPvMap({
   const activePhase = getMovementPhaseById(historyPhase);
   const activeAfricaPhase = getAfricaLeapfrogPhaseById(africaPhase);
   const activeAsiaPhase = getAsiaOceaniaPhaseById(asiaPhase);
+  const activeIndiaPhase = getIndiaLivelihoodPhaseById(indiaPhase);
+  const activeSeaPhase = getSoutheastAsiaIslandPhaseById(seaPhase);
   const historyHighlightRegion: RegionCategory | null = isMovementHistoryOpen
     ? historyPhaseRegion(historyPhase)
     : isAfricaLeapfrogOpen
       ? 'africa'
-      : isAsiaOceaniaOpen
+      : isIndiaLivelihoodOpen || isAsiaOceaniaOpen || isSoutheastAsiaOpen
         ? 'asia-oceania'
         : null;
   const historyTargetIds = new Set(
     isAfricaLeapfrogOpen
       ? (activeAfricaPhase?.targetRegionIds ?? [])
-      : isAsiaOceaniaOpen
-        ? (activeAsiaPhase?.targetRegionIds ?? [])
-        : (activePhase?.targetRegionIds ?? [])
+      : isSoutheastAsiaOpen
+        ? (activeSeaPhase?.targetRegionIds ?? ['vn', 'sg'])
+        : isIndiaLivelihoodOpen
+          ? (activeIndiaPhase?.targetRegionIds ?? ['in'])
+          : isAsiaOceaniaOpen
+            ? (activeAsiaPhase?.targetRegionIds ?? [])
+            : (activePhase?.targetRegionIds ?? [])
   );
   const focusedMilestoneRegionId =
     isAfricaLeapfrogOpen && africaFocusRegionId
       ? africaFocusRegionId
-      : isAsiaOceaniaOpen && asiaFocusRegionId
-        ? asiaFocusRegionId
-        : isMovementHistoryOpen && (movementFocusRegionId || historyFocusRegionId)
-          ? (movementFocusRegionId ?? historyFocusRegionId)
-          : null;
+      : isSoutheastAsiaOpen && seaFocusRegionId
+        ? seaFocusRegionId
+        : isIndiaLivelihoodOpen && indiaFocusRegionId
+          ? indiaFocusRegionId
+          : isAsiaOceaniaOpen && asiaFocusRegionId
+            ? asiaFocusRegionId
+            : isMovementHistoryOpen && (movementFocusRegionId || historyFocusRegionId)
+              ? (movementFocusRegionId ?? historyFocusRegionId)
+              : null;
   const isAnyHistoryOpen =
-    isMovementHistoryOpen || isAfricaLeapfrogOpen || isAsiaOceaniaOpen;
+    isMovementHistoryOpen ||
+    isAfricaLeapfrogOpen ||
+    isAsiaOceaniaOpen ||
+    isIndiaLivelihoodOpen ||
+    isSoutheastAsiaOpen;
 
   const didInitRegionRef = useRef(false);
 
@@ -600,6 +648,64 @@ export function WorldPvMap({
     setHoveredRegionId(asiaFocusRegionId);
   }, [isAsiaOceaniaOpen, asiaFocusRegionId]);
 
+  // インド生計跳躍史オープン時: インド中心へパン＆ズーム
+  useLayoutEffect(() => {
+    if (!isIndiaLivelihoodOpen) return;
+    if (indiaFocusRegionId) return;
+    if (indiaPhase) {
+      const phase = getIndiaLivelihoodPhaseById(indiaPhase);
+      if (phase) {
+        const cam = cameraForRegionIds(phase.targetRegionIds) ?? REGION_CAMERA['asia-oceania'];
+        setCenter(cam.center);
+        setZoom(cam.zoom);
+        setRegionFocus('asia-oceania');
+        return;
+      }
+    }
+    const cam = cameraForRegionIds(['in']) ?? REGION_CAMERA['asia-oceania'];
+    setCenter(cam.center);
+    setZoom(cam.zoom);
+    setRegionFocus('asia-oceania');
+  }, [isIndiaLivelihoodOpen, indiaPhase, indiaFocusRegionId]);
+
+  useLayoutEffect(() => {
+    if (!isIndiaLivelihoodOpen || !indiaFocusRegionId) return;
+    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === indiaFocusRegionId);
+    if (!country) return;
+    setCenter(country.coordinates);
+    setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
+    setHoveredRegionId(indiaFocusRegionId);
+  }, [isIndiaLivelihoodOpen, indiaFocusRegionId]);
+
+  // 東南アジア島嶼・分散跳躍史オープン時: 域内中心へパン＆ズーム
+  useLayoutEffect(() => {
+    if (!isSoutheastAsiaOpen) return;
+    if (seaFocusRegionId) return;
+    if (seaPhase) {
+      const phase = getSoutheastAsiaIslandPhaseById(seaPhase);
+      if (phase) {
+        const cam = cameraForRegionIds(phase.targetRegionIds) ?? REGION_CAMERA['asia-oceania'];
+        setCenter(cam.center);
+        setZoom(cam.zoom);
+        setRegionFocus('asia-oceania');
+        return;
+      }
+    }
+    const cam = cameraForRegionIds(['vn', 'sg']) ?? REGION_CAMERA['asia-oceania'];
+    setCenter(cam.center);
+    setZoom(cam.zoom);
+    setRegionFocus('asia-oceania');
+  }, [isSoutheastAsiaOpen, seaPhase, seaFocusRegionId]);
+
+  useLayoutEffect(() => {
+    if (!isSoutheastAsiaOpen || !seaFocusRegionId) return;
+    const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === seaFocusRegionId);
+    if (!country) return;
+    setCenter(country.coordinates);
+    setZoom(clampZoom(MILESTONE_CAMERA_ZOOM));
+    setHoveredRegionId(seaFocusRegionId);
+  }, [isSoutheastAsiaOpen, seaFocusRegionId]);
+
   // 欧米伝播史が親から開いたら他年表を閉じる（排他）
   useLayoutEffect(() => {
     if (isMovementHistoryOpen) {
@@ -609,6 +715,12 @@ export function WorldPvMap({
       setIsAsiaOceaniaOpen(false);
       setAsiaPhase(null);
       setAsiaFocusRegionId(null);
+      setIsIndiaLivelihoodOpen(false);
+      setIndiaPhase(null);
+      setIndiaFocusRegionId(null);
+      setIsSoutheastAsiaOpen(false);
+      setSeaPhase(null);
+      setSeaFocusRegionId(null);
       if (historyPhase) {
         setMovementOpenPhases(new Set([historyPhase]));
       }
@@ -641,6 +753,14 @@ export function WorldPvMap({
     setIsAsiaOceaniaOpen(false);
     setAsiaPhase(null);
     setAsiaFocusRegionId(null);
+    setIsIndiaLivelihoodOpen(false);
+    setIndiaPhase(null);
+    setIndiaFocusRegionId(null);
+    setIndiaOpenPhases(new Set());
+    setIsSoutheastAsiaOpen(false);
+    setSeaPhase(null);
+    setSeaFocusRegionId(null);
+    setSeaOpenPhases(new Set());
     setMovementOpenPhases(new Set());
     setMovementFocusRegionId(null);
   };
@@ -665,6 +785,12 @@ export function WorldPvMap({
       setIsAsiaOceaniaOpen(false);
       setAsiaPhase(null);
       setAsiaFocusRegionId(null);
+      setIsIndiaLivelihoodOpen(false);
+      setIndiaPhase(null);
+      setIndiaFocusRegionId(null);
+      setIsSoutheastAsiaOpen(false);
+      setSeaPhase(null);
+      setSeaFocusRegionId(null);
       setMovementFocusRegionId(null);
       if (!historyPhase) {
         onHistoryPhaseChange('guerrilla');
@@ -688,6 +814,12 @@ export function WorldPvMap({
       setIsAsiaOceaniaOpen(false);
       setAsiaPhase(null);
       setAsiaFocusRegionId(null);
+      setIsIndiaLivelihoodOpen(false);
+      setIndiaPhase(null);
+      setIndiaFocusRegionId(null);
+      setIsSoutheastAsiaOpen(false);
+      setSeaPhase(null);
+      setSeaFocusRegionId(null);
       setAfricaFocusRegionId(null);
       setMovementOpenPhases(new Set());
       setMovementFocusRegionId(null);
@@ -712,6 +844,12 @@ export function WorldPvMap({
       setIsAfricaLeapfrogOpen(false);
       setAfricaPhase(null);
       setAfricaFocusRegionId(null);
+      setIsIndiaLivelihoodOpen(false);
+      setIndiaPhase(null);
+      setIndiaFocusRegionId(null);
+      setIsSoutheastAsiaOpen(false);
+      setSeaPhase(null);
+      setSeaFocusRegionId(null);
       setAsiaFocusRegionId(null);
       setMovementOpenPhases(new Set());
       setMovementFocusRegionId(null);
@@ -722,6 +860,73 @@ export function WorldPvMap({
     } else {
       setAsiaPhase(null);
       setAsiaFocusRegionId(null);
+    }
+  };
+
+  /** @param forceOpen true のときトグルせず必ず開く（インドピン連動用） */
+  const openIndiaLivelihood = (forceOpen = false) => {
+    const next = forceOpen ? true : !isIndiaLivelihoodOpen;
+    setIsIndiaLivelihoodOpen(next);
+    if (next) {
+      onSelectCountry(null);
+      onRankingOpenChange(false);
+      onMovementHistoryOpenChange(false);
+      onHistoryPhaseChange(null);
+      setIsAfricaLeapfrogOpen(false);
+      setAfricaPhase(null);
+      setAfricaFocusRegionId(null);
+      setIsAsiaOceaniaOpen(false);
+      setAsiaPhase(null);
+      setAsiaFocusRegionId(null);
+      setIsSoutheastAsiaOpen(false);
+      setSeaPhase(null);
+      setSeaFocusRegionId(null);
+      setMovementOpenPhases(new Set());
+      setMovementFocusRegionId(null);
+      if (!indiaPhase) {
+        setIndiaPhase('dawnLightingMicrofinance');
+        setIndiaOpenPhases(new Set(['dawnLightingMicrofinance']));
+      }
+      if (forceOpen) {
+        setIndiaFocusRegionId('in');
+      } else {
+        setIndiaFocusRegionId(null);
+      }
+    } else {
+      setIndiaPhase(null);
+      setIndiaFocusRegionId(null);
+    }
+  };
+
+  /** @param forcePinId マップピン連動時にフォーカスする国 id（`vn` / `sg` / `indonesia` / `philippines`） */
+  const openSoutheastAsiaIsland = (forcePinId?: string) => {
+    const forceOpen = Boolean(forcePinId);
+    const next = forceOpen ? true : !isSoutheastAsiaOpen;
+    setIsSoutheastAsiaOpen(next);
+    if (next) {
+      onSelectCountry(null);
+      onRankingOpenChange(false);
+      onMovementHistoryOpenChange(false);
+      onHistoryPhaseChange(null);
+      setIsAfricaLeapfrogOpen(false);
+      setAfricaPhase(null);
+      setAfricaFocusRegionId(null);
+      setIsAsiaOceaniaOpen(false);
+      setAsiaPhase(null);
+      setAsiaFocusRegionId(null);
+      setIsIndiaLivelihoodOpen(false);
+      setIndiaPhase(null);
+      setIndiaFocusRegionId(null);
+      setMovementOpenPhases(new Set());
+      setMovementFocusRegionId(null);
+      if (!seaPhase) {
+        setSeaPhase('isolatedDieselPicoHydro');
+        setSeaOpenPhases(new Set(['isolatedDieselPicoHydro']));
+      }
+      setSeaFocusRegionId(forcePinId ?? null);
+    } else {
+      setSeaPhase(null);
+      setSeaFocusRegionId(null);
     }
   };
 
@@ -767,6 +972,34 @@ export function WorldPvMap({
     }
   };
 
+  const toggleIndiaPhase = (id: IndiaLivelihoodPhaseId) => {
+    if (indiaOpenPhases.has(id)) {
+      setIndiaOpenPhases(new Set());
+      if (indiaPhase === id) {
+        setIndiaPhase(null);
+        setIndiaFocusRegionId(null);
+      }
+    } else {
+      setIndiaOpenPhases(new Set([id]));
+      setIndiaPhase(id);
+      setIndiaFocusRegionId(null);
+    }
+  };
+
+  const toggleSeaPhase = (id: SoutheastAsiaIslandPhaseId) => {
+    if (seaOpenPhases.has(id)) {
+      setSeaOpenPhases(new Set());
+      if (seaPhase === id) {
+        setSeaPhase(null);
+        setSeaFocusRegionId(null);
+      }
+    } else {
+      setSeaOpenPhases(new Set([id]));
+      setSeaPhase(id);
+      setSeaFocusRegionId(null);
+    }
+  };
+
   const focusAfricaMilestone = (regionId: string) => {
     setAfricaFocusRegionId(regionId);
     setHoveredRegionId(regionId);
@@ -774,6 +1007,16 @@ export function WorldPvMap({
 
   const focusAsiaMilestone = (regionId: string) => {
     setAsiaFocusRegionId(regionId);
+    setHoveredRegionId(regionId);
+  };
+
+  const focusIndiaMilestone = (regionId: string) => {
+    setIndiaFocusRegionId(regionId);
+    setHoveredRegionId(regionId);
+  };
+
+  const focusSeaMilestone = (regionId: string) => {
+    setSeaFocusRegionId(regionId);
     setHoveredRegionId(regionId);
   };
 
@@ -826,6 +1069,26 @@ export function WorldPvMap({
     return phase ? phase[field] : id;
   }
 
+  function indiaPhaseLabel(id: IndiaLivelihoodPhaseId, field: 'period' | 'title') {
+    const key = `indiaLivelihood.phases.${id}.${field}` as Parameters<typeof t>[0];
+    const phase = INDIA_LIVELIHOOD_TIMELINE.find((p) => p.id === id);
+    if (t.has(key)) return t(key);
+    if (isEn && phase) {
+      return field === 'period' ? (phase.periodEn ?? phase.period) : (phase.titleEn ?? phase.title);
+    }
+    return phase ? phase[field] : id;
+  }
+
+  function seaPhaseLabel(id: SoutheastAsiaIslandPhaseId, field: 'period' | 'title') {
+    const key = `southeastAsiaIsland.phases.${id}.${field}` as Parameters<typeof t>[0];
+    const phase = SOUTHEAST_ASIA_ISLAND_TIMELINE.find((p) => p.id === id);
+    if (t.has(key)) return t(key);
+    if (isEn && phase) {
+      return field === 'period' ? (phase.periodEn ?? phase.period) : (phase.titleEn ?? phase.title);
+    }
+    return phase ? phase[field] : id;
+  }
+
   const movementTimelinePhases: TimelinePhaseView[] = MOVEMENT_HISTORY_PHASES.map((phase) => ({
     id: phase.id,
     period: movementPhaseLabel(phase.id, 'period'),
@@ -844,6 +1107,20 @@ export function WorldPvMap({
     id: phase.id,
     period: asiaPhaseLabel(phase.id, 'period'),
     title: asiaPhaseLabel(phase.id, 'title'),
+    milestones: phase.milestones,
+  }));
+
+  const indiaTimelinePhases: TimelinePhaseView[] = INDIA_LIVELIHOOD_TIMELINE.map((phase) => ({
+    id: phase.id,
+    period: indiaPhaseLabel(phase.id, 'period'),
+    title: indiaPhaseLabel(phase.id, 'title'),
+    milestones: phase.milestones,
+  }));
+
+  const seaTimelinePhases: TimelinePhaseView[] = SOUTHEAST_ASIA_ISLAND_TIMELINE.map((phase) => ({
+    id: phase.id,
+    period: seaPhaseLabel(phase.id, 'period'),
+    title: seaPhaseLabel(phase.id, 'title'),
     milestones: phase.milestones,
   }));
 
@@ -882,7 +1159,11 @@ export function WorldPvMap({
       {/* SP/PC共通: 市場モデル → 地域 → 実装度ランキング → 関連資料（左寄せ・折り返し対応） */}
       <div
         className={`absolute top-2 left-2 z-20 flex flex-wrap items-center justify-start gap-2 rounded-md border border-border/50 bg-card/90 p-0.5 shadow-sm backdrop-blur ${
-          isAfricaLeapfrogOpen || isMovementHistoryOpen || isAsiaOceaniaOpen
+          isAfricaLeapfrogOpen ||
+          isMovementHistoryOpen ||
+          isAsiaOceaniaOpen ||
+          isIndiaLivelihoodOpen ||
+          isSoutheastAsiaOpen
             ? 'max-w-[calc(100%-min(90vw,520px)-0.75rem)]'
             : 'max-w-[calc(100%-1rem)]'
         }`}
@@ -953,9 +1234,13 @@ export function WorldPvMap({
                 ? 'movement'
                 : isAfricaLeapfrogOpen
                   ? 'africa'
-                  : isAsiaOceaniaOpen
-                    ? 'asia-oceania'
-                    : ''
+                  : isIndiaLivelihoodOpen
+                    ? 'india'
+                    : isSoutheastAsiaOpen
+                      ? 'southeast-asia'
+                      : isAsiaOceaniaOpen
+                        ? 'asia-oceania'
+                        : ''
             }
             onChange={(e) => {
               const value = e.target.value;
@@ -963,6 +1248,10 @@ export function WorldPvMap({
                 if (!isMovementHistoryOpen) openMovementHistory();
               } else if (value === 'africa') {
                 if (!isAfricaLeapfrogOpen) openAfricaLeapfrog();
+              } else if (value === 'india') {
+                if (!isIndiaLivelihoodOpen) openIndiaLivelihood();
+              } else if (value === 'southeast-asia') {
+                if (!isSoutheastAsiaOpen) openSoutheastAsiaIsland();
               } else if (value === 'asia-oceania') {
                 if (!isAsiaOceaniaOpen) openAsiaOceania();
               } else {
@@ -975,6 +1264,8 @@ export function WorldPvMap({
             <option value="">📚 {mapLabel('documentsShort', 'Documents & Timelines')}</option>
             <option value="movement">📖 {mapLabel('timelineWestern', 'Western PV Movements')}</option>
             <option value="africa">🌍 {mapLabel('timelineAfrica', 'African Leapfrog Evolution')}</option>
+            <option value="india">🇮🇳 {mapLabel('timelineIndia', "India's Livelihood Revolution")}</option>
+            <option value="southeast-asia">🏝️ {mapLabel('timelineSoutheastAsia', "Southeast Asia's Island & Microgrid Leap")}</option>
             <option value="asia-oceania">🌏 {mapLabel('timelineAsiaOceania', 'Asia-Oceania Transition')}</option>
           </select>
         </div>
@@ -1078,7 +1369,9 @@ export function WorldPvMap({
                 (isHovered || isSelected || isDetailZoom || isMilestoneFocus || isHistoryEmphasized);
               const emphasizeLabel = isHovered || isSelected || isMilestoneFocus;
               const keyFocusSuffix =
-                country.id === 'in' ? ` (${mapLabel('keyFocus', 'Key Focus')})` : '';
+                country.id === 'in' || SOUTHEAST_ASIA_PIN_IDS.has(country.id)
+                  ? ` (${mapLabel('keyFocus', 'Key Focus')})`
+                  : '';
               const tooltipLabel = `${countryName} ★${stars}${keyFocusSuffix}`;
               // fontSize 12 に合わせた幅・高さ（文字がはみ出さないよう余白を確保）
               const tooltipW = Math.max(tooltipLabel.length * 7.2 + 14, 48);
@@ -1096,6 +1389,20 @@ export function WorldPvMap({
                 if (!isMatchFilter) return;
                 e?.stopPropagation();
                 onRankingOpenChange(false);
+                // インド特出ピン → 生計跳躍史パネルを連動表示
+                if (country.id === 'in') {
+                  openIndiaLivelihood(true);
+                  setCenter(country.coordinates);
+                  setZoom(clampZoom(COUNTRY_CAMERA_ZOOM));
+                  return;
+                }
+                // 東南アジア特出ピン（ベトナム・シンガポール・インドネシア・フィリピン）→ 島嶼・分散跳躍史を連動表示
+                if (SOUTHEAST_ASIA_PIN_IDS.has(country.id)) {
+                  openSoutheastAsiaIsland(country.id);
+                  setCenter(country.coordinates);
+                  setZoom(clampZoom(COUNTRY_CAMERA_ZOOM));
+                  return;
+                }
                 closeAllTimelines();
                 setCenter(country.coordinates);
                 setZoom(clampZoom(COUNTRY_CAMERA_ZOOM));
@@ -1363,8 +1670,76 @@ export function WorldPvMap({
         />
       ) : null}
 
+      {isIndiaLivelihoodOpen ? (
+        <TimelineSidebar
+          title={(() => {
+            const key = 'indiaLivelihood.sidebarTitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : mapLabel('timelineIndia', "India's Livelihood Revolution");
+          })()}
+          subtitle={(() => {
+            const key = 'indiaLivelihood.sidebarSubtitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : 'Livelihood & Asset Creation';
+          })()}
+          phases={indiaTimelinePhases}
+          openPhaseIds={indiaOpenPhases}
+          activePhaseId={indiaPhase}
+          focusRegionId={indiaFocusRegionId}
+          accent={AMBER_TIMELINE_ACCENT}
+          closeLabel={closeLabel}
+          isEn={isEn}
+          barrierLabel={barrierLabel}
+          milestoneLabel={milestoneLabel}
+          onClose={() => {
+            setIsIndiaLivelihoodOpen(false);
+            setIndiaPhase(null);
+            setIndiaFocusRegionId(null);
+          }}
+          onTogglePhase={(id) => toggleIndiaPhase(id as IndiaLivelihoodPhaseId)}
+          onFocusMilestone={(phaseId, regionId) => {
+            setIndiaPhase(phaseId as IndiaLivelihoodPhaseId);
+            setIndiaOpenPhases(new Set([phaseId as IndiaLivelihoodPhaseId]));
+            focusIndiaMilestone(regionId);
+          }}
+        />
+      ) : null}
+
+      {isSoutheastAsiaOpen ? (
+        <TimelineSidebar
+          title={(() => {
+            const key = 'southeastAsiaIsland.sidebarTitle' as Parameters<typeof t>[0];
+            return t.has(key)
+              ? t(key)
+              : mapLabel('timelineSoutheastAsia', "Southeast Asia's Island & Microgrid Leap");
+          })()}
+          subtitle={(() => {
+            const key = 'southeastAsiaIsland.sidebarSubtitle' as Parameters<typeof t>[0];
+            return t.has(key) ? t(key) : 'Island & River Basin Microgrids';
+          })()}
+          phases={seaTimelinePhases}
+          openPhaseIds={seaOpenPhases}
+          activePhaseId={seaPhase}
+          focusRegionId={seaFocusRegionId}
+          accent={SKY_TIMELINE_ACCENT}
+          closeLabel={closeLabel}
+          isEn={isEn}
+          barrierLabel={barrierLabel}
+          milestoneLabel={milestoneLabel}
+          onClose={() => {
+            setIsSoutheastAsiaOpen(false);
+            setSeaPhase(null);
+            setSeaFocusRegionId(null);
+          }}
+          onTogglePhase={(id) => toggleSeaPhase(id as SoutheastAsiaIslandPhaseId)}
+          onFocusMilestone={(phaseId, regionId) => {
+            setSeaPhase(phaseId as SoutheastAsiaIslandPhaseId);
+            setSeaOpenPhases(new Set([phaseId as SoutheastAsiaIslandPhaseId]));
+            focusSeaMilestone(regionId);
+          }}
+        />
+      ) : null}
+
       {/* ズームコントロール（伝播史は親サイドバーに集約） */}
-      <div className={`absolute bottom-3 z-20 flex flex-col gap-1 rounded-lg border border-border/50 bg-zinc-900/80 p-1 shadow-lg backdrop-blur-sm ${isAfricaLeapfrogOpen || isMovementHistoryOpen || isAsiaOceaniaOpen ? 'right-[min(90vw,520px)] mr-3' : 'right-3'}`}>
+      <div className={`absolute bottom-3 z-20 flex flex-col gap-1 rounded-lg border border-border/50 bg-zinc-900/80 p-1 shadow-lg backdrop-blur-sm ${isAfricaLeapfrogOpen || isMovementHistoryOpen || isAsiaOceaniaOpen || isIndiaLivelihoodOpen || isSoutheastAsiaOpen ? 'right-[min(90vw,520px)] mr-3' : 'right-3'}`}>
         <button
           type="button"
           aria-label={mapLabel('zoomIn', '拡大')}

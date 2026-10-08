@@ -10,13 +10,17 @@ import {
   AFRICA_LEAPFROG_TIMELINE,
   ASIA_OCEANIA_TRANSITION_TIMELINE,
   GLOBAL_PV_VENDORS,
+  INDIA_LIVELIHOOD_TIMELINE,
   MOVEMENT_HISTORY_PHASES,
   NON_PROFIT_ORGS,
   NON_PROFIT_REGION_FILTERS,
+  SOUTHEAST_ASIA_ISLAND_TIMELINE,
   VENDOR_CATEGORY_FILTERS,
   VENDOR_REGION_FILTERS,
   filterGlobalPvVendors,
   filterNonProfitOrgs,
+  isIndiaLivelihoodRegion,
+  isSoutheastAsiaIslandRegion,
   type GlobalPvVendorCategory,
   type MilestoneKeyActor,
   type MovementHistoryPhaseId,
@@ -526,10 +530,19 @@ const REGIONS = [
   },
 ] as const
 
-export function GlobalImplementationView() {
+export type GlobalImplementationViewProps = {
+  /** マップピン / 地域切替で選ばれた地域キー（`in` / `india` / `southeast-asia` / `vn` / `sg` 等） */
+  selectedRegionKey?: string | null
+}
+
+export function GlobalImplementationView({
+  selectedRegionKey = null,
+}: GlobalImplementationViewProps = {}) {
   const t = useTranslations("worldPv")
   const locale = useLocale()
   const isEn = locale === "en"
+  const indiaSelected = isIndiaLivelihoodRegion(selectedRegionKey)
+  const southeastAsiaSelected = isSoutheastAsiaIslandRegion(selectedRegionKey)
 
   return (
     <div className="flex flex-col gap-6">
@@ -575,6 +588,77 @@ export function GlobalImplementationView() {
         </h2>
         <div className="flex flex-col gap-5">
           {AFRICA_LEAPFROG_TIMELINE.map((phase) => (
+            <div key={phase.id}>
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                <span className="font-mono text-primary">
+                  {isEn && phase.periodEn ? phase.periodEn : phase.period}
+                </span>
+                <span className="ml-2 text-foreground">
+                  {isEn && phase.titleEn ? phase.titleEn : phase.title}
+                </span>
+              </p>
+              <ol className="relative space-y-0 border-l border-border/60 pl-6">
+                {phase.milestones.map((m) => (
+                  <MilestoneItem key={m.id} milestone={m} />
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        id="india-livelihood-timeline"
+        data-region-active={indiaSelected ? "true" : undefined}
+        className={cn(
+          indiaSelected && "rounded-xl border border-primary/30 bg-primary/5 p-3 sm:p-4",
+        )}
+      >
+        <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Scale className="size-4 text-primary" />
+          🇮🇳 {t("map.timelineIndia")}
+        </h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          {t("indiaLivelihood.sidebarSubtitle")}
+        </p>
+        <div className="flex flex-col gap-5">
+          {INDIA_LIVELIHOOD_TIMELINE.map((phase) => (
+            <div key={phase.id}>
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                <span className="font-mono text-primary">
+                  {isEn && phase.periodEn ? phase.periodEn : phase.period}
+                </span>
+                <span className="ml-2 text-foreground">
+                  {isEn && phase.titleEn ? phase.titleEn : phase.title}
+                </span>
+              </p>
+              <ol className="relative space-y-0 border-l border-border/60 pl-6">
+                {phase.milestones.map((m) => (
+                  <MilestoneItem key={m.id} milestone={m} />
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        id="southeast-asia-island-timeline"
+        data-region-active={southeastAsiaSelected ? "true" : undefined}
+        className={cn(
+          southeastAsiaSelected &&
+            "rounded-xl border border-primary/30 bg-primary/5 p-3 sm:p-4",
+        )}
+      >
+        <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Scale className="size-4 text-primary" />
+          🏝️ {t("map.timelineSoutheastAsia")}
+        </h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          {t("southeastAsiaIsland.sidebarSubtitle")}
+        </p>
+        <div className="flex flex-col gap-5">
+          {SOUTHEAST_ASIA_ISLAND_TIMELINE.map((phase) => (
             <div key={phase.id}>
               <p className="mb-2 text-xs font-medium text-muted-foreground">
                 <span className="font-mono text-primary">
