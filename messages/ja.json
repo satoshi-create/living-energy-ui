@@ -93,6 +93,117 @@
     },
     "illustration": {
       "ariaLabel": "ベランダの日照シミュレーション"
+    },
+    "filter": {
+      "all": "すべて",
+      "balcony": "バルコニー・ベランダ",
+      "roof": "屋根・屋上"
+    },
+    "mount": {
+      "clamp_no_drill": "無穿孔クランプ",
+      "freestanding_furniture": "家具型・自立置き",
+      "vertical_rail_hook": "垂直レールフック",
+      "louver_hanger": "窓面ルーバー懸垂",
+      "tile_hook": "瓦差込フック",
+      "deshimai_required": "出仕舞い（退避）必須",
+      "deshimai_optional": "常設可"
+    },
+    "countries": {
+      "jp": "日本",
+      "gb": "イギリス",
+      "fr": "フランス",
+      "de": "ドイツ",
+      "be": "ベルギー",
+      "at": "オーストリア",
+      "it": "イタリア"
+    },
+    "typologies": {
+      "listTitle": "3Dサーフェイス・建築形態一覧",
+      "listLead": "建築形態と受光幾何を主軸に、傾斜角・受光特性・物理制約から類型を選びます。",
+      "orbitHint": "ドラッグで回転・スクロールでズーム",
+      "category": {
+        "balcony": "バルコニー",
+        "roof": "屋上・屋根"
+      },
+      "opticalProfile": {
+        "diffuse_dominant": "散乱光主体",
+        "direct_beam": "直達光主体",
+        "high_altitude": "高日射"
+      },
+      "regions": {
+        "urban_europe": "欧州都市部",
+        "historic_district": "歴史地区（景観保護）",
+        "multifamily_general": "集合住宅全般",
+        "multifamily_egress": "集合住宅（避難路確保）",
+        "central_europe_stock": "中欧集合ストック",
+        "tiled_pitch_roofs": "勾配瓦屋根帯",
+        "flat_deck_roofs": "陸屋根デッキ帯",
+        "terrace_house_roofs": "連棟勾配屋根帯",
+        "rental_facades": "賃貸ファサード"
+      },
+      "haussmann_balconet": {
+        "name": "装飾鉄柵バルコネット（浅型開口）",
+        "feature": "奥行き数十cm程度の装飾鉄柵＋極薄石床。生活動線より垂直開口の受光面が主体。窓面ルーバーが主収穫面。",
+        "constraints": "浅い奥行きでは従来型パネル架台が載らない。垂直面に沿わせる無穿孔の可撓マウントが前提。",
+        "regionContext": "※適用地域の例：歴史地区（景観保護）、欧州都市部の浅型開口",
+        "mechanism": "可撓ペロブスカイト／窓面ルーバー。穿孔なしで垂直面に沿わせる。"
+      },
+      "mansard_dormer": {
+        "name": "マンサード屋根（急勾配＋ドーマー）",
+        "feature": "2段勾配の下部急斜面とドーマー天窓。ドーマー脇・頬面が受光面になる屋根形態。",
+        "constraints": "急勾配面では重量架台が難しく、ドーマー脇や浅い上部面への薄膜適応が必要。穿孔を避ける軽量固定が前提。",
+        "regionContext": "※適用地域の例：歴史地区（景観保護）、亜鉛板・急勾配ストック",
+        "mechanism": "可撓薄膜を急勾配面・ドーマー頬面に沿わせる。重量架台は不可。"
+      },
+      "exposed_concrete_parapet": {
+        "name": "打放しコンクリート腰壁（垂直パラペット）",
+        "feature": "厚みのある打放しコンクリート腰壁・パラペット。垂直マウントの受光面として機能する。",
+        "constraints": "貫通アンカーは構造上むずかしい。落下リスク管理と腰壁挟み込み型の無穿孔クランプが前提。",
+        "regionContext": "※適用地域の例：中欧集合ストック、集合住宅全般の厚壁パラペット",
+        "mechanism": "ヘビーデューティ・クランプ金具で腰壁を挟み込み。穿孔なし垂直マウント。"
+      },
+      "japan_egress_balcony": {
+        "name": "開放型片持ちベランダ（避難隔板付き）",
+        "feature": "隔て板・避難ハッチを備えた片持ちスラブ。標準奥行き床＋アルミ柵。物干しと防災動線が同居する。",
+        "constraints": "床面閉塞を避け、強風外力時は出仕舞い（完全退避）できる可搬・折りたたみ設置が必須。",
+        "regionContext": "※適用地域の例：集合住宅（避難路確保）、台風・強風帯",
+        "mechanism": "ナスティック／折り紙型縁台・すだれ。台風時は完全に室内へ出仕舞い。"
+      },
+      "japanese_tiled_roof": {
+        "name": "勾配瓦屋根（切妻／寄棟）",
+        "feature": "勾配約30°の切妻・寄棟瓦屋根。軒先・棟に沿う軽量支持で面板を載せる在来屋根型。",
+        "constraints": "瓦破損・雨漏りリスクのため重量架台は不可。屋根面に沿う軽量フック固定が前提。",
+        "regionContext": "※適用地域の例：勾配瓦屋根帯",
+        "mechanism": "カテナリー／フック型の軽量支持。瓦に沿わせて面板を吊るす。"
+      },
+      "flat_roof_terrace": {
+        "name": "フラットルーフ（陸屋根デッキ／パーゴラ）",
+        "feature": "平坦スラブの屋上テラス。夕涼み・洗濯・生活動線を兼ね、日除けパーゴラ架台に面板を載せる。",
+        "constraints": "強風耐候と屋上生活動線を塞がない可搬・自立設置が前提。床穿孔は避ける。",
+        "regionContext": "※適用地域の例：陸屋根デッキ帯、集合住宅全般の屋上テラス",
+        "mechanism": "折り紙／パーゴラ型の自立家具。突風時は折りたたみ出仕舞い。"
+      },
+      "juliet_balcony": {
+        "name": "ジュリエット手すり（デッキなし開口部）",
+        "feature": "デッキ奥行きのないフレンチドア＋手すり／ガラス。ファサード面そのものが垂直の受光面。",
+        "constraints": "床面がないため従来架台は不可。窓面ルーバーや無穿孔クランプによる垂直面設置が前提。",
+        "regionContext": "※適用地域の例：賃貸ファサード、歴史地区（景観保護）",
+        "mechanism": "可撓薄膜メッシュを手すり／ガラス面に沿わせる。穿孔なし。"
+      },
+      "recessed_loggia": {
+        "name": "インナーバルコニー（ロッジア／凹型空間）",
+        "feature": "側壁に囲まれた凹型・ロッジア。直達光は少ないが拡散光を取り込む受光幾何。",
+        "constraints": "側壁・天井の影で直達比率が低い。生活動線を塞がず、テーブル型やクランプ型の可搬設置が現実的。",
+        "regionContext": "※適用地域の例：集合住宅全般、欧州都市部の凹型バルコニー",
+        "mechanism": "クランプ／テーブル型の可搬設置。拡散光を拾う浅い床面向け。"
+      },
+      "pitched_gable_terrace": {
+        "name": "切妻勾配屋根（連棟スラブ）",
+        "feature": "勾配約40〜45°のスレート／粘土瓦切妻。連棟住居に多い在来屋根型。",
+        "constraints": "瓦・スレート破損と雨漏りリスク。重量架台は不可で、軽量クランプや窓面解法への適応が必要。",
+        "regionContext": "※適用地域の例：連棟勾配屋根帯、勾配瓦屋根帯",
+        "mechanism": "軽量クランプと窓面ルーバーへの適応。勾配面に沿う固定。"
+      }
     }
   },
   "livingSense": {
@@ -237,7 +348,9 @@
     "tabs": {
       "map": "世界実装マップ",
       "vendors": "主要企業・銘柄一覧",
-      "nonprofits": "非営利・推進団体一覧"
+      "nonprofits": "非営利・推進団体一覧",
+      "surfaces": "3Dサーフェイス・建築形態",
+      "surface3d": "3Dサーフェイス・建築形態"
     },
     "vendors": {
       "title": "主要企業・銘柄一覧",
@@ -373,6 +486,180 @@
         "company": "企業",
         "npo": "非営利団体",
         "government": "政府機関"
+      }
+    },
+    "architecture": {
+      "sectionTitle": "建築形態と生活家具型ソーラー",
+      "constraintsLabel": "構造的制約・受光物理",
+      "adaptedFurnitureLabel": "適応する生活家具解法",
+      "types": {
+        "balcony": "バルコニー",
+        "roof": "屋上・屋根",
+        "facade": "ファサード"
+      },
+      "opticalProfile": {
+        "diffuse_dominant": "散乱光主体",
+        "direct_beam": "直達光主体",
+        "high_altitude": "高日射"
+      },
+      "regions": {
+        "urban_europe": "欧州都市部",
+        "historic_district": "歴史地区（景観保護）",
+        "multifamily_general": "集合住宅全般",
+        "multifamily_egress": "集合住宅（避難路確保）",
+        "central_europe_stock": "中欧集合ストック",
+        "tiled_pitch_roofs": "勾配瓦屋根帯",
+        "flat_deck_roofs": "陸屋根デッキ帯",
+        "terrace_house_roofs": "連棟勾配屋根帯",
+        "rental_facades": "賃貸ファサード"
+      },
+      "surface3d": {
+        "tabBalcony": "バルコニー",
+        "tabRoof": "屋根",
+        "surfaceTabsAria": "サーフェイス種別の切り替え",
+        "tiltLabel": "受光角",
+        "viewerAria": "建築サーフェイスの3Dプレビュー",
+        "hint": "ドラッグで回転・スクロールでズーム",
+        "expandFull": "大画面で見る ↗",
+        "listTitle": "3Dサーフェイス・建築形態一覧",
+        "listLead": "建築形態と受光幾何を主軸に、傾斜角・受光特性・物理制約から類型を選び、大画面3Dで観察できます。",
+        "backToList": "← 建築形態一覧に戻る",
+        "backToMap": "← マップに戻る",
+        "models": {
+          "haussmann-balconet": "極薄石床＋装飾アイアン柵。窓面ルーバーが受光面。",
+          "concrete-parapet": "厚みのある腰壁にクランプ金具で垂直マウント。",
+          "japanese-evacuation-balcony": "標準奥行き床＋アルミ柵。蹴破り戸と出仕舞い縁台。",
+          "japanese-kawara-roof": "勾配約30°の瓦屋根。支持金具で面板を沿わせる。",
+          "french-mansard-roof": "2段勾配マンサード＋亜鉛板。ドーマー脇に受光面。",
+          "flat-concrete-roof": "平坦陸屋根スラブ。日除けパーゴラ架台に面板。",
+          "uk-juliet-balcony": "デッキなしのジュリエット。フレンチドア＋手すり／ガラスが垂直受光面。",
+          "uk-recessed-balcony": "側壁に囲まれた凹型ロッジア。拡散光主体の浅い床面。",
+          "uk-roof-terrace": "フラット屋上テラス。パーゴラ／テーブル型の自立配置。",
+          "uk-pitched-gable": "勾配約45°の切妻（スレート／粘土瓦）連棟屋根。",
+          "uk-pitched-mansard-dormer": "急勾配マンサード＋ドーマー。頬面・脇面が受光候補。"
+        },
+        "fullView": {
+          "viewerAria": "建築サーフェイスの大画面3Dビューア",
+          "eyebrow": "3Dサーフェイス（建築形態）",
+          "lead": "選択中の建築形態を拡大表示し、OrbitControlsで自由な角度から構造と生活家具型ソーラーの関係を観察できます。",
+          "profileSelect": "建築形態を比較",
+          "sameCountryCompare": "関連するサーフェイス",
+          "sameFormCompare": "関連するサーフェイス",
+          "angleLabel": "観察角度",
+          "angleNative": "この形態の主傾斜に近い視点",
+          "angleHint": "カメラ方位のプリセット（形態の主傾斜は {tilt}）",
+          "panelModeLabel": "解説パネル",
+          "modeConstraints": "構造的制約",
+          "modeFurniture": "生活家具型ソーラー"
+        }
+      },
+      "profiles": {
+        "haussmann-balconet": {
+          "name": "装飾鉄柵バルコネット（浅型開口）",
+          "description": "奥行き数十cm程度の装飾鉄柵＋極薄石床。生活動線より垂直開口の受光面が主体。",
+          "constraints": "浅い奥行きでは従来型パネル架台が載らない。垂直面に沿わせる無穿孔の可撓マウントが前提。",
+          "regionContext": "※適用地域の例：歴史地区（景観保護）、欧州都市部の浅型開口"
+        },
+        "concrete-parapet": {
+          "name": "打放しコンクリート腰壁（垂直パラペット）",
+          "description": "厚みのある打放しコンクリート腰壁・パラペット。垂直マウントの受光面として機能する。",
+          "constraints": "貫通アンカーは構造上むずかしい。落下リスク管理と腰壁挟み込み型の無穿孔クランプが前提。",
+          "regionContext": "※適用地域の例：中欧集合ストック、集合住宅全般の厚壁パラペット"
+        },
+        "japanese-evacuation-balcony": {
+          "name": "開放型片持ちベランダ（避難隔板付き）",
+          "description": "隔て板・避難ハッチを備えた片持ちスラブ。標準奥行き床＋アルミ柵。物干しと防災動線が同居する。",
+          "constraints": "床面閉塞を避け、強風外力時は出仕舞い（完全退避）できる可搬・折りたたみ設置が必須。",
+          "regionContext": "※適用地域の例：集合住宅（避難路確保）、台風・強風帯"
+        },
+        "japanese-kawara-roof": {
+          "name": "勾配瓦屋根（切妻／寄棟）",
+          "description": "勾配約30°の切妻・寄棟瓦屋根。軒先・棟に沿う軽量支持で面板を載せる在来屋根型。",
+          "constraints": "瓦破損・雨漏りリスクのため重量架台は不可。屋根面に沿う軽量フック固定が前提。",
+          "regionContext": "※適用地域の例：勾配瓦屋根帯"
+        },
+        "french-mansard-roof": {
+          "name": "マンサード屋根（急勾配＋ドーマー）",
+          "description": "2段勾配の下部急斜面とドーマー天窓。ドーマー脇・頬面が受光面になる屋根形態。",
+          "constraints": "急勾配面では重量架台が難しく、ドーマー脇や浅い上部面への薄膜適応が必要。穿孔を避ける軽量固定が前提。",
+          "regionContext": "※適用地域の例：歴史地区（景観保護）、亜鉛板・急勾配ストック"
+        },
+        "flat-concrete-roof": {
+          "name": "フラットルーフ（陸屋根デッキ／パーゴラ）",
+          "description": "平坦スラブの屋上テラス。夕涼み・洗濯・生活動線を兼ね、日除けパーゴラ架台に面板を載せる。",
+          "constraints": "強風耐候と屋上生活動線を塞がない可搬・自立設置が前提。床穿孔は避ける。",
+          "regionContext": "※適用地域の例：陸屋根デッキ帯、集合住宅全般の屋上テラス"
+        },
+        "rooftop-terrace": {
+          "name": "フラット屋上テラス",
+          "description": "平坦屋上の共有／専用テラス。夕涼み・洗濯・生活動線を兼ねる広い床面。",
+          "constraints": "強風耐候と屋上生活動線を塞がない可搬・自立設置が前提。床穿孔は避ける。",
+          "regionContext": "※適用地域の例：陸屋根デッキ帯"
+        },
+        "uk-juliet-balcony": {
+          "name": "ジュリエット手すり（デッキなし開口部）",
+          "description": "デッキ奥行きのないフレンチドア＋手すり／ガラス。ファサード面そのものが垂直の受光面。",
+          "constraints": "床面がないため従来架台は不可。窓面ルーバーや無穿孔クランプによる垂直面設置が前提。",
+          "regionContext": "※適用地域の例：賃貸ファサード、歴史地区（景観保護）"
+        },
+        "uk-recessed-balcony": {
+          "name": "インナーバルコニー（ロッジア／凹型空間）",
+          "description": "側壁に囲まれた凹型・ロッジア。直達光は少ないが拡散光を取り込む受光幾何。",
+          "constraints": "側壁・天井の影で直達比率が低い。生活動線を塞がず、テーブル型やクランプ型の可搬設置が現実的。",
+          "regionContext": "※適用地域の例：集合住宅全般、欧州都市部の凹型バルコニー"
+        },
+        "uk-roof-terrace": {
+          "name": "陸屋根スラブ（フラットデッキ）",
+          "description": "フラット屋上や高層の共用／専用テラス。パーゴラやテーブル型ソーラーを自立配置できる広い床面。",
+          "constraints": "強風荷重と床面荷重制限。床を穿孔せず、退避可能な家具型設置が前提。",
+          "regionContext": "※適用地域の例：陸屋根デッキ帯、集合住宅全般"
+        },
+        "uk-pitched-gable": {
+          "name": "切妻勾配屋根（連棟スラブ）",
+          "description": "勾配約40〜45°のスレート／粘土瓦切妻。連棟住居に多い在来屋根型。",
+          "constraints": "瓦・スレート破損と雨漏りリスク。重量架台は不可で、軽量クランプや窓面解法への適応が必要。",
+          "regionContext": "※適用地域の例：連棟勾配屋根帯、勾配瓦屋根帯"
+        },
+        "uk-pitched-mansard-dormer": {
+          "name": "マンサード屋根（急勾配＋ドーマー）",
+          "description": "急勾配の外側面とドーマー天窓を持つマンサード屋根。頬面・脇面が受光候補。",
+          "constraints": "急勾配面への従来架台は困難。ドーマー脇や窓面ルーバーへの薄膜適応が現実的。",
+          "regionContext": "※適用地域の例：歴史地区（景観保護）、急勾配都市住居ストック"
+        }
+      },
+      "furniture": {
+        "solar-window-shutter": {
+          "name": "可動ルーバー窓シャッター",
+          "adaptation": "浅いバルコネットでも窓面に沿って受光。外壁穿孔なし。"
+        },
+        "ac-steckerspeicher": {
+          "name": "室内AC単体蓄電（Steckerspeicher）",
+          "adaptation": "屋外固定を避け、室内コンセントで蓄電・自家消費。"
+        },
+        "heavy-duty-clamp-pv": {
+          "name": "無穿孔ヘビーデューティークランプPV",
+          "adaptation": "コンクリート腰壁を挟み込み固定。貫通金具不要。"
+        },
+        "solar-table": {
+          "name": "ソーラーテーブル",
+          "adaptation": "腰壁上に載せ置きする生活家具型。移動・退避が容易。"
+        },
+        "solar-endai-bench": {
+          "name": "出仕舞い縁台ソーラー",
+          "adaptation": "避難動線を塞がず、台風時は室内へ完全退避できる縁台型。"
+        },
+        "solar-sudare-screen": {
+          "name": "巻取り簾ペロブスカイト",
+          "adaptation": "隔て板まわりに沿う軽量簾。巻取りで避難ハッチを確保。"
+        },
+        "origami-byobu-solar": {
+          "name": "自立屏風型オリガミソーラー",
+          "adaptation": "屋上テラスに自立配置。モンスーン時は折りたたみ退避。"
+        },
+        "solar-pergola": {
+          "name": "日除けパーゴラ型ソーラー",
+          "adaptation": "夕涼み空間の日陰と発電を両立する屋上家具。"
+        }
       }
     },
     "countries": {
@@ -1004,6 +1291,38 @@
           "period": "2024〜2026",
           "title": "米国への波及（120V環境・1,200W免除）",
           "description": "高負荷住宅（120V・15A）に最適化した1,200Wモデル。ユタ州やCA州（SB 868）を皮切りに州別で公認拡大。"
+        }
+      },
+      "milestones": {
+        "at-2022-06-pv-austria": {
+          "summary": "800W簡易通知基準（TOR Typ A）の先行実証。一般プラグ接続の工学的安全性を確立。",
+          "regionName": "オーストリア",
+          "actor": {
+            "name": "オーストリア太陽光発電協会 (PV-Austria)",
+            "role": "800Wプラグイン規格化・市民エネルギー法制推進",
+            "barrierOvercome": "電力会社が求めた過剰な専用プラグ義務付けと事前審査の官僚主義",
+            "keyMilestone": "800W系統協議免除の標準化および再生可能エネルギー拡大法（EAG）によるエネルギー共同体制度の確立"
+          }
+        },
+        "eu-2023-11-rescoop": {
+          "summary": "EU再生可能エネルギー指令（RED II）をテコに、加盟各国へ「エネルギープロシューマー権」を法制化要請。",
+          "regionName": "欧州連合 (EU全域)",
+          "actor": {
+            "name": "欧州市民エネルギー協同組合連盟 (REScoop.eu)",
+            "role": "市民エネルギー共同体（CEC）推進・エネルギー民主主義ロビー",
+            "barrierOvercome": "巨大集中型電力による送電網独占と、市民・賃貸居住者のエネルギー自給に対する制度的排除",
+            "keyMilestone": "EU指令への市民エネルギー権の明文化と、加盟国（独・墺・仏等）でのベランダソーラー共同購入・普及支援"
+          }
+        },
+        "de-2024-04-bnetza": {
+          "summary": "連邦ネットワーク庁が登録ポータル（MaStR）を大幅簡素化。800W引き上げとシュコプラグ接続を公式認可。",
+          "regionName": "ドイツ",
+          "actor": {
+            "name": "ドイツ連邦ネットワーク庁 (BNetzA)",
+            "role": "インフラ規制監督・官僚主義撤廃",
+            "barrierOvercome": "大手送電・配電会社による過剰な登録義務付けと、数ヶ月におよぶ複雑な官僚的手続き",
+            "keyMilestone": "登録ポータル（MaStR）の入力項目極小化、800W上限および旧式メーター逆回転の暫定容認"
+          }
         }
       }
     },

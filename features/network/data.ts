@@ -4,6 +4,9 @@ export type NetworkLocale = "ja" | "en"
 
 export type NetworkModel = "yamanashi" | "fukushima"
 
+/** Japan RE map filter / pin category */
+export type ModelCategory = "p2g" | "vpp" | "microgrid" | "self-line"
+
 export type NetworkNodeStatus = "normal" | "watch"
 
 export type NetworkNode = {
@@ -37,6 +40,15 @@ export type NetworkModelConfig = {
   labelEn?: string
   description: string
   descriptionEn?: string
+  /** WGS84 [longitude, latitude] for react-simple-maps Marker */
+  coordinates: [number, number]
+  regionName: string
+  regionNameEn?: string
+  modelCategory: ModelCategory
+  scaleLabel: string
+  scaleLabelEn?: string
+  /** Demo self-sufficiency ratio (0–100) */
+  selfSufficiencyPct: number
   nodes: NetworkNode[]
   edges: NetworkEdge[]
 }
@@ -97,6 +109,19 @@ export const NETWORK_UI = {
   rankingTab: { ja: "都道府県番付", en: "Prefecture Ranking" },
   dayMode: { ja: "日中余剰モード", en: "Daytime Surplus Mode" },
   nightMode: { ja: "夜間供給モード", en: "Night Supply Mode" },
+  dayModeHint: { ja: "蓄電・水素生成", en: "Storage & H₂ generation" },
+  nightModeHint: { ja: "放電・供給", en: "Discharge & supply" },
+  flowSection: { ja: "ネットワーク系統フロー", en: "Network System Flow" },
+  stageGeneration: { ja: "01. GENERATION", en: "01. GENERATION" },
+  stageBuffer: { ja: "02. BUFFER & CONVERSION", en: "02. BUFFER & CONVERSION" },
+  stageConsume: { ja: "03. LOCAL CONSUMPTION", en: "03. LOCAL CONSUMPTION" },
+  methodP2g: { ja: "P2G水素循環", en: "P2G Hydrogen Cycle" },
+  methodVpp: { ja: "系統協調型VPP", en: "Grid-coordinated VPP" },
+  methodMicrogrid: { ja: "マイクログリッド自営線", en: "Microgrid Private Line" },
+  methodSelfLine: { ja: "自営線マイクログリッド", en: "Self-owned Line Microgrid" },
+  selfSufficiency: { ja: "自給率", en: "Self-sufficiency" },
+  gridLinked: { ja: "系統協調連系", en: "Grid-coordinated" },
+  gridIsland: { ja: "島運用可", en: "Islandable" },
   kindSupply: { ja: "供給ノード", en: "Supply Node" },
   kindConvert: { ja: "変換・蓄電ノード", en: "Conversion / Storage Node" },
   kindConsume: { ja: "消費ノード", en: "Consumption Node" },
@@ -111,6 +136,27 @@ export const NETWORK_UI = {
   badge600W: { ja: "600W / 家電製品区分", en: "600W / Appliance Category" },
   badgeOffGrid: { ja: "オフグリッド蓄電型", en: "Off-grid Storage Type" },
   badgeNec: { ja: "NEC/電気工事規程", en: "NEC / Electrical Code" },
+  japanMapTitle: { ja: "地域再エネ日本マップ", en: "Japan Regional RE Map" },
+  japanMapFilterAll: { ja: "全モデル", en: "All models" },
+  japanMapFilterP2g: { ja: "P2G水素", en: "P2G Hydrogen" },
+  japanMapFilterVpp: { ja: "広域VPP", en: "Regional VPP" },
+  japanMapFilterMicrogrid: { ja: "マイクログリッド", en: "Microgrid" },
+  japanMapFilterSelfLine: { ja: "自営線", en: "Self-owned line" },
+  japanMapZoomIn: { ja: "拡大", en: "Zoom in" },
+  japanMapZoomOut: { ja: "縮小", en: "Zoom out" },
+  japanMapReset: { ja: "表示をリセット", en: "Reset view" },
+  japanMapFilterAria: { ja: "モデル種別フィルタ", en: "Model category filter" },
+  japanMapRegionAria: { ja: "地方別", en: "Region" },
+  japanMapRegionAll: { ja: "全地方", en: "All regions" },
+  japanMapRegionTohoku: { ja: "東北", en: "Tohoku" },
+  japanMapRegionKanto: { ja: "関東", en: "Kanto" },
+  japanMapRegionChubu: { ja: "中部", en: "Chubu" },
+  japanMapRegionKansai: { ja: "関西", en: "Kansai" },
+  japanMapRegionKyushu: { ja: "九州", en: "Kyushu" },
+  japanMapAttribution: {
+    ja: "地図: 地球地図日本",
+    en: "Map: Global Map Japan",
+  },
 } as const
 
 export function uiText(
@@ -506,6 +552,13 @@ export const NETWORK_MODELS: Record<NetworkModel, NetworkModelConfig> = {
       "北杜のメガソーラー余剰電力を米倉山のP2Gプラントで水素に変換し、地域に供給します。",
     descriptionEn:
       "Surplus power from Hokuto mega-solar is converted to hydrogen at the Yume-sakura P2G plant and supplied locally.",
+    coordinates: [138.4239, 35.8667],
+    regionName: "山梨県 北杜市",
+    regionNameEn: "Hokuto, Yamanashi",
+    modelCategory: "p2g",
+    scaleLabel: "12.4MW / P2G",
+    scaleLabelEn: "12.4MW / P2G",
+    selfSufficiencyPct: 78,
     nodes: [
       {
         id: "solar",
@@ -587,6 +640,13 @@ export const NETWORK_MODELS: Record<NetworkModel, NetworkModelConfig> = {
       "郡山の風力とメガソーラーを束ね、広域VPP(バーチャルパワープラント)として需給を最適化します。",
     descriptionEn:
       "Wind and mega-solar around Koriyama are aggregated into a regional VPP (virtual power plant) to optimize supply and demand.",
+    coordinates: [140.3595, 37.4005],
+    regionName: "福島県 郡山市",
+    regionNameEn: "Koriyama, Fukushima",
+    modelCategory: "vpp",
+    scaleLabel: "22.6MW / VPP",
+    scaleLabelEn: "22.6MW / VPP",
+    selfSufficiencyPct: 64,
     nodes: [
       {
         id: "wind",
@@ -651,4 +711,58 @@ export const NETWORK_MODELS: Record<NetworkModel, NetworkModelConfig> = {
       { from: "storage", to: "home" },
     ],
   },
+}
+
+export function matchesModelCategory(
+  category: ModelCategory,
+  filter: ModelCategory | "all"
+): boolean {
+  return filter === "all" || category === filter
+}
+
+export function categoryColor(category: ModelCategory): string {
+  switch (category) {
+    case "p2g":
+      return "#10b981"
+    case "vpp":
+      return "#3b82f6"
+    case "microgrid":
+      return "#8b5cf6"
+    case "self-line":
+      return "#f59e0b"
+    default:
+      return "#6b7280"
+  }
+}
+
+export function networkMethodKey(
+  category: ModelCategory
+): "methodP2g" | "methodVpp" | "methodMicrogrid" | "methodSelfLine" {
+  switch (category) {
+    case "p2g":
+      return "methodP2g"
+    case "vpp":
+      return "methodVpp"
+    case "microgrid":
+      return "methodMicrogrid"
+    case "self-line":
+      return "methodSelfLine"
+  }
+}
+
+export function localizedMapSite(
+  config: NetworkModelConfig,
+  locale: NetworkLocale
+): { regionName: string; scaleLabel: string; label: string } {
+  return locale === "en"
+    ? {
+        regionName: config.regionNameEn ?? config.regionName,
+        scaleLabel: config.scaleLabelEn ?? config.scaleLabel,
+        label: config.labelEn ?? config.label,
+      }
+    : {
+        regionName: config.regionName,
+        scaleLabel: config.scaleLabel,
+        label: config.label,
+      }
 }

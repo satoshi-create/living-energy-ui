@@ -1389,20 +1389,7 @@ export function WorldPvMap({
                 if (!isMatchFilter) return;
                 e?.stopPropagation();
                 onRankingOpenChange(false);
-                // インド特出ピン → 生計跳躍史パネルを連動表示
-                if (country.id === 'in') {
-                  openIndiaLivelihood(true);
-                  setCenter(country.coordinates);
-                  setZoom(clampZoom(COUNTRY_CAMERA_ZOOM));
-                  return;
-                }
-                // 東南アジア特出ピン（ベトナム・シンガポール・インドネシア・フィリピン）→ 島嶼・分散跳躍史を連動表示
-                if (SOUTHEAST_ASIA_PIN_IDS.has(country.id)) {
-                  openSoutheastAsiaIsland(country.id);
-                  setCenter(country.coordinates);
-                  setZoom(clampZoom(COUNTRY_CAMERA_ZOOM));
-                  return;
-                }
+                // 全ピン共通: 国別詳細サイドバーを開く（タイムラインはドキュメント選択からのみ）
                 closeAllTimelines();
                 setCenter(country.coordinates);
                 setZoom(clampZoom(COUNTRY_CAMERA_ZOOM));

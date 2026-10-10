@@ -136,12 +136,14 @@ export function AppShell() {
             <PanelLeft className="size-4" />
           </button>
           <div className="min-w-0 flex-1">
-            <RegionHeader
-              regionId={regionId}
-              onRegionChange={setRegionId}
-              title={t(`nav.${activeItem.id}.label`)}
-              showRegionSelect={activeView === "regional-network"}
-            />
+            {activeView !== "regional-network" && (
+              <RegionHeader
+                regionId={regionId}
+                onRegionChange={setRegionId}
+                title={t(`nav.${activeItem.id}.label`)}
+                showRegionSelect={false}
+              />
+            )}
           </div>
         </div>
 

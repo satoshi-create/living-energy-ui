@@ -6,6 +6,33 @@ import type { WorldMacroRegion } from '@/lib/regions'
 export type Direction = 'south' | 'southeast' | 'southwest' | 'east' | 'west'
 export type RailingType = 'grid' | 'glass' | 'concrete'
 
+/**
+ * UK / multi-rain balcony form factors (locale-independent).
+ * Labels: `balconyPv.balconyType.*`.
+ */
+export type BalconyType = 'standard' | 'juliet' | 'recessed' | 'roof_terrace'
+
+/**
+ * UK roof form factors for terrace-house / mansard contexts (locale-independent).
+ * Labels: `balconyPv.roofType.*`.
+ */
+export type RoofType = 'flat' | 'pitched_gable' | 'pitched_mansard_dormer'
+
+/** Direct / diffuse irradiance split for a receiving surface (sums ≈ 1). */
+export interface SurfaceIrradianceParams {
+  /** Default receiving area (m²). */
+  receivingAreaM2: number
+  /** Default tilt from horizontal (degrees). */
+  tiltDeg: number
+  /** Direct-beam irradiance share (0–1). */
+  directRatio: number
+  /** Diffuse-sky irradiance share (0–1). */
+  diffuseRatio: number
+}
+
+export type BalconyTypePreset = { value: BalconyType } & SurfaceIrradianceParams
+export type RoofTypePreset = { value: RoofType } & SurfaceIrradianceParams
+
 /** Locale-independent kit label keys under `balconyPv.kit`. */
 export type KitPanelKey = 'panelDefault' | 'panelMid' | 'panelLight'
 export type KitStorageKey = 'storageDefault' | 'storageMid' | 'storageLight'
@@ -25,6 +52,513 @@ export const RAILING_TYPES: { value: RailingType }[] = [
   { value: 'glass' },
   { value: 'concrete' },
 ]
+
+/**
+ * UK balcony selector presets: cantilever / Juliet / recessed loggia / roof terrace.
+ * Irradiance ratios reflect typical UK overcast (higher diffuse) vs clear-beam days.
+ */
+export const BALCONY_TYPES: readonly BalconyTypePreset[] = [
+  {
+    value: 'standard',
+    receivingAreaM2: 4.5,
+    tiltDeg: 0,
+    directRatio: 0.45,
+    diffuseRatio: 0.55,
+  },
+  {
+    // Juliet: no deck — rail / French-door glazing as primary surface
+    value: 'juliet',
+    receivingAreaM2: 2.2,
+    tiltDeg: 90,
+    directRatio: 0.35,
+    diffuseRatio: 0.65,
+  },
+  {
+    // Recessed / loggia: side-wall shading → more diffuse, smaller effective area
+    value: 'recessed',
+    receivingAreaM2: 3.8,
+    tiltDeg: 0,
+    directRatio: 0.28,
+    diffuseRatio: 0.72,
+  },
+  {
+    // Roof terrace on flat roof deck
+    value: 'roof_terrace',
+    receivingAreaM2: 12,
+    tiltDeg: 5,
+    directRatio: 0.5,
+    diffuseRatio: 0.5,
+  },
+] as const
+
+/**
+ * UK roof selector presets: flat / pitched gable (terrace house) / mansard+dormer.
+ */
+export const ROOF_TYPES: readonly RoofTypePreset[] = [
+  {
+    value: 'flat',
+    receivingAreaM2: 18,
+    tiltDeg: 5,
+    directRatio: 0.48,
+    diffuseRatio: 0.52,
+  },
+  {
+    // Pitched gable — slate / clay tile terrace-house slopes
+    value: 'pitched_gable',
+    receivingAreaM2: 14,
+    tiltDeg: 40,
+    directRatio: 0.42,
+    diffuseRatio: 0.58,
+  },
+  {
+    // Mansard / dormer — steep outer pitch + dormer cheeks
+    value: 'pitched_mansard_dormer',
+    receivingAreaM2: 10,
+    tiltDeg: 55,
+    directRatio: 0.38,
+    diffuseRatio: 0.62,
+  },
+] as const
+
+export function getBalconyTypePreset(type: BalconyType): BalconyTypePreset {
+  return BALCONY_TYPES.find((p) => p.value === type) ?? BALCONY_TYPES[0]
+}
+
+export function getRoofTypePreset(type: RoofType): RoofTypePreset {
+  return ROOF_TYPES.find((p) => p.value === type) ?? ROOF_TYPES[0]
+}
+
+// ---------------------------------------------------------------------------
+// Typology-first surface master (建築形態が第一級エンティティ)
+// i18n: `balconyPv.typologies.*`
+// ---------------------------------------------------------------------------
+
+/** Architectural balcony / roof receiving-surface typology (locale-independent). */
+export type SurfaceTypology =
+  | 'haussmann_balconet'
+  | 'mansard_dormer'
+  | 'exposed_concrete_parapet'
+  | 'japan_egress_balcony'
+  | 'japanese_tiled_roof'
+  | 'flat_roof_terrace'
+  | 'juliet_balcony'
+  | 'recessed_loggia'
+  | 'pitched_gable_terrace'
+
+/** Biomimetic / living-furniture mount family suited to a typology. */
+export type BiomimeticMechanism =
+  | 'nastic_origami'
+  | 'flexible_perovskite'
+  | 'clamp_mount'
+  | 'catenary_hook'
+
+/** Receiving-surface optical / irradiance character (locale-independent). */
+export type OpticalProfile = 'diffuse_dominant' | 'direct_beam' | 'high_altitude'
+
+/** Locale-independent typical-region keys under `balconyPv.typologies.regions.*`. */
+export type TypicalRegionKey =
+  | 'urban_europe'
+  | 'historic_district'
+  | 'multifamily_general'
+  | 'multifamily_egress'
+  | 'central_europe_stock'
+  | 'tiled_pitch_roofs'
+  | 'flat_deck_roofs'
+  | 'terrace_house_roofs'
+  | 'rental_facades'
+
+/** Recommended mount / fix method for a receiving surface (locale-independent). */
+export type SurfaceMountMethod =
+  | 'clamp_no_drill'
+  | 'freestanding_furniture'
+  | 'vertical_rail_hook'
+  | 'louver_hanger'
+  | 'tile_hook'
+
+export interface SurfaceMountOption {
+  mountMethod: SurfaceMountMethod
+  /** i18n key under `balconyPv.mount.*` (e.g. `mount.clamp_no_drill`). */
+  labelKey: string
+}
+
+export interface PrevalentCountry {
+  code: string
+  /** i18n key under `balconyPv.countries.*` (e.g. `countries.fr`). */
+  nameKey: string
+}
+
+export interface SurfaceTypologyDetail {
+  id: SurfaceTypology
+  category: 'balcony' | 'roof'
+  /** i18n key under `balconyPv.typologies.<id>.name` (short path stored). */
+  nameKey: string
+  defaultTiltDeg: number
+  irradiance: SurfaceIrradianceParams
+  /** Optical / beam character of the receiving geometry. */
+  opticalProfile: OpticalProfile
+  /** Secondary context only — not card identity (i18n via `regions.*`). */
+  typicalRegions: TypicalRegionKey[]
+  /** Countries where this form is mainly seen (i18n via `countries.*`). */
+  prevalentCountries: PrevalentCountry[]
+  /** Recommended fix methods for install-job support. */
+  mountOptions: SurfaceMountOption[]
+  /** 出仕舞い（強風時退避機構）が必要か */
+  requiresDeShimai: boolean
+  /** i18n key under `balconyPv.typologies.<id>.constraints`. */
+  constraintsKey: string
+  biomimeticSuitability: {
+    mechanism: BiomimeticMechanism
+    /** 出仕舞い（退避機構）が必須か */
+    deShimaiRequired: boolean
+    descriptionKey: string
+  }
+}
+
+/**
+ * Master catalog: pure architectural form + irradiance geometry first;
+ * typical regions and regulations are secondary context only.
+ */
+export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
+  {
+    id: 'haussmann_balconet',
+    category: 'balcony',
+    nameKey: 'haussmann_balconet.name',
+    defaultTiltDeg: 90,
+    irradiance: {
+      receivingAreaM2: 1.8,
+      tiltDeg: 90,
+      directRatio: 0.4,
+      diffuseRatio: 0.6,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['urban_europe', 'historic_district'],
+    prevalentCountries: [
+      { code: 'FR', nameKey: 'countries.fr' },
+      { code: 'BE', nameKey: 'countries.be' },
+    ],
+    mountOptions: [
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+      { mountMethod: 'vertical_rail_hook', labelKey: 'mount.vertical_rail_hook' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'haussmann_balconet.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'haussmann_balconet.mechanism',
+    },
+  },
+  {
+    id: 'mansard_dormer',
+    category: 'roof',
+    nameKey: 'mansard_dormer.name',
+    defaultTiltDeg: 45,
+    irradiance: {
+      receivingAreaM2: 10,
+      tiltDeg: 45,
+      directRatio: 0.38,
+      diffuseRatio: 0.62,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['urban_europe', 'historic_district'],
+    prevalentCountries: [
+      { code: 'FR', nameKey: 'countries.fr' },
+      { code: 'BE', nameKey: 'countries.be' },
+    ],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'mansard_dormer.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'mansard_dormer.mechanism',
+    },
+  },
+  {
+    id: 'exposed_concrete_parapet',
+    category: 'balcony',
+    nameKey: 'exposed_concrete_parapet.name',
+    defaultTiltDeg: 90,
+    irradiance: {
+      receivingAreaM2: 3.2,
+      tiltDeg: 90,
+      directRatio: 0.42,
+      diffuseRatio: 0.58,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['central_europe_stock', 'multifamily_general'],
+    prevalentCountries: [
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'AT', nameKey: 'countries.at' },
+    ],
+    mountOptions: [
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'exposed_concrete_parapet.constraints',
+    biomimeticSuitability: {
+      mechanism: 'clamp_mount',
+      deShimaiRequired: false,
+      descriptionKey: 'exposed_concrete_parapet.mechanism',
+    },
+  },
+  {
+    id: 'japan_egress_balcony',
+    category: 'balcony',
+    nameKey: 'japan_egress_balcony.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 4.5,
+      tiltDeg: 0,
+      directRatio: 0.45,
+      diffuseRatio: 0.55,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['multifamily_egress', 'multifamily_general'],
+    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
+    mountOptions: [
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: true,
+    constraintsKey: 'japan_egress_balcony.constraints',
+    biomimeticSuitability: {
+      mechanism: 'nastic_origami',
+      deShimaiRequired: true,
+      descriptionKey: 'japan_egress_balcony.mechanism',
+    },
+  },
+  {
+    id: 'japanese_tiled_roof',
+    category: 'roof',
+    nameKey: 'japanese_tiled_roof.name',
+    defaultTiltDeg: 30,
+    irradiance: {
+      receivingAreaM2: 12,
+      tiltDeg: 30,
+      directRatio: 0.48,
+      diffuseRatio: 0.52,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['tiled_pitch_roofs'],
+    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'japanese_tiled_roof.constraints',
+    biomimeticSuitability: {
+      mechanism: 'catenary_hook',
+      deShimaiRequired: false,
+      descriptionKey: 'japanese_tiled_roof.mechanism',
+    },
+  },
+  {
+    id: 'flat_roof_terrace',
+    category: 'roof',
+    nameKey: 'flat_roof_terrace.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 18,
+      tiltDeg: 5,
+      directRatio: 0.5,
+      diffuseRatio: 0.5,
+    },
+    opticalProfile: 'high_altitude',
+    typicalRegions: ['flat_deck_roofs', 'multifamily_general'],
+    prevalentCountries: [
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'JP', nameKey: 'countries.jp' },
+      { code: 'FR', nameKey: 'countries.fr' },
+    ],
+    mountOptions: [
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+    ],
+    requiresDeShimai: true,
+    constraintsKey: 'flat_roof_terrace.constraints',
+    biomimeticSuitability: {
+      mechanism: 'nastic_origami',
+      deShimaiRequired: true,
+      descriptionKey: 'flat_roof_terrace.mechanism',
+    },
+  },
+  {
+    id: 'juliet_balcony',
+    category: 'balcony',
+    nameKey: 'juliet_balcony.name',
+    defaultTiltDeg: 90,
+    irradiance: {
+      receivingAreaM2: 2.2,
+      tiltDeg: 90,
+      directRatio: 0.35,
+      diffuseRatio: 0.65,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['rental_facades', 'urban_europe'],
+    prevalentCountries: [
+      { code: 'GB', nameKey: 'countries.gb' },
+      { code: 'FR', nameKey: 'countries.fr' },
+    ],
+    mountOptions: [
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+      { mountMethod: 'vertical_rail_hook', labelKey: 'mount.vertical_rail_hook' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'juliet_balcony.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'juliet_balcony.mechanism',
+    },
+  },
+  {
+    id: 'recessed_loggia',
+    category: 'balcony',
+    nameKey: 'recessed_loggia.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 3.8,
+      tiltDeg: 0,
+      directRatio: 0.28,
+      diffuseRatio: 0.72,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['multifamily_general', 'urban_europe'],
+    prevalentCountries: [
+      { code: 'IT', nameKey: 'countries.it' },
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'FR', nameKey: 'countries.fr' },
+    ],
+    mountOptions: [
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'recessed_loggia.constraints',
+    biomimeticSuitability: {
+      mechanism: 'clamp_mount',
+      deShimaiRequired: false,
+      descriptionKey: 'recessed_loggia.mechanism',
+    },
+  },
+  {
+    id: 'pitched_gable_terrace',
+    category: 'roof',
+    nameKey: 'pitched_gable_terrace.name',
+    defaultTiltDeg: 45,
+    irradiance: {
+      receivingAreaM2: 14,
+      tiltDeg: 40,
+      directRatio: 0.42,
+      diffuseRatio: 0.58,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['terrace_house_roofs', 'tiled_pitch_roofs'],
+    prevalentCountries: [
+      { code: 'GB', nameKey: 'countries.gb' },
+      { code: 'DE', nameKey: 'countries.de' },
+    ],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'pitched_gable_terrace.constraints',
+    biomimeticSuitability: {
+      mechanism: 'clamp_mount',
+      deShimaiRequired: false,
+      descriptionKey: 'pitched_gable_terrace.mechanism',
+    },
+  },
+] as const
+
+export function getSurfaceTypologyDetail(
+  id: SurfaceTypology,
+): SurfaceTypologyDetail {
+  return SURFACE_TYPOLOGIES.find((t) => t.id === id) ?? SURFACE_TYPOLOGIES[0]
+}
+
+/** Typology → legacy balcony selector (undefined when roof-primary). */
+const TYPOLOGY_TO_BALCONY: Partial<Record<SurfaceTypology, BalconyType>> = {
+  haussmann_balconet: 'juliet',
+  exposed_concrete_parapet: 'standard',
+  japan_egress_balcony: 'standard',
+  flat_roof_terrace: 'roof_terrace',
+  juliet_balcony: 'juliet',
+  recessed_loggia: 'recessed',
+}
+
+/** Typology → legacy roof selector (undefined when balcony-primary). */
+const TYPOLOGY_TO_ROOF: Partial<Record<SurfaceTypology, RoofType>> = {
+  mansard_dormer: 'pitched_mansard_dormer',
+  japanese_tiled_roof: 'pitched_gable',
+  flat_roof_terrace: 'flat',
+  pitched_gable_terrace: 'pitched_gable',
+}
+
+const BALCONY_TO_TYPOLOGY: Record<BalconyType, SurfaceTypology> = {
+  standard: 'japan_egress_balcony',
+  juliet: 'juliet_balcony',
+  recessed: 'recessed_loggia',
+  roof_terrace: 'flat_roof_terrace',
+}
+
+const ROOF_TO_TYPOLOGY: Record<RoofType, SurfaceTypology> = {
+  flat: 'flat_roof_terrace',
+  pitched_gable: 'pitched_gable_terrace',
+  pitched_mansard_dormer: 'mansard_dormer',
+}
+
+export function typologyToBalconyType(id: SurfaceTypology): BalconyType | undefined {
+  return TYPOLOGY_TO_BALCONY[id]
+}
+
+export function typologyToRoofType(id: SurfaceTypology): RoofType | undefined {
+  return TYPOLOGY_TO_ROOF[id]
+}
+
+/** Bridge: balcony selector → primary typology. */
+export function balconyTypeToTypology(type: BalconyType): SurfaceTypology {
+  return BALCONY_TO_TYPOLOGY[type]
+}
+
+/** Bridge: roof selector → primary typology. */
+export function roofTypeToTypology(type: RoofType): SurfaceTypology {
+  return ROOF_TO_TYPOLOGY[type]
+}
+
+/**
+ * Irradiance preset for a typology, falling back to legacy balcony/roof tables
+ * when a bridge mapping exists.
+ */
+export function getTypologyIrradiance(id: SurfaceTypology): SurfaceIrradianceParams {
+  const detail = getSurfaceTypologyDetail(id)
+  const balcony = typologyToBalconyType(id)
+  if (balcony && detail.category === 'balcony') {
+    const preset = getBalconyTypePreset(balcony)
+    return {
+      receivingAreaM2: detail.irradiance.receivingAreaM2 || preset.receivingAreaM2,
+      tiltDeg: detail.defaultTiltDeg,
+      directRatio: detail.irradiance.directRatio,
+      diffuseRatio: detail.irradiance.diffuseRatio,
+    }
+  }
+  const roof = typologyToRoofType(id)
+  if (roof && detail.category === 'roof') {
+    const preset = getRoofTypePreset(roof)
+    return {
+      receivingAreaM2: detail.irradiance.receivingAreaM2 || preset.receivingAreaM2,
+      tiltDeg: detail.defaultTiltDeg,
+      directRatio: detail.irradiance.directRatio,
+      diffuseRatio: detail.irradiance.diffuseRatio,
+    }
+  }
+  return detail.irradiance
+}
 
 // Returns a suitability score (0-100) for the balcony simulator based on
 // direction, railing type, and time of day.
@@ -3223,6 +3757,32 @@ export const MOVEMENT_HISTORY_PHASES: MovementHistoryPhase[] = [
         summaryEn: 'ARERA Delibera 315/2020 — no filing ≤350W; simplified process up to 800W.',
       },
       {
+        id: 'at-2022-06-pv-austria',
+        date: '2022-06',
+        regionId: 'austria',
+        regionName: 'オーストリア',
+        regionNameEn: 'Austria',
+        summary:
+          '800W簡易通知基準（TOR Typ A）の先行実証。一般プラグ接続の工学的安全性を確立。',
+        summaryEn:
+          'Pioneered 800W simplified notification (TOR Typ A), establishing engineering safety for standard plugs.',
+        keyActor: {
+          name: 'オーストリア太陽光発電協会 (PV-Austria)',
+          nameEn: 'PV Austria (Photovoltaic Austria)',
+          roleBadge: '800Wプラグイン規格化・市民エネルギー法制推進',
+          roleBadgeEn: '800W Plug-in Standardization & Citizen Energy Legislation',
+          barrier: '電力会社が求めた過剰な専用プラグ義務付けと事前審査の官僚主義',
+          barrierEn:
+            'Bureaucratic pre-approvals and restrictive proprietary plug mandates by grid incumbents',
+          achievement:
+            '800W系統協議免除の標準化および再生可能エネルギー拡大法（EAG）によるエネルギー共同体制度の確立',
+          achievementEn:
+            'Standardization of 800W grid-exemption & legal recognition of Energy Communities via EAG',
+          url: 'https://pvaustria.at',
+          kind: 'npo',
+        },
+      },
+      {
         id: 'de-2022-crisis',
         date: '2022-09',
         regionId: 'germany',
@@ -3272,6 +3832,60 @@ export const MOVEMENT_HISTORY_PHASES: MovementHistoryPhase[] = [
         regionNameEn: 'Germany',
         summary: 'Solarpaket 議論開始。賃貸人設置権と800W枠の法制化が本格化。',
         summaryEn: 'Solarpaket debate begins. Tenant install rights and 800W legalization accelerate.',
+      },
+      {
+        id: 'eu-2023-11-rescoop',
+        date: '2023-11',
+        regionId: 'germany',
+        regionName: '欧州連合 (EU全域)',
+        regionNameEn: 'European Union (EU-wide)',
+        summary:
+          'EU再生可能エネルギー指令（RED II）をテコに、加盟各国へ「エネルギープロシューマー権」を法制化要請。',
+        summaryEn:
+          'Leveraging EU RED II directives to enshrine citizen prosumer and balcony PV rights across member states.',
+        keyActor: {
+          name: '欧州市民エネルギー協同組合連盟 (REScoop.eu)',
+          nameEn: 'REScoop.eu (European Federation of Citizen Energy Cooperatives)',
+          roleBadge: '市民エネルギー共同体（CEC）推進・エネルギー民主主義ロビー',
+          roleBadgeEn: 'Citizen Energy Communities (CEC) Advocacy & Energy Democracy',
+          barrier:
+            '巨大集中型電力による送電網独占と、市民・賃貸居住者のエネルギー自給に対する制度的排除',
+          barrierEn:
+            'Centralized grid monopolies and institutional exclusion of tenants and citizens from energy self-sufficiency',
+          achievement:
+            'EU指令への市民エネルギー権の明文化と、加盟国（独・墺・仏等）でのベランダソーラー共同購入・普及支援',
+          achievementEn:
+            'Enshrining citizen energy rights in EU Directives & scaling cooperative plug-in solar group buys across Europe',
+          url: 'https://www.rescoop.eu',
+          kind: 'npo',
+        },
+      },
+      {
+        id: 'de-2024-04-bnetza',
+        date: '2024-04',
+        regionId: 'germany',
+        regionName: 'ドイツ',
+        regionNameEn: 'Germany',
+        summary:
+          '連邦ネットワーク庁が登録ポータル（MaStR）を大幅簡素化。800W引き上げとシュコプラグ接続を公式認可。',
+        summaryEn:
+          'Federal Network Agency (BNetzA) slashes MaStR registry friction, officially endorsing 800W and standard plug-in PV.',
+        keyActor: {
+          name: 'ドイツ連邦ネットワーク庁 (BNetzA)',
+          nameEn: 'German Federal Network Agency (BNetzA)',
+          roleBadge: 'インフラ規制監督・官僚主義撤廃',
+          roleBadgeEn: 'Infrastructure Regulation & Bureaucratic Deregulation',
+          barrier:
+            '大手送電・配電会社による過剰な登録義務付けと、数ヶ月におよぶ複雑な官僚的手続き',
+          barrierEn:
+            'Complex registration hurdles and protective red tape imposed by legacy grid operators',
+          achievement:
+            '登録ポータル（MaStR）の入力項目極小化、800W上限および旧式メーター逆回転の暫定容認',
+          achievementEn:
+            'Radical simplification of MaStR portal, authorizing 800W and temporary meter back-spinning',
+          url: 'https://www.bundesnetzagentur.de',
+          kind: 'government',
+        },
       },
       {
         id: 'de-2024-800w',
@@ -4287,4 +4901,346 @@ export function getSoutheastAsiaIslandPhaseById(
 ): SoutheastAsiaIslandPhase | undefined {
   if (!id) return undefined
   return SOUTHEAST_ASIA_ISLAND_TIMELINE.find((p) => p.id === id)
+}
+
+// ---------------------------------------------------------------------------
+// Country architectural context × living-furniture solar adaptations
+// i18n: `worldPv.architecture.*`
+// ---------------------------------------------------------------------------
+
+export type ArchitectureSurfaceType = 'balcony' | 'roof' | 'facade'
+
+/** Procedural 3D surface model IDs for Surface3DViewer. */
+export type Surface3dModelId =
+  | 'haussmann-balconet'
+  | 'concrete-parapet'
+  | 'japanese-evacuation-balcony'
+  | 'japanese-kawara-roof'
+  | 'french-mansard-roof'
+  | 'flat-concrete-roof'
+  | 'uk-juliet-balcony'
+  | 'uk-recessed-balcony'
+  | 'uk-roof-terrace'
+  | 'uk-pitched-gable'
+  | 'uk-pitched-mansard-dormer'
+
+/** Irradiance-surface tilt labels (locale-independent display tokens). */
+export type SurfaceTiltAngle = '0°' | '30°' | '45°' | '90°'
+
+/** Locale-independent solar living-furniture IDs. Labels: `worldPv.architecture.furniture.*`. */
+export type SolarFurnitureId =
+  | 'solar-window-shutter'
+  | 'ac-steckerspeicher'
+  | 'heavy-duty-clamp-pv'
+  | 'solar-table'
+  | 'solar-endai-bench'
+  | 'solar-sudare-screen'
+  | 'origami-byobu-solar'
+  | 'solar-pergola'
+
+/** Legacy 3D profile id → typology-first SurfaceTypology. */
+export const PROFILE_TO_TYPOLOGY: Record<string, SurfaceTypology> = {
+  'haussmann-balconet': 'haussmann_balconet',
+  'french-mansard-roof': 'mansard_dormer',
+  'concrete-parapet': 'exposed_concrete_parapet',
+  'japanese-evacuation-balcony': 'japan_egress_balcony',
+  'japanese-kawara-roof': 'japanese_tiled_roof',
+  'flat-concrete-roof': 'flat_roof_terrace',
+  'uk-juliet-balcony': 'juliet_balcony',
+  'uk-recessed-balcony': 'recessed_loggia',
+  'uk-roof-terrace': 'flat_roof_terrace',
+  'uk-pitched-gable': 'pitched_gable_terrace',
+  'uk-pitched-mansard-dormer': 'mansard_dormer',
+}
+
+export interface ArchitectureProfile {
+  id: string
+  type: ArchitectureSurfaceType
+  /** Typology-first axis (derived from id when omitted). */
+  typologyId?: SurfaceTypology
+  /** Procedural 3D model key for Surface3DViewer. */
+  model3dId: Surface3dModelId
+  /** Primary irradiance surface tilt. */
+  tiltAngle: SurfaceTiltAngle
+  nameKey: string
+  descriptionKey: string
+  constraintsKey: string
+  adaptedFurnitureIds: SolarFurnitureId[]
+}
+
+export function resolveProfileTypology(profile: ArchitectureProfile): SurfaceTypology {
+  return (
+    profile.typologyId ??
+    PROFILE_TO_TYPOLOGY[profile.id] ??
+    PROFILE_TO_TYPOLOGY[profile.model3dId] ??
+    'japan_egress_balcony'
+  )
+}
+
+export interface CountryArchitectureConfig {
+  countryCode: string
+  /** Map pin / region id aliases (e.g. germany, france, japan, in). */
+  regionIds: readonly string[]
+  primaryArchitectureId: string
+  profiles: ArchitectureProfile[]
+}
+
+/** Alias used by UI/docs for a country’s balcony–roof architectural context. */
+export type ArchitecturalContext = CountryArchitectureConfig
+
+export const SOLAR_FURNITURE_IDS: readonly SolarFurnitureId[] = [
+  'solar-window-shutter',
+  'ac-steckerspeicher',
+  'heavy-duty-clamp-pv',
+  'solar-table',
+  'solar-endai-bench',
+  'solar-sudare-screen',
+  'origami-byobu-solar',
+  'solar-pergola',
+] as const
+
+export const COUNTRY_ARCHITECTURE_CONFIGS: readonly CountryArchitectureConfig[] = [
+  {
+    countryCode: 'FR',
+    regionIds: ['france', 'fr'],
+    primaryArchitectureId: 'haussmann-balconet',
+    profiles: [
+      {
+        id: 'haussmann-balconet',
+        type: 'balcony',
+        model3dId: 'haussmann-balconet',
+        tiltAngle: '90°',
+        nameKey: 'profiles.haussmann-balconet.name',
+        descriptionKey: 'profiles.haussmann-balconet.description',
+        constraintsKey: 'profiles.haussmann-balconet.constraints',
+        adaptedFurnitureIds: ['solar-window-shutter', 'ac-steckerspeicher'],
+      },
+      {
+        id: 'french-mansard-roof',
+        type: 'roof',
+        model3dId: 'french-mansard-roof',
+        tiltAngle: '45°',
+        nameKey: 'profiles.french-mansard-roof.name',
+        descriptionKey: 'profiles.french-mansard-roof.description',
+        constraintsKey: 'profiles.french-mansard-roof.constraints',
+        adaptedFurnitureIds: ['solar-window-shutter', 'ac-steckerspeicher'],
+      },
+    ],
+  },
+  {
+    countryCode: 'DE',
+    regionIds: ['germany', 'de'],
+    primaryArchitectureId: 'concrete-parapet',
+    profiles: [
+      {
+        id: 'concrete-parapet',
+        type: 'balcony',
+        model3dId: 'concrete-parapet',
+        tiltAngle: '90°',
+        nameKey: 'profiles.concrete-parapet.name',
+        descriptionKey: 'profiles.concrete-parapet.description',
+        constraintsKey: 'profiles.concrete-parapet.constraints',
+        adaptedFurnitureIds: ['heavy-duty-clamp-pv', 'solar-table'],
+      },
+    ],
+  },
+  {
+    countryCode: 'JP',
+    regionIds: ['japan', 'jp'],
+    primaryArchitectureId: 'japanese-evacuation-balcony',
+    profiles: [
+      {
+        id: 'japanese-evacuation-balcony',
+        type: 'balcony',
+        model3dId: 'japanese-evacuation-balcony',
+        tiltAngle: '0°',
+        nameKey: 'profiles.japanese-evacuation-balcony.name',
+        descriptionKey: 'profiles.japanese-evacuation-balcony.description',
+        constraintsKey: 'profiles.japanese-evacuation-balcony.constraints',
+        adaptedFurnitureIds: ['solar-endai-bench', 'solar-sudare-screen'],
+      },
+      {
+        id: 'japanese-kawara-roof',
+        type: 'roof',
+        model3dId: 'japanese-kawara-roof',
+        tiltAngle: '30°',
+        nameKey: 'profiles.japanese-kawara-roof.name',
+        descriptionKey: 'profiles.japanese-kawara-roof.description',
+        constraintsKey: 'profiles.japanese-kawara-roof.constraints',
+        adaptedFurnitureIds: ['solar-sudare-screen', 'origami-byobu-solar'],
+      },
+    ],
+  },
+  {
+    countryCode: 'IN',
+    regionIds: ['in', 'india'],
+    primaryArchitectureId: 'flat-concrete-roof',
+    profiles: [
+      {
+        id: 'flat-concrete-roof',
+        type: 'roof',
+        model3dId: 'flat-concrete-roof',
+        tiltAngle: '0°',
+        nameKey: 'profiles.flat-concrete-roof.name',
+        descriptionKey: 'profiles.flat-concrete-roof.description',
+        constraintsKey: 'profiles.flat-concrete-roof.constraints',
+        adaptedFurnitureIds: ['origami-byobu-solar', 'solar-pergola'],
+      },
+    ],
+  },
+  {
+    countryCode: 'GB',
+    regionIds: ['uk', 'gb', 'united-kingdom'],
+    primaryArchitectureId: 'uk-juliet-balcony',
+    profiles: [
+      {
+        id: 'uk-juliet-balcony',
+        type: 'balcony',
+        model3dId: 'uk-juliet-balcony',
+        tiltAngle: '90°',
+        nameKey: 'profiles.uk-juliet-balcony.name',
+        descriptionKey: 'profiles.uk-juliet-balcony.description',
+        constraintsKey: 'profiles.uk-juliet-balcony.constraints',
+        adaptedFurnitureIds: ['solar-window-shutter', 'heavy-duty-clamp-pv'],
+      },
+      {
+        id: 'uk-recessed-balcony',
+        type: 'balcony',
+        model3dId: 'uk-recessed-balcony',
+        tiltAngle: '0°',
+        nameKey: 'profiles.uk-recessed-balcony.name',
+        descriptionKey: 'profiles.uk-recessed-balcony.description',
+        constraintsKey: 'profiles.uk-recessed-balcony.constraints',
+        adaptedFurnitureIds: ['solar-table', 'heavy-duty-clamp-pv'],
+      },
+      {
+        // 陸屋根デッキ／パーゴラ — roof カテゴリ（バルコニー一覧への混入防止）
+        id: 'uk-roof-terrace',
+        type: 'roof',
+        model3dId: 'uk-roof-terrace',
+        tiltAngle: '0°',
+        nameKey: 'profiles.uk-roof-terrace.name',
+        descriptionKey: 'profiles.uk-roof-terrace.description',
+        constraintsKey: 'profiles.uk-roof-terrace.constraints',
+        adaptedFurnitureIds: ['solar-pergola', 'solar-table'],
+      },
+      {
+        id: 'uk-pitched-gable',
+        type: 'roof',
+        model3dId: 'uk-pitched-gable',
+        tiltAngle: '45°',
+        nameKey: 'profiles.uk-pitched-gable.name',
+        descriptionKey: 'profiles.uk-pitched-gable.description',
+        constraintsKey: 'profiles.uk-pitched-gable.constraints',
+        adaptedFurnitureIds: ['heavy-duty-clamp-pv', 'solar-window-shutter'],
+      },
+      // uk-pitched-mansard-dormer は french-mansard-roof（mansard_dormer）と
+      // 同一類型のため一覧重複を避ける目的で GB カタログから除外。
+      // 3D モデル ID 自体は Surface3dModelId に残し、代表は FR 側を正とする。
+    ],
+  },
+] as const
+
+export function getCountryArchitectureConfig(
+  countryCodeOrRegionId: string | null | undefined,
+): CountryArchitectureConfig | null {
+  if (!countryCodeOrRegionId) return null
+  const key = countryCodeOrRegionId.trim().toLowerCase()
+  return (
+    COUNTRY_ARCHITECTURE_CONFIGS.find(
+      (c) =>
+        c.countryCode.toLowerCase() === key ||
+        c.regionIds.some((id) => id.toLowerCase() === key),
+    ) ?? null
+  )
+}
+
+export function getArchitectureProfilesForCountry(
+  countryCodeOrRegionId: string | null | undefined,
+): ArchitectureProfile[] {
+  return getCountryArchitectureConfig(countryCodeOrRegionId)?.profiles ?? []
+}
+
+/**
+ * Flat catalog for the full-screen 3D architectural surface explorer.
+ * One row per SurfaceTypology（同一類型の国別プロファイルは先頭代表のみ）。
+ */
+export function listArchitectureCatalog(): {
+  countryId: string
+  countryCode: string
+  profile: ArchitectureProfile
+  typologyId: SurfaceTypology
+  typology: SurfaceTypologyDetail
+}[] {
+  const byTypology = new Map<
+    SurfaceTypology,
+    {
+      countryId: string
+      countryCode: string
+      profile: ArchitectureProfile
+      typologyId: SurfaceTypology
+      typology: SurfaceTypologyDetail
+    }
+  >()
+
+  for (const cfg of COUNTRY_ARCHITECTURE_CONFIGS) {
+    const countryId = cfg.regionIds[0] ?? cfg.countryCode.toLowerCase()
+    for (const profile of cfg.profiles) {
+      const typologyId = resolveProfileTypology(profile)
+      if (byTypology.has(typologyId)) continue
+      byTypology.set(typologyId, {
+        countryId,
+        countryCode: cfg.countryCode,
+        profile,
+        typologyId,
+        typology: getSurfaceTypologyDetail(typologyId),
+      })
+    }
+  }
+
+  // SURFACE_TYPOLOGIES 順で一意リストを返す（未紐づけ類型はスキップ）
+  return SURFACE_TYPOLOGIES.flatMap((t) => {
+    const row = byTypology.get(t.id)
+    return row ? [row] : []
+  })
+}
+
+/**
+ * Typology-first catalog: one card per SurfaceTypology, with typical regions
+ * and a representative ArchitectureProfile (when available).
+ */
+export function listSurfaceTypologyCatalog(): {
+  typology: SurfaceTypologyDetail
+  profiles: ArchitectureProfile[]
+  typicalRegions: TypicalRegionKey[]
+}[] {
+  const byTypology = new Map<SurfaceTypology, ArchitectureProfile[]>()
+  for (const cfg of COUNTRY_ARCHITECTURE_CONFIGS) {
+    for (const profile of cfg.profiles) {
+      const tid = resolveProfileTypology(profile)
+      const list = byTypology.get(tid) ?? []
+      list.push(profile)
+      byTypology.set(tid, list)
+    }
+  }
+  return SURFACE_TYPOLOGIES.map((typology) => ({
+    typology,
+    profiles: byTypology.get(typology.id) ?? [],
+    typicalRegions: [...typology.typicalRegions],
+  }))
+}
+
+/** Flag emoji for architecture catalog cards (locale-independent). */
+const ARCHITECTURE_COUNTRY_FLAGS: Record<string, string> = {
+  FR: '🇫🇷',
+  DE: '🇩🇪',
+  JP: '🇯🇵',
+  IN: '🇮🇳',
+  GB: '🇬🇧',
+  BE: '🇧🇪',
+  PL: '🇵🇱',
+}
+
+export function getArchitectureCountryFlag(countryCode: string): string {
+  return ARCHITECTURE_COUNTRY_FLAGS[countryCode.toUpperCase()] ?? '🏳️'
 }
