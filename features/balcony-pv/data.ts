@@ -1249,7 +1249,49 @@ export type MarketEcosystemModelId =
   | 'grid_plugin_prohibited'
   | 'offgrid_leapfrog'
 
+/** Circuit geometry for the ecosystem wiring diagram. */
+export type EcosystemTopologyShape =
+  | 'bifurcation' // ① wall-outlet fork: self-use + bidirectional grid export
+  | 'closed_loop' // ② PV→battery→loads loop with zero-export barrier
+  | 'standalone' // ③ grid-absent direct PV→battery→loads
+
+/** Grid / pole presence for diagnostic badges. */
+export type EcosystemGridPresence = 'present' | 'absent'
+
+/** Outlet plug-in legal regime (locale-independent status). */
+export type EcosystemOutletLaw = 'certified' | 'prohibited' | 'n_a'
+
+/** Meter / reverse-flow measurement regime. */
+export type EcosystemMeterMode = 'bidirectional' | 'no_reverse' | 'not_required'
+
+/** Environmental preconditions shown above the topology diagram. */
+export type EcosystemPrerequisites = {
+  grid: {
+    status: EcosystemGridPresence
+    labelJa: string
+    labelEn: string
+  }
+  outletLaw: {
+    status: EcosystemOutletLaw
+    labelJa: string
+    labelEn: string
+  }
+  meter: {
+    status: EcosystemMeterMode
+    labelJa: string
+    labelEn: string
+  }
+}
+
 /** Power-wiring topology for a market model (detail-drawer Ecosystem tab). */
+export interface EcosystemToolBinding {
+  toolId: string // 'opendtu' | 'ahoydtu' | 'home-assistant' | 'solar-assistant' | 'node-red'
+  name: string
+  roleJa: string
+  roleEn: string
+  targetNode: 'conversion' | 'metering' | 'consumption'
+}
+
 export interface MarketEcosystemTopology {
   modelId: string // e.g. 'grid_plugin_allowed' | 'grid_plugin_prohibited' | 'offgrid_leapfrog'
   titleJa: string
@@ -1258,15 +1300,29 @@ export interface MarketEcosystemTopology {
   badgeEn: string
   summaryJa: string
   summaryEn: string
+  /** Geometric layout key for model-specific SVG wiring. */
+  topologyShape: EcosystemTopologyShape
+  /** Diagnostic badges: poles / outlet law / meter regime. */
+  prerequisites: EcosystemPrerequisites
   wiringFlow: {
-    generation: string // e.g. "AC/DC太陽光モジュール (600/800W)"
-    conversion: string // e.g. "マイクロインバータ + 蓄電池 (Batteriespeicher)"
-    connection: string // e.g. "230V壁コンセント (Schuko/Wieland) 直挿し"
-    metering: string // e.g. "スマートメーター (Smart Meter Light) 逆潮流抑制/動的単価"
-    consumption: string // e.g. "家庭内ベースロード自家消費 + 余剰は系統/バッテリー"
+    generation: string // e.g. "太陽光パネル (600W/800W)"
+    conversion: string // e.g. "マイクロインバータ (+ 蓄電池)"
+    connection: string // e.g. "230V壁コンセント直挿し (工事不要)"
+    metering: string // e.g. "スマートメーター (逆潮流計測・動的単価連動)"
+    consumption: string // e.g. "家庭内自家消費 (余剰は電力網または蓄電池へ)"
+  }
+  /** English counterparts for `wiringFlow` (locale bind). */
+  wiringFlowEn: {
+    generation: string
+    conversion: string
+    connection: string
+    metering: string
+    consumption: string
   }
   keyFeaturesJa: string[]
   keyFeaturesEn: string[]
+  /** Local OSS / autonomous-control bindings overlaid on hardware nodes. */
+  integratedTools: EcosystemToolBinding[]
 }
 
 /** GridCategory → MarketEcosystemModelId */
@@ -1288,12 +1344,37 @@ export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
       'ベランダの太陽光を壁コンセントへ直挿しし、家のベースロードを自家消費。余剰はスマートメーター経由で系統へ還流できる公認トポロジー。',
     summaryEn:
       'Balcony PV plugs straight into a wall outlet for baseload self-consumption; surplus can export via a smart meter under certified rules.',
+    topologyShape: 'bifurcation',
+    prerequisites: {
+      grid: {
+        status: 'present',
+        labelJa: '送電網あり（電柱・配電）',
+        labelEn: 'Grid present (poles / distribution)',
+      },
+      outletLaw: {
+        status: 'certified',
+        labelJa: 'コンセント直結：公認',
+        labelEn: 'Outlet plug-in: certified',
+      },
+      meter: {
+        status: 'bidirectional',
+        labelJa: 'メーター：逆潮流計測可能',
+        labelEn: 'Meter: bidirectional / export-capable',
+      },
+    },
     wiringFlow: {
-      generation: 'AC/DC太陽光モジュール (600/800W)',
-      conversion: 'マイクロインバータ (+ 任意の Batteriespeicher)',
-      connection: '230V壁コンセント (Schuko/Wieland) 直挿し',
-      metering: 'スマートメーター (Smart Meter Light) · 動的単価/逆潮流計測',
-      consumption: '家庭内ベースロード自家消費 + 余剰は系統/バッテリー',
+      generation: '太陽光パネル (600W/800W)',
+      conversion: 'マイクロインバータ (+ 蓄電池)',
+      connection: '230V壁コンセント直挿し (工事不要)',
+      metering: 'スマートメーター (逆潮流計測・動的単価連動)',
+      consumption: '家庭内自家消費 (余剰は電力網または蓄電池へ)',
+    },
+    wiringFlowEn: {
+      generation: 'Solar Panels (600W / 800W)',
+      conversion: 'Microinverter (+ Battery)',
+      connection: '230V Wall Outlet Direct Plug-in (No wiring work)',
+      metering: 'Smart Meter (Export metering & dynamic tariffs)',
+      consumption: 'Home Self-Consumption (Surplus to grid or battery)',
     },
     keyFeaturesJa: [
       '電気工事士不要・自己責任プラグイン',
@@ -1307,6 +1388,22 @@ export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
       'Same-day install within certified 800W / 1,200W caps',
       'Surplus export via net metering / feed-in',
     ],
+    integratedTools: [
+      {
+        toolId: 'opendtu',
+        name: 'OpenDTU',
+        roleJa: 'ローカルMQTT取得',
+        roleEn: 'Local MQTT readout',
+        targetNode: 'conversion',
+      },
+      {
+        toolId: 'home-assistant',
+        name: 'Home Assistant',
+        roleJa: '動的単価・自動制御',
+        roleEn: 'Dynamic tariff & auto control',
+        targetNode: 'consumption',
+      },
+    ],
   },
   {
     modelId: 'grid_plugin_prohibited',
@@ -1318,12 +1415,37 @@ export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
       'コンセント連系は禁止または厳格。太陽光→充放電→家電の閉ループで自家消費し、逆潮流ゼロを守る蓄電自衛トポロジー。',
     summaryEn:
       'Outlet tie-in is banned or tightly restricted. A closed PV→battery→loads loop keeps self-supply with zero reverse power flow.',
+    topologyShape: 'closed_loop',
+    prerequisites: {
+      grid: {
+        status: 'present',
+        labelJa: '送電網あり（電柱・配電）',
+        labelEn: 'Grid present (poles / distribution)',
+      },
+      outletLaw: {
+        status: 'prohibited',
+        labelJa: 'コンセント直結：禁止',
+        labelEn: 'Outlet plug-in: prohibited',
+      },
+      meter: {
+        status: 'no_reverse',
+        labelJa: 'メーター：逆回転禁止',
+        labelEn: 'Meter: reverse spin banned',
+      },
+    },
     wiringFlow: {
-      generation: 'DC太陽光モジュール (ポータブル/ベランダキット)',
-      conversion: 'ハイブリッド/オフグリッドインバータ + 蓄電池',
+      generation: '太陽光パネル (ベランダ/ポータブル)',
+      conversion: 'オフグリッドインバータ + 蓄電池',
       connection: '分電盤分岐 or 専用電路 (コンセント直挿し不可)',
-      metering: '逆潮流防止リレー / CTクランプ消費追従 (ゼロエクスポート)',
-      consumption: '家電・PC・空調の自己消費のみ · 余剰は蓄電池へ',
+      metering: '逆潮流防止センサー制御 (外への逆流ゼロ維持)',
+      consumption: '生活家電 (PC・空調等で自家消費、余剰は蓄電)',
+    },
+    wiringFlowEn: {
+      generation: 'Solar Panels (Balcony / Portable)',
+      conversion: 'Off-grid Inverter + Battery',
+      connection: 'Distribution panel branch or dedicated circuit (No outlet plug-in)',
+      metering: 'Zero-Export Sensor Control (Zero feed-in maintained)',
+      consumption: 'Home Appliances (PC, AC self-use; surplus stored)',
     },
     keyFeaturesJa: [
       '逆潮流ゼロ・系統保護を最優先',
@@ -1337,6 +1459,22 @@ export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
       'Self-consumption without illegal outlet tie-in',
       'EMS / smart plugs follow the generation curve',
     ],
+    integratedTools: [
+      {
+        toolId: 'home-assistant',
+        name: 'Home Assistant',
+        roleJa: 'スマートプラグゼロ逆流追従',
+        roleEn: 'Smart-plug zero-export tracking',
+        targetNode: 'consumption',
+      },
+      {
+        toolId: 'node-red',
+        name: 'Node-RED',
+        roleJa: '気象API連携・退避自動化',
+        roleEn: 'Weather API storm-stow automation',
+        targetNode: 'conversion',
+      },
+    ],
   },
   {
     modelId: 'offgrid_leapfrog',
@@ -1348,12 +1486,37 @@ export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
       '中央系統に頼らず、太陽光＋蓄電池＋ローカル制御で照明・灌漑・保冷・通信を賄う自律マイクロ給電トポロジー。',
     summaryEn:
       'Skip the central grid: PV + storage + local control power lighting, irrigation, cold-chain, and connectivity as an autonomous micro-supply.',
+    topologyShape: 'standalone',
+    prerequisites: {
+      grid: {
+        status: 'absent',
+        labelJa: '電力網なし（電柱・送電線が未整備）',
+        labelEn: 'No grid (poles absent)',
+      },
+      outletLaw: {
+        status: 'n_a',
+        labelJa: 'コンセント直結：対象外',
+        labelEn: 'Outlet plug-in: N/A',
+      },
+      meter: {
+        status: 'not_required',
+        labelJa: 'メーター：計測不要',
+        labelEn: 'Meter: not required',
+      },
+    },
     wiringFlow: {
-      generation: 'DC太陽光モジュール / ピコ・キット (PayGo対応可)',
-      conversion: 'オフグリッドインバータ + 鉛/Li蓄電池',
+      generation: '太陽光パネル (小規模キット / PayGo対応)',
+      conversion: 'オフグリッドインバータ + 蓄電池',
       connection: 'DCバス or 小規模AC分電 (島嶼・村落マイクログリッド)',
       metering: 'PayGo/ローカル計測 · クラウド非依存の自律制御',
-      consumption: '照明・灌漑・保冷・通信など生産・生活負荷',
+      consumption: '生活・生産機器 (照明・井戸ポンプ・保冷等)',
+    },
+    wiringFlowEn: {
+      generation: 'Solar Panels (Pico-kit / PayGo-ready)',
+      conversion: 'Off-grid Inverter + Battery',
+      connection: 'DC bus or small AC distribution (island / village microgrid)',
+      metering: 'PayGo / local metering · cloud-free autonomous control',
+      consumption: 'Productive & Living Loads (Lighting, pumps, cold chain)',
     },
     keyFeaturesJa: [
       '系統延伸を待たず生活・生産インフラを先に電化',
@@ -1367,8 +1530,45 @@ export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
       'Local EMS for cloud-free autonomous balancing',
       'Productive uses: irrigation, cold-chain, income loads',
     ],
+    integratedTools: [
+      {
+        toolId: 'solar-assistant',
+        name: 'Solar-Assistant',
+        roleJa: 'クラウド不要スタンドアロン監視',
+        roleEn: 'Cloud-free standalone monitoring',
+        targetNode: 'conversion',
+      },
+    ],
   },
 ]
+
+/** Locale flag for ecosystem wiringFlow resolution (set from UI before read). */
+let marketEcosystemUiIsEn = false
+
+/** Sync ecosystem wiringFlow locale (call from view when `locale === "en"`). */
+export function setMarketEcosystemUiLocale(isEn: boolean): void {
+  marketEcosystemUiIsEn = isEn
+}
+
+/** Resolve wiring-flow copy for the active locale. */
+export function resolveMarketEcosystemWiringFlow(
+  topology: MarketEcosystemTopology,
+  isEn: boolean,
+): MarketEcosystemTopology['wiringFlow'] {
+  return isEn ? topology.wiringFlowEn : topology.wiringFlow
+}
+
+// Locale-aware `wiringFlow` so diagram/table consumers see EN without per-call switches.
+for (const topo of MARKET_ECOSYSTEM_TOPOLOGIES) {
+  const wiringFlowJa = topo.wiringFlow
+  Object.defineProperty(topo, 'wiringFlow', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      return marketEcosystemUiIsEn ? topo.wiringFlowEn : wiringFlowJa
+    },
+  })
+}
 
 /** Resolve ecosystem model id from a country's grid category. */
 export function resolveMarketEcosystemModelId(
@@ -1401,6 +1601,111 @@ export function getMarketEcosystemForCountry(
     getMarketEcosystemTopology(resolveMarketEcosystemModelId(country)) ??
     MARKET_ECOSYSTEM_TOPOLOGIES[0]
   )
+}
+
+/** Wiring-step keys shared by the ecosystem node grid / overlays. */
+export type EcosystemWiringStepKey = keyof MarketEcosystemTopology['wiringFlow']
+
+/** Locale-resolved OSS overlay for a hardware wiring node. */
+export type EcosystemNodeToolDetail = {
+  toolId: string
+  name: string
+  role: string
+  capability: string
+  targetNode: EcosystemToolBinding['targetNode']
+}
+
+/**
+ * Resolve `integratedTools` against `COMMON_OSS_PROJECTS` for software-view overlays.
+ * Falls back to the binding role when a tool id is missing from the OSS catalog.
+ */
+export function resolveEcosystemNodeTools(
+  topology: MarketEcosystemTopology,
+  isEn: boolean,
+): EcosystemNodeToolDetail[] {
+  return topology.integratedTools.map((binding) => {
+    const project = COMMON_OSS_PROJECTS.find((p) => p.id === binding.toolId)
+    return {
+      toolId: binding.toolId,
+      name: binding.name,
+      role: isEn ? binding.roleEn : binding.roleJa,
+      capability: project
+        ? isEn
+          ? project.descriptionEn
+          : project.descriptionJa
+        : isEn
+          ? binding.roleEn
+          : binding.roleJa,
+      targetNode: binding.targetNode,
+    }
+  })
+}
+
+/** Shared emerald / amber / violet accents for ①②③ (map badge ↔ power-flow tabs). */
+export const MARKET_ECOSYSTEM_UI_ACCENT: Record<
+  MarketEcosystemModelId,
+  { badge: string; chip: string; tab: string; tabIdle: string; panel: string }
+> = {
+  grid_plugin_allowed: {
+    badge: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
+    chip: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200 hover:border-emerald-400/60 hover:bg-emerald-500/20',
+    tab: 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40',
+    tabIdle:
+      'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-emerald-500/40 hover:text-emerald-200',
+    panel: 'border-emerald-500/40',
+  },
+  grid_plugin_prohibited: {
+    badge: 'border-amber-500/40 bg-amber-500/15 text-amber-300',
+    chip: 'border-amber-500/40 bg-amber-500/10 text-amber-200 hover:border-amber-400/60 hover:bg-amber-500/20',
+    tab: 'border-amber-500/50 bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40',
+    tabIdle:
+      'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-amber-500/40 hover:text-amber-200',
+    panel: 'border-amber-500/40',
+  },
+  offgrid_leapfrog: {
+    badge: 'border-violet-500/40 bg-violet-500/15 text-violet-300',
+    chip: 'border-violet-500/40 bg-violet-500/10 text-violet-200 hover:border-violet-400/60 hover:bg-violet-500/20',
+    tab: 'border-violet-500/50 bg-violet-500/20 text-violet-300 ring-1 ring-violet-500/40',
+    tabIdle:
+      'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-violet-500/40 hover:text-violet-200',
+    panel: 'border-violet-500/40',
+  },
+}
+
+/** ISO 3166-1 alpha-2 (or longer codes) → flag emoji. */
+export function countryCodeToFlagEmoji(code: string): string {
+  const cc = code.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase()
+  if (cc.length !== 2) return '🏳️'
+  return Array.from(cc)
+    .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
+    .join('')
+}
+
+/**
+ * Countries adopting a market ecosystem model (excludes sub-regions with parentId).
+ */
+export function getCountriesByMarketEcosystemModel(
+  modelId: MarketEcosystemModelId,
+): CountryPvDetail[] {
+  return WORLD_BALCONY_PV_COUNTRIES.filter(
+    (c) => !c.parentId && resolveMarketEcosystemModelId(c) === modelId,
+  )
+}
+
+/** Chip label e.g. `🇩🇪 ドイツ (800W)` / `🇯🇵 日本` / `🇰🇪 ケニア`. */
+export function formatMarketEcosystemCountryChip(
+  country: CountryPvDetail,
+  isEn: boolean,
+): string {
+  const flag = countryCodeToFlagEmoji(country.code)
+  const name = isEn ? (country.nameEn ?? country.name) : country.name
+  const model = resolveMarketEcosystemModelId(country)
+  if (model === 'grid_plugin_allowed') {
+    // Strip JA suffixes like `（家電扱い…）` / `級` — keep numeric W only.
+    const watt = country.powerLimit.match(/([\d,]+)\s*W/i)
+    if (watt) return `${flag} ${name} (${watt[1]}W)`
+  }
+  return `${flag} ${name}`
 }
 
 export function resolveRegionCategory(country: CountryPvDetail): RegionCategory {
@@ -2994,6 +3299,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'austria',
     name: 'オーストリア',
+    nameEn: 'Austria',
     code: 'AT',
     rating: '★★★★★',
     status: 'legal_plug',
@@ -3046,6 +3352,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'italy',
     name: 'イタリア',
+    nameEn: 'Italy',
     code: 'IT',
     rating: '★★★★☆',
     status: 'legal_plug',
@@ -3075,6 +3382,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'uk',
     name: 'イギリス',
+    nameEn: 'United Kingdom',
     code: 'GB',
     rating: '★★★★☆',
     status: 'legal_plug',
@@ -3104,6 +3412,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'france',
     name: 'フランス',
+    nameEn: 'France',
     code: 'FR',
     rating: '★★★★☆',
     status: 'legal_plug',
@@ -3133,6 +3442,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'belgium',
     name: 'ベルギー',
+    nameEn: 'Belgium',
     code: 'BE',
     rating: '★★★☆☆',
     status: 'legal_plug',
@@ -3162,6 +3472,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'switzerland',
     name: 'スイス',
+    nameEn: 'Switzerland',
     code: 'CH',
     rating: '★★★☆☆',
     status: 'appliance_notified',
@@ -3382,6 +3693,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-ut',
     name: '米ユタ州',
+    nameEn: 'Utah (US)',
     code: 'US-UT',
     rating: '★★★★★',
     status: 'plug_exemption',
@@ -3414,6 +3726,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-ca',
     name: '米カリフォルニア州',
+    nameEn: 'California (US)',
     code: 'US-CA',
     rating: '★★★★☆',
     status: 'plug_exemption',
@@ -3448,6 +3761,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-co',
     name: '米コロラド州',
+    nameEn: 'Colorado (US)',
     code: 'US-CO',
     rating: '★★★★☆',
     status: 'plug_exemption',
@@ -3480,6 +3794,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-wa',
     name: '米ワシントン州',
+    nameEn: 'Washington (US)',
     code: 'US-WA',
     rating: '★★★★☆',
     status: 'plug_exemption',
@@ -3512,6 +3827,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-or',
     name: '米オレゴン州',
+    nameEn: 'Oregon (US)',
     code: 'US-OR',
     rating: '★★★★☆',
     status: 'plug_exemption',
@@ -3544,6 +3860,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-az',
     name: '米アリゾナ州',
+    nameEn: 'Arizona (US)',
     code: 'US-AZ',
     rating: '★★★★☆',
     status: 'plug_exemption',
@@ -3576,6 +3893,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-me',
     name: '米メイン州',
+    nameEn: 'Maine (US)',
     code: 'US-ME',
     rating: '★★★★☆',
     status: 'plug_exemption',
@@ -3608,6 +3926,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-mn',
     name: '米ミネソタ州',
+    nameEn: 'Minnesota (US)',
     code: 'US-MN',
     rating: '★★★★☆',
     status: 'plug_exemption',
@@ -3640,6 +3959,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-tx',
     name: '米テキサス州',
+    nameEn: 'Texas (US)',
     code: 'US-TX',
     rating: '★★☆☆☆',
     status: 'strict_code',
@@ -3673,6 +3993,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-fl',
     name: '米フロリダ州',
+    nameEn: 'Florida (US)',
     code: 'US-FL',
     rating: '★☆☆☆☆',
     status: 'strict_code',
@@ -3705,6 +4026,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'us-ny',
     name: '米ニューヨーク州',
+    nameEn: 'New York (US)',
     code: 'US-NY',
     rating: '★★☆☆☆',
     status: 'strict_code',
@@ -3737,6 +4059,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'nigeria',
     name: 'ナイジェリア',
+    nameEn: 'Nigeria',
     code: 'NG',
     rating: '★★★★☆',
     status: 'storage_only',
@@ -3773,6 +4096,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'ethiopia',
     name: 'エチオピア',
+    nameEn: 'Ethiopia',
     code: 'ET',
     rating: '★★★☆☆',
     status: 'productive_offgrid',
@@ -3805,6 +4129,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'kenya',
     name: 'ケニア',
+    nameEn: 'Kenya',
     code: 'KE',
     rating: '★★★★☆',
     status: 'storage_only',
@@ -3841,6 +4166,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'za',
     name: '南アフリカ',
+    nameEn: 'South Africa',
     code: 'ZA',
     rating: '★★★★☆',
     status: 'storage_only',
@@ -3876,6 +4202,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'rw',
     name: 'ルワンダ',
+    nameEn: 'Rwanda',
     code: 'RW',
     rating: '★★★★☆',
     status: 'storage_only',
@@ -3912,6 +4239,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'tz',
     name: 'タンザニア',
+    nameEn: 'Tanzania',
     code: 'TZ',
     rating: '★★★☆☆',
     status: 'productive_offgrid',
@@ -3947,6 +4275,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'ug',
     name: 'ウガンダ',
+    nameEn: 'Uganda',
     code: 'UG',
     rating: '★★★☆☆',
     status: 'micro_solar_kit',
@@ -3981,6 +4310,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'sn',
     name: 'セネガル',
+    nameEn: 'Senegal',
     code: 'SN',
     rating: '★★★☆☆',
     status: 'productive_offgrid',
@@ -4402,6 +4732,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'nz',
     name: 'ニュージーランド',
+    nameEn: 'New Zealand',
     code: 'NZ',
     rating: '★★★★☆',
     status: 'legal_plug',
@@ -4484,6 +4815,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
   {
     id: 'br',
     name: 'ブラジル',
+    nameEn: 'Brazil',
     code: 'BR',
     rating: '★★★★☆',
     status: 'plug_exemption',

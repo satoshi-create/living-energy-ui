@@ -388,7 +388,23 @@
     },
     "ecosystem": {
       "title": "Ecosystem / Power Flow",
-      "lead": "Wiring topologies for each market model: ① certified plug-in, ② no-export / storage self-supply, ③ off-grid leapfrog."
+      "lead": "Wiring topologies for each market model: ① certified plug-in, ② no-export / storage self-supply, ③ off-grid leapfrog.",
+      "viewMode": {
+        "label": "View mode",
+        "hardware": "Hardware only",
+        "software": "Software (autonomous control)"
+      },
+      "wiringSteps": {
+        "generation": "Generation",
+        "conversion": "Conversion / storage",
+        "connection": "Connection",
+        "metering": "Metering / control",
+        "consumption": "Consumption"
+      },
+      "softwareOverlay": {
+        "title": "What autonomous control enables",
+        "openOss": "View OSS / tools"
+      }
     },
     "vendors": {
       "title": "Key Companies",

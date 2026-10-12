@@ -388,7 +388,23 @@
     },
     "ecosystem": {
       "title": "エコシステム・給電図",
-      "lead": "市場モデル（①プラグイン公認・②逆潮流禁止/蓄電自衛・③オフグリッド）ごとの給電トポロジーを図解します。"
+      "lead": "市場モデル（①プラグイン公認・②逆潮流禁止/蓄電自衛・③オフグリッド）ごとの給電トポロジーを図解します。",
+      "viewMode": {
+        "label": "表示モード",
+        "hardware": "ハードウェアのみ",
+        "software": "ソフトウェア（自律制御）あり"
+      },
+      "wiringSteps": {
+        "generation": "発電",
+        "conversion": "変換・蓄電",
+        "connection": "接続",
+        "metering": "計量・制御",
+        "consumption": "消費"
+      },
+      "softwareOverlay": {
+        "title": "自律制御でできること",
+        "openOss": "OSS・ツールを見る"
+      }
     },
     "vendors": {
       "title": "主要企業・銘柄一覧",

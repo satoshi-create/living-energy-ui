@@ -31,11 +31,14 @@ import {
   getMovementPhaseById,
   getSoutheastAsiaIslandPhaseById,
   matchesModelFilter,
+  resolveEcosystemNodeTools,
   resolveRegionCategory,
   type AfricaLeapfrogPhaseId,
   type AsiaOceaniaPhaseId,
   type CountryTimelineMilestone,
   type CountryTimelinePhase,
+  type EcosystemNodeToolDetail,
+  type EcosystemToolBinding,
   type IndiaLivelihoodPhaseId,
   type MarketEcosystemTopology,
   type MilestoneKeyActor,
@@ -45,6 +48,33 @@ import {
   type RegionCategory,
   type SoutheastAsiaIslandPhaseId,
 } from '../data';
+
+const OSS_TOOL_EMOJI: Record<string, string> = {
+  opendtu: '🛠️',
+  ahoydtu: '🛠️',
+  'home-assistant': '🏠',
+  'solar-assistant': '📊',
+  'node-red': '🧩',
+};
+
+/** Hardware = physical wiring only; software = capability overlays on the SVG. */
+export type EcosystemDiagramViewMode = 'hardware' | 'software';
+
+type EcoOverlayAnchor = 'above' | 'left';
+
+const ECO_OVERLAY_CARD_H = 88;
+const ECO_OVERLAY_GAP = 4;
+const ECO_OVERLAY_MIN_W = 168;
+
+function toolsForNode(
+  topology: MarketEcosystemTopology,
+  target: EcosystemToolBinding['targetNode'],
+  viewMode: EcosystemDiagramViewMode,
+  isEn: boolean,
+): EcosystemNodeToolDetail[] {
+  if (viewMode !== 'software') return [];
+  return resolveEcosystemNodeTools(topology, isEn).filter((t) => t.targetNode === target);
+}
 
 export type { MovementHistoryPhaseId };
 
@@ -748,7 +778,7 @@ const WIRING_FLOW_STEPS: readonly {
 
 const ECOSYSTEM_ACCENT: Record<
   string,
-  { ring: string; fill: string; text: string; line: string; badge: string }
+  { ring: string; fill: string; text: string; line: string; badge: string; stroke: string }
 > = {
   grid_plugin_allowed: {
     ring: 'stroke-emerald-400',
@@ -756,6 +786,7 @@ const ECOSYSTEM_ACCENT: Record<
     text: 'text-emerald-300',
     line: 'stroke-emerald-400/70',
     badge: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
+    stroke: '#34d399',
   },
   grid_plugin_prohibited: {
     ring: 'stroke-amber-400',
@@ -763,6 +794,7 @@ const ECOSYSTEM_ACCENT: Record<
     text: 'text-amber-300',
     line: 'stroke-amber-400/70',
     badge: 'border-amber-500/40 bg-amber-500/15 text-amber-300',
+    stroke: '#fbbf24',
   },
   offgrid_leapfrog: {
     ring: 'stroke-violet-400',
@@ -770,8 +802,618 @@ const ECOSYSTEM_ACCENT: Record<
     text: 'text-violet-300',
     line: 'stroke-violet-400/70',
     badge: 'border-violet-500/40 bg-violet-500/15 text-violet-300',
+    stroke: '#a78bfa',
   },
 };
+
+const PREREQ_BADGE: Record<
+  string,
+  { icon: string; tone: string }
+> = {
+  present: { icon: '⚡', tone: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
+  absent: { icon: '❌', tone: 'border-rose-500/40 bg-rose-500/10 text-rose-300' },
+  certified: { icon: '✅', tone: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
+  prohibited: { icon: '⛔', tone: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
+  n_a: { icon: '—', tone: 'border-slate-600/50 bg-slate-800/60 text-slate-400' },
+  bidirectional: { icon: '↔', tone: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300' },
+  no_reverse: { icon: '⛔', tone: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
+  not_required: { icon: '○', tone: 'border-violet-500/40 bg-violet-500/10 text-violet-300' },
+};
+
+type EcoAccent = (typeof ECOSYSTEM_ACCENT)[string];
+
+function EcoTopoNode({
+  x,
+  y,
+  w,
+  h,
+  title,
+  subtitle,
+  accent,
+  dimmed,
+  toolDetails,
+  overlayAnchor = 'above',
+  overlayTitle,
+  openOssLabel,
+  onSelectOssTab,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  title: string;
+  subtitle?: string;
+  accent: EcoAccent;
+  dimmed?: boolean;
+  /** Software-mode capability cards (empty / omitted in hardware mode). */
+  toolDetails?: EcosystemNodeToolDetail[];
+  overlayAnchor?: EcoOverlayAnchor;
+  overlayTitle?: string;
+  openOssLabel?: string;
+  onSelectOssTab?: () => void;
+}) {
+  const details = toolDetails ?? [];
+  const showOverlay = details.length > 0;
+  const overlayH =
+    details.length * ECO_OVERLAY_CARD_H + Math.max(0, details.length - 1) * ECO_OVERLAY_GAP + 18;
+  const overlayW = Math.max(w + 12, ECO_OVERLAY_MIN_W);
+  const overlayX =
+    overlayAnchor === 'left' ? -(overlayW + 8) : Math.round((w - overlayW) / 2);
+  const overlayY = overlayAnchor === 'left' ? Math.min(0, (h - overlayH) / 2) : -(overlayH + 6);
+  const titleY = subtitle ? 16 : h / 2 + 4;
+  const subtitleY = 20;
+  const subtitleH = Math.max(16, h - subtitleY - 4);
+
+  return (
+    <g transform={`translate(${x}, ${y})`} opacity={dimmed ? 0.45 : 1}>
+      <rect
+        width={w}
+        height={h}
+        rx={8}
+        className={`${accent.fill} ${accent.ring}`}
+        strokeWidth={1.5}
+        strokeDasharray={dimmed ? '3 3' : undefined}
+      />
+      <text
+        x={w / 2}
+        y={titleY}
+        textAnchor="middle"
+        className={accent.text}
+        fontSize={11}
+        fontWeight={700}
+      >
+        {title}
+      </text>
+      {subtitle ? (
+        <foreignObject x={4} y={subtitleY} width={w - 8} height={subtitleH}>
+          <p
+            className={`m-0 overflow-hidden text-center text-[8px] leading-snug ${accent.text} opacity-80`}
+            style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
+          >
+            {subtitle}
+          </p>
+        </foreignObject>
+      ) : null}
+      {/* Floating software overlay — outside the node box so arrows stay intact */}
+      {showOverlay ? (
+        <foreignObject x={overlayX} y={overlayY} width={overlayW} height={overlayH}>
+          <div className="flex h-full flex-col gap-1 overflow-visible">
+            {overlayTitle ? (
+              <p className="m-0 text-[8px] font-semibold leading-tight text-emerald-400/90">
+                {overlayTitle}
+              </p>
+            ) : null}
+            {details.map((tool) => {
+              const emoji = OSS_TOOL_EMOJI[tool.toolId] ?? '🛠️';
+              return (
+                <button
+                  key={tool.toolId}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectOssTab?.();
+                  }}
+                  className="rounded-md border border-emerald-500/50 bg-emerald-950/95 px-1.5 py-1 text-left shadow-lg shadow-black/40 backdrop-blur-sm hover:border-emerald-400/70 hover:bg-emerald-900/95"
+                >
+                  <span className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
+                    <span aria-hidden className="text-[9px]">
+                      {emoji}
+                    </span>
+                    <span className="text-[9px] font-semibold text-emerald-200">{tool.name}</span>
+                    <span className="text-[8px] font-medium text-emerald-400/90">{tool.role}</span>
+                  </span>
+                  <span className="mt-0.5 block text-[8px] leading-snug break-words text-slate-100">
+                    {tool.capability}
+                  </span>
+                  {openOssLabel ? (
+                    <span className="mt-0.5 block text-[7px] text-emerald-400/80">
+                      {openOssLabel} →
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </foreignObject>
+      ) : null}
+    </g>
+  );
+}
+
+function EcoFlowArrow({
+  x1,
+  y1,
+  x2,
+  y2,
+  color,
+  bidirectional,
+  dashed,
+}: {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+  bidirectional?: boolean;
+  dashed?: boolean;
+}) {
+  const id = `eco-arr-${x1}-${y1}-${x2}-${y2}-${bidirectional ? 'bi' : 'uni'}`;
+  return (
+    <g>
+      <defs>
+        <marker
+          id={`${id}-end`}
+          markerWidth="7"
+          markerHeight="7"
+          refX="6"
+          refY="3.5"
+          orient="auto"
+        >
+          <polygon points="0 0, 7 3.5, 0 7" fill={color} />
+        </marker>
+        {bidirectional ? (
+          <marker
+            id={`${id}-start`}
+            markerWidth="7"
+            markerHeight="7"
+            refX="1"
+            refY="3.5"
+            orient="auto"
+          >
+            <polygon points="7 0, 0 3.5, 7 7" fill={color} />
+          </marker>
+        ) : null}
+      </defs>
+      <line
+        x1={x1}
+        y1={y1}
+        x2={x2}
+        y2={y2}
+        stroke={color}
+        strokeWidth={2}
+        strokeDasharray={dashed ? '5 4' : undefined}
+        markerEnd={`url(#${id}-end)`}
+        markerStart={bidirectional ? `url(#${id}-start)` : undefined}
+      />
+      {/* flowing dots along the path */}
+      <circle r={2.5} fill={color} opacity={0.85}>
+        <animateMotion
+          dur="2.4s"
+          repeatCount="indefinite"
+          path={`M${x1},${y1} L${x2},${y2}`}
+        />
+      </circle>
+    </g>
+  );
+}
+
+type EcoTopologyProps = {
+  topology: MarketEcosystemTopology;
+  accent: EcoAccent;
+  isEn: boolean;
+  viewMode: EcosystemDiagramViewMode;
+  overlayTitle: string;
+  openOssLabel: string;
+  onSelectOssTab?: () => void;
+};
+
+/** ① プラグイン公認: 発電→変換→壁コンセント→二股（自家消費 / スマートメーター↔系統） */
+function BifurcationTopology({
+  topology,
+  accent,
+  isEn,
+  viewMode,
+  overlayTitle,
+  openOssLabel,
+  onSelectOssTab,
+}: EcoTopologyProps) {
+  const w = 100;
+  const h = 48;
+  const hTool = 56;
+  const color = accent.stroke;
+  const conversionTools = toolsForNode(topology, 'conversion', viewMode, isEn);
+  const consumptionTools = toolsForNode(topology, 'consumption', viewMode, isEn);
+  const soft = viewMode === 'software';
+  // Extra top pad when software overlays float above nodes.
+  const viewBox = soft ? '0 -100 560 330' : '0 0 560 230';
+  return (
+    <svg
+      viewBox={viewBox}
+      className="mx-auto h-auto w-full max-w-full"
+      role="group"
+      aria-label={isEn ? 'Bifurcation plug-in topology' : 'プラグイン公認・二股分岐トポロジー'}
+    >
+      <EcoTopoNode
+        x={8}
+        y={86}
+        w={w}
+        h={h}
+        title={isEn ? 'PV' : '発電'}
+        subtitle={topology.wiringFlow.generation}
+        accent={accent}
+      />
+      <EcoFlowArrow x1={108} y1={110} x2={128} y2={110} color={color} />
+      <EcoTopoNode
+        x={128}
+        y={78}
+        w={112}
+        h={hTool}
+        title={isEn ? 'Inverter' : 'インバータ/蓄電'}
+        subtitle={topology.wiringFlow.conversion}
+        accent={accent}
+        toolDetails={conversionTools}
+        overlayAnchor="above"
+        overlayTitle={overlayTitle}
+        openOssLabel={openOssLabel}
+        onSelectOssTab={onSelectOssTab}
+      />
+      <EcoFlowArrow x1={240} y1={110} x2={256} y2={110} color={color} />
+      <EcoTopoNode
+        x={256}
+        y={86}
+        w={w}
+        h={h}
+        title={isEn ? 'Wall outlet' : '壁コンセント'}
+        subtitle={topology.wiringFlow.connection}
+        accent={accent}
+      />
+      {/* bifurcation fork — short stems into stacked branches */}
+      <path
+        d="M356 110 H372 V44 H388"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeDasharray="4 3"
+      />
+      <path
+        d="M372 110 V170 H388"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeDasharray="4 3"
+      />
+      <circle cx={372} cy={110} r={3.5} fill={color} />
+      <text x={372} y={102} textAnchor="middle" className="fill-slate-400" fontSize={8} fontWeight={600}>
+        {isEn ? 'fork' : '二股'}
+      </text>
+      <EcoTopoNode
+        x={388}
+        y={soft ? 24 : 8}
+        w={148}
+        h={hTool}
+        title={isEn ? 'Self-use' : '自家消費'}
+        subtitle={topology.wiringFlow.consumption}
+        accent={accent}
+        toolDetails={consumptionTools}
+        overlayAnchor="above"
+        overlayTitle={overlayTitle}
+        openOssLabel={openOssLabel}
+        onSelectOssTab={onSelectOssTab}
+      />
+      {/* Lower branch: smart meter ↔ grid as one compact cluster */}
+      <g transform="translate(388, 148)">
+        <rect
+          width={84}
+          height={62}
+          rx={8}
+          className={`${accent.fill} ${accent.ring}`}
+          strokeWidth={1.5}
+        />
+        <text x={42} y={16} textAnchor="middle" className={accent.text} fontSize={10} fontWeight={700}>
+          {isEn ? 'Meter' : 'メーター'}
+        </text>
+        <foreignObject x={3} y={20} width={78} height={40}>
+          <p
+            className={`m-0 overflow-hidden text-center text-[8px] leading-snug ${accent.text} opacity-80`}
+            style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
+          >
+            {topology.wiringFlow.metering}
+          </p>
+        </foreignObject>
+        <line
+          x1={84}
+          y1={31}
+          x2={100}
+          y2={31}
+          stroke={color}
+          strokeWidth={2}
+          markerStart="url(#bifur-bi-start)"
+          markerEnd="url(#bifur-bi-end)"
+        />
+        <rect
+          x={100}
+          width={52}
+          height={62}
+          rx={8}
+          className="fill-slate-800/80 stroke-cyan-400/70"
+          strokeWidth={1.5}
+        />
+        <text x={126} y={28} textAnchor="middle" className="fill-cyan-300" fontSize={10} fontWeight={700}>
+          {isEn ? 'Grid' : '系統'}
+        </text>
+        <text x={126} y={44} textAnchor="middle" className="fill-slate-400" fontSize={8}>
+          ↔
+        </text>
+      </g>
+      <defs>
+        <marker id="bifur-bi-end" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <polygon points="0 0, 6 3, 0 6" fill={color} />
+        </marker>
+        <marker id="bifur-bi-start" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto">
+          <polygon points="6 0, 0 3, 6 6" fill={color} />
+        </marker>
+      </defs>
+    </svg>
+  );
+}
+
+/** ② 逆潮流禁止: PV→蓄電→家電の閉ループ + 系統境界の防壁 */
+function ClosedLoopTopology({
+  topology,
+  accent,
+  isEn,
+  viewMode,
+  overlayTitle,
+  openOssLabel,
+  onSelectOssTab,
+}: EcoTopologyProps) {
+  const color = accent.stroke;
+  const conversionTools = toolsForNode(topology, 'conversion', viewMode, isEn);
+  const consumptionTools = toolsForNode(topology, 'consumption', viewMode, isEn);
+  const soft = viewMode === 'software';
+  // Top pad for battery overlay; left pad for appliances overlay.
+  const viewBox = soft ? '-48 -100 720 380' : '0 0 640 280';
+  return (
+    <svg
+      viewBox={viewBox}
+      className="mx-auto h-auto w-full max-w-full"
+      role="group"
+      aria-label={isEn ? 'Closed-loop zero-export topology' : '逆潮流禁止・閉ループトポロジー'}
+    >
+      {/* household closed loop area */}
+      <rect
+        x={24}
+        y={28}
+        width={360}
+        height={224}
+        rx={14}
+        className="fill-amber-500/5 stroke-amber-400/30"
+        strokeWidth={1.5}
+        strokeDasharray="6 4"
+      />
+      <text x={40} y={48} className="fill-amber-300/90" fontSize={10} fontWeight={600}>
+        {isEn ? 'Closed loop (home)' : '閉ループ回路（宅内）'}
+      </text>
+      <EcoTopoNode
+        x={48}
+        y={72}
+        w={100}
+        h={52}
+        title={isEn ? 'PV' : '太陽光'}
+        subtitle={topology.wiringFlow.generation}
+        accent={accent}
+      />
+      <EcoFlowArrow x1={148} y1={110} x2={176} y2={110} color={color} />
+      <EcoTopoNode
+        x={176}
+        y={soft ? 88 : 72}
+        w={120}
+        h={56}
+        title={isEn ? 'Battery' : '蓄電池'}
+        subtitle={topology.wiringFlow.conversion}
+        accent={accent}
+        toolDetails={conversionTools}
+        overlayAnchor="above"
+        overlayTitle={overlayTitle}
+        openOssLabel={openOssLabel}
+        onSelectOssTab={onSelectOssTab}
+      />
+      <EcoFlowArrow x1={296} y1={110} x2={318} y2={110} color={color} />
+      <EcoTopoNode
+        x={232}
+        y={168}
+        w={140}
+        h={56}
+        title={isEn ? 'Appliances' : '生活家電'}
+        subtitle={topology.wiringFlow.consumption}
+        accent={accent}
+        toolDetails={consumptionTools}
+        overlayAnchor="left"
+        overlayTitle={overlayTitle}
+        openOssLabel={openOssLabel}
+        onSelectOssTab={onSelectOssTab}
+      />
+      {/* return path battery ← loads */}
+      <path
+        d="M232 204 H160 V148"
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeDasharray="4 3"
+        markerEnd="url(#closed-loop-return)"
+      />
+      <defs>
+        <marker id="closed-loop-return" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <polygon points="0 0, 7 3.5, 0 7" fill={color} />
+        </marker>
+      </defs>
+      <circle r={2.5} fill={color} opacity={0.85}>
+        <animateMotion dur="3s" repeatCount="indefinite" path="M236,110 L296,110 L296,204 L160,204 L160,148" />
+      </circle>
+      {/* barrier wall */}
+      <line x1={400} y1={36} x2={400} y2={244} stroke="#f87171" strokeWidth={3} strokeDasharray="2 6" />
+      <rect
+        x={408}
+        y={100}
+        width={208}
+        height={64}
+        rx={10}
+        className="fill-rose-500/15 stroke-rose-400/70"
+        strokeWidth={1.5}
+      />
+      <text x={512} y={126} textAnchor="middle" className="fill-rose-300" fontSize={11} fontWeight={700}>
+        {isEn ? '⛔ Zero-export stop' : '⛔ 逆潮流ストップ'}
+      </text>
+      <text x={512} y={144} textAnchor="middle" className="fill-rose-200/80" fontSize={9}>
+        {isEn ? 'CT clamp / no reverse' : 'ゼロエクスポート / CTクランプ保護'}
+      </text>
+      <EcoTopoNode
+        x={448}
+        y={188}
+        w={128}
+        h={44}
+        title={isEn ? 'Grid (blocked)' : '商用系統（遮断）'}
+        subtitle={topology.wiringFlow.metering}
+        accent={accent}
+        dimmed
+      />
+    </svg>
+  );
+}
+
+/** ③ オフグリッド跳躍: 系統不在 + PV→蓄電→直結負荷 */
+function StandaloneTopology({
+  topology,
+  accent,
+  isEn,
+  viewMode,
+  overlayTitle,
+  openOssLabel,
+  onSelectOssTab,
+}: EcoTopologyProps) {
+  const color = accent.stroke;
+  const conversionTools = toolsForNode(topology, 'conversion', viewMode, isEn);
+  const consumptionTools = toolsForNode(topology, 'consumption', viewMode, isEn);
+  const soft = viewMode === 'software';
+  const viewBox = soft ? '0 -100 660 340' : '0 0 660 240';
+  return (
+    <svg
+      viewBox={viewBox}
+      className="mx-auto h-auto w-full max-w-full"
+      role="group"
+      aria-label={isEn ? 'Off-grid standalone topology' : 'オフグリッド跳躍トポロジー'}
+    >
+      {/* severed grid */}
+      <g opacity={0.55}>
+        <rect
+          x={16}
+          y={24}
+          width={120}
+          height={52}
+          rx={8}
+          className="fill-slate-800/50 stroke-rose-400/50"
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+        />
+        <text x={76} y={46} textAnchor="middle" className="fill-rose-300" fontSize={11} fontWeight={700}>
+          {isEn ? '❌ No grid' : '❌ 系統不在'}
+        </text>
+        <text x={76} y={62} textAnchor="middle" className="fill-slate-400" fontSize={9}>
+          {isEn ? 'Utility disconnected' : '商用系統切り離し'}
+        </text>
+      </g>
+      <line x1={136} y1={50} x2={176} y2={50} stroke="#f87171" strokeWidth={2} strokeDasharray="3 4" />
+      <text x={156} y={42} textAnchor="middle" className="fill-rose-400" fontSize={14}>
+        ✂
+      </text>
+      <EcoTopoNode
+        x={184}
+        y={88}
+        w={112}
+        h={52}
+        title={isEn ? 'PV' : '太陽光'}
+        subtitle={topology.wiringFlow.generation}
+        accent={accent}
+      />
+      <EcoFlowArrow x1={296} y1={124} x2={324} y2={124} color={color} />
+      <EcoTopoNode
+        x={324}
+        y={soft ? 96 : 88}
+        w={128}
+        h={56}
+        title={isEn ? 'Battery' : '蓄電池'}
+        subtitle={topology.wiringFlow.conversion}
+        accent={accent}
+        toolDetails={conversionTools}
+        overlayAnchor="above"
+        overlayTitle={overlayTitle}
+        openOssLabel={openOssLabel}
+        onSelectOssTab={onSelectOssTab}
+      />
+      <EcoFlowArrow x1={452} y1={124} x2={476} y2={124} color={color} />
+      <EcoTopoNode
+        x={476}
+        y={soft ? 96 : 88}
+        w={160}
+        h={56}
+        title={isEn ? 'Direct loads' : '直結負荷'}
+        subtitle={
+          isEn
+            ? 'Lighting · pump · cold-chain'
+            : '照明・ポンプ・保冷'
+        }
+        accent={accent}
+        toolDetails={consumptionTools}
+        overlayAnchor="above"
+        overlayTitle={overlayTitle}
+        openOssLabel={openOssLabel}
+        onSelectOssTab={onSelectOssTab}
+      />
+      <text x={556} y={200} textAnchor="middle" className="fill-violet-300/90" fontSize={10} fontWeight={600}>
+        {isEn ? 'Autonomous micro-supply' : '自立ダイレクト給電'}
+      </text>
+    </svg>
+  );
+}
+
+function EcosystemTopologyDiagram({
+  topology,
+  accent,
+  isEn,
+  viewMode,
+  overlayTitle,
+  openOssLabel,
+  onSelectOssTab,
+}: EcoTopologyProps) {
+  const shared = {
+    topology,
+    accent,
+    isEn,
+    viewMode,
+    overlayTitle,
+    openOssLabel,
+    onSelectOssTab,
+  };
+  switch (topology.topologyShape) {
+    case 'closed_loop':
+      return <ClosedLoopTopology {...shared} />;
+    case 'standalone':
+      return <StandaloneTopology {...shared} />;
+    case 'bifurcation':
+    default:
+      return <BifurcationTopology {...shared} />;
+  }
+}
 
 export interface CountryPvEcosystemProps {
   /** When set, initial model follows the country; omit for top-level market-model browser. */
@@ -779,10 +1421,21 @@ export interface CountryPvEcosystemProps {
   isEn: boolean;
   /** Optional override (map model filter / GridCategory / ecosystem modelId). */
   modelId?: string | null;
+  /** Hardware = wiring only; software = floating capability overlays on the SVG. */
+  viewMode?: EcosystemDiagramViewMode;
+  /** Jump to OSS tools tab when an inline topology badge is clicked. */
+  onSelectOssTab?: () => void;
 }
 
 /** 市場モデル別の給電トポロジー（トップレベル「エコシステム・給電図」タブ） */
-export function CountryPvEcosystem({ country, isEn, modelId }: CountryPvEcosystemProps) {
+export function CountryPvEcosystem({
+  country,
+  isEn,
+  modelId,
+  viewMode = 'hardware',
+  onSelectOssTab,
+}: CountryPvEcosystemProps) {
+  const tWorld = useTranslations('worldPv');
   const initialId =
     (modelId && getMarketEcosystemTopology(modelId)?.modelId) ||
     (country ? getMarketEcosystemForCountry(country).modelId : MARKET_ECOSYSTEM_TOPOLOGIES[0].modelId);
@@ -802,18 +1455,16 @@ export function CountryPvEcosystem({ country, isEn, modelId }: CountryPvEcosyste
   const badge = isEn ? topology.badgeEn : topology.badgeJa;
   const summary = isEn ? topology.summaryEn : topology.summaryJa;
   const features = isEn ? topology.keyFeaturesEn : topology.keyFeaturesJa;
-  const nodeW = 120;
-  const nodeH = 44;
-  const gap = 28;
-  const startX = 16;
-  const cy = 40;
-  const nodes = WIRING_FLOW_STEPS.map((step, i) => ({
-    ...step,
-    x: startX + i * (nodeW + gap),
-    label: topology.wiringFlow[step.key],
-  }));
-  const svgW = startX * 2 + nodes.length * nodeW + (nodes.length - 1) * gap;
-  const svgH = 88;
+  const prereq = topology.prerequisites;
+  const prereqItems = [
+    { key: 'grid', status: prereq.grid.status, label: isEn ? prereq.grid.labelEn : prereq.grid.labelJa },
+    {
+      key: 'outlet',
+      status: prereq.outletLaw.status,
+      label: isEn ? prereq.outletLaw.labelEn : prereq.outletLaw.labelJa,
+    },
+    { key: 'meter', status: prereq.meter.status, label: isEn ? prereq.meter.labelEn : prereq.meter.labelJa },
+  ] as const;
 
   return (
     <div className="space-y-4">
@@ -846,63 +1497,37 @@ export function CountryPvEcosystem({ country, isEn, modelId }: CountryPvEcosyste
         <p className="text-xs leading-relaxed text-slate-300">{summary}</p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border/40 bg-black/40 p-3">
-        <svg
-          viewBox={`0 0 ${svgW} ${svgH}`}
-          className="mx-auto h-auto min-w-[640px] w-full max-w-none"
-          role="img"
-          aria-label={isEn ? 'Power wiring topology' : '給電トポロジー図'}
-        >
-          {nodes.slice(0, -1).map((n, i) => {
-            const x1 = n.x + nodeW;
-            const x2 = nodes[i + 1].x;
-            const mid = (x1 + x2) / 2;
+      {/* 環境前提条件（診断バッジ） */}
+      <div className="rounded-xl border border-border/40 bg-black/30 p-3">
+        <p className="mb-2 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+          {isEn ? 'Environmental preconditions' : '環境前提条件'}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {prereqItems.map((item) => {
+            const tone = PREREQ_BADGE[item.status] ?? PREREQ_BADGE.n_a;
             return (
-              <g key={`edge-${n.key}`}>
-                <line
-                  x1={x1}
-                  y1={cy}
-                  x2={x2}
-                  y2={cy}
-                  className={accent.line}
-                  strokeWidth={2}
-                  strokeDasharray="4 3"
-                />
-                <polygon
-                  points={`${mid + 5},${cy} ${mid - 3},${cy - 4} ${mid - 3},${cy + 4}`}
-                  className={accent.fill}
-                  stroke="none"
-                />
-              </g>
+              <span
+                key={item.key}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${tone.tone}`}
+              >
+                <span aria-hidden>{tone.icon}</span>
+                {item.label}
+              </span>
             );
           })}
-          {nodes.map((n, i) => (
-            <g key={n.key} transform={`translate(${n.x}, ${cy - nodeH / 2})`}>
-              <rect
-                width={nodeW}
-                height={nodeH}
-                rx={8}
-                className={`${accent.fill} ${accent.ring}`}
-                strokeWidth={1.5}
-              />
-              <text
-                x={nodeW / 2}
-                y={14}
-                textAnchor="middle"
-                className="fill-slate-400"
-                fontSize={9}
-                fontWeight={600}
-              >
-                {i + 1}. {isEn ? n.en : n.ja}
-              </text>
-              <foreignObject x={4} y={18} width={nodeW - 8} height={24}>
-                <p className={`m-0 text-center text-[9px] leading-tight ${accent.text}`}>
-                  {n.label}
-                </p>
-              </foreignObject>
-            </g>
-          ))}
-        </svg>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto overflow-y-visible rounded-xl border border-border/40 bg-black/40 p-3">
+        <EcosystemTopologyDiagram
+          topology={topology}
+          accent={accent}
+          isEn={isEn}
+          viewMode={viewMode}
+          overlayTitle={tWorld('ecosystem.softwareOverlay.title')}
+          openOssLabel={tWorld('ecosystem.softwareOverlay.openOss')}
+          onSelectOssTab={onSelectOssTab}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">

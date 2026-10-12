@@ -39,39 +39,57 @@ import {
   CountryPvOssTools,
   CountryPvTimeline,
   WorldPvMap,
+  type EcosystemDiagramViewMode,
   type MovementHistoryPhaseId,
 } from "./world-pv-map"
 import {
   DIRECTIONS,
   ECOSYSTEM_ACTOR_FILTERS,
+  MARKET_ECOSYSTEM_TOPOLOGIES,
+  MARKET_ECOSYSTEM_UI_ACCENT,
   RAILING_TYPES,
   WORLD_BALCONY_PV_COUNTRIES,
   computeBalconyLifeCompliance,
   computeBalconyScore,
   DEFAULT_LIVING_CONTEXT,
+  formatMarketEcosystemCountryChip,
+  getCountriesByMarketEcosystemModel,
   getCountryArchitectureConfig,
   getEcosystemActorsByCountry,
+  getMarketEcosystemForCountry,
   getMaturityScore,
   getPvRegionsByMaturityDesc,
   getSurfaceTypologyDetail,
   listArchitectureCatalog,
   recommendedKit,
+  resolveMarketEcosystemWiringFlow,
   resolveProfileTypology,
   resolveSystemModel,
+  setMarketEcosystemUiLocale,
   type ArchitectureProfile,
   type ArchitectureSurfaceType,
   type CountryPvDetail,
   type Direction,
   type EcosystemActorFilter,
   type EcosystemActorType,
+  type EcosystemWiringStepKey,
   type LivingContext,
   type LivingHabit,
+  type MarketEcosystemModelId,
   type PanelTiltMode,
   type WeatherCondition,
   type RailingType,
   type SolarFurnitureId,
   type SystemModelType,
 } from "../data"
+
+const ECOSYSTEM_WIRING_STEPS: readonly EcosystemWiringStepKey[] = [
+  "generation",
+  "conversion",
+  "connection",
+  "metering",
+  "consumption",
+] as const
 
 function profileRegionContextKey(constraintsKey: string): string {
   return constraintsKey.replace(/\.constraints$/, ".regionContext")
@@ -358,11 +376,17 @@ export function WorldImplementationView() {
   const tPv = useTranslations("balconyPv")
   const locale = useLocale()
   const isEn = locale === "en"
+  // Keep MARKET_ECOSYSTEM_TOPOLOGIES.wiringFlow in sync with locale for diagram/table.
+  setMarketEcosystemUiLocale(isEn)
   const [viewTab, setViewTab] = useState<WorldImplTab>("map")
   const [surfacesPanel, setSurfacesPanel] = useState<SurfacesPanelState>({ mode: "list" })
   const [surfaceCategoryFilter, setSurfaceCategoryFilter] =
     useState<SurfaceCategoryFilter>("all")
   const [selectedId, setSelectedId] = useState<string | null>("germany")
+  const [ecosystemModelId, setEcosystemModelId] =
+    useState<MarketEcosystemModelId>("grid_plugin_allowed")
+  const [ecosystemViewMode, setEcosystemViewMode] =
+    useState<EcosystemDiagramViewMode>("hardware")
   const [isRankingOpen, setIsRankingOpen] = useState(false)
   const [isMovementHistoryOpen, setIsMovementHistoryOpen] = useState(false)
   const [historyPhase, setHistoryPhase] = useState<MovementHistoryPhaseId | null>(null)
@@ -372,6 +396,43 @@ export function WorldImplementationView() {
     useState<SolarFurnitureId | null>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
+
+  const ecosystemAdopterCountries = useMemo(
+    () => getCountriesByMarketEcosystemModel(ecosystemModelId),
+    [ecosystemModelId],
+  )
+  const ecosystemAccent = MARKET_ECOSYSTEM_UI_ACCENT[ecosystemModelId]
+
+  const jumpToMapCountry = useCallback((countryId: string) => {
+    setSelectedId(countryId)
+    setActorFilter("all")
+    setHighlightedFurnitureId(null)
+    setIsRankingOpen(false)
+    setIsMovementHistoryOpen(false)
+    setHistoryPhase(null)
+    setViewTab("map")
+  }, [])
+
+  const jumpToEcosystemModel = useCallback((modelId: MarketEcosystemModelId) => {
+    setEcosystemModelId(modelId)
+    setViewTab("ecosystem")
+  }, [])
+
+  const jumpToOssTools = useCallback((_toolId?: string) => {
+    setSelectedId(null)
+    setHighlightedFurnitureId(null)
+    setIsRankingOpen(false)
+    setIsMovementHistoryOpen(false)
+    setHistoryPhase(null)
+    setViewTab("oss")
+  }, [])
+
+  const activeEcosystemTopology = useMemo(
+    () =>
+      MARKET_ECOSYSTEM_TOPOLOGIES.find((t) => t.modelId === ecosystemModelId) ??
+      MARKET_ECOSYSTEM_TOPOLOGIES[0],
+    [ecosystemModelId],
+  )
 
   const architectureCatalog = useMemo(() => listArchitectureCatalog(), [])
 
@@ -476,6 +537,15 @@ export function WorldImplementationView() {
   const systemModel = selectedCountry ? resolveSystemModel(selectedCountry) : null
   const plugInEaseSpec = systemModel ? plugInEaseFromModel(systemModel) : null
   const excessPowerKey = systemModel ? excessPowerFromModel(systemModel) : null
+  const selectedEcosystem = selectedCountry
+    ? getMarketEcosystemForCountry(selectedCountry)
+    : null
+  const selectedEcosystemModelId = selectedEcosystem
+    ? (selectedEcosystem.modelId as MarketEcosystemModelId)
+    : null
+  const selectedEcosystemAccent = selectedEcosystemModelId
+    ? MARKET_ECOSYSTEM_UI_ACCENT[selectedEcosystemModelId]
+    : null
 
   const sidebarRuleSummary = () => {
     if (!selectedCountry) return ""
@@ -791,6 +861,25 @@ export function WorldImplementationView() {
                   value="overview"
                   className="mt-0 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto outline-none"
                 >
+                  {selectedEcosystem && selectedEcosystemModelId && selectedEcosystemAccent && (
+                    <button
+                      type="button"
+                      onClick={() => jumpToEcosystemModel(selectedEcosystemModelId)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors hover:brightness-110",
+                        selectedEcosystemAccent.badge,
+                      )}
+                    >
+                      <span className="min-w-0 flex-1">
+                        ⚡{" "}
+                        {isEn ? "Power topology: " : "採用給電モデル: "}
+                        {isEn ? selectedEcosystem.badgeEn : selectedEcosystem.badgeJa}
+                      </span>
+                      <span aria-hidden className="shrink-0 opacity-80">
+                        ↗
+                      </span>
+                    </button>
+                  )}
                   <div className="flex flex-col gap-2">
                     {SIDEBAR_SPEC_FIELDS.map(({ key, labelKey }) => {
                       const isPlugInEase = key === "plugInEase"
@@ -1006,7 +1095,130 @@ export function WorldImplementationView() {
             <h2 className="text-sm font-semibold text-foreground">{t("ecosystem.title")}</h2>
             <p className="text-xs text-muted-foreground">{t("ecosystem.lead")}</p>
           </div>
-          <CountryPvEcosystem isEn={isEn} />
+
+          <div className="flex flex-wrap gap-2">
+            {MARKET_ECOSYSTEM_TOPOLOGIES.map((topo) => {
+              const id = topo.modelId as MarketEcosystemModelId
+              const accent = MARKET_ECOSYSTEM_UI_ACCENT[id]
+              const active = id === ecosystemModelId
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setEcosystemModelId(id)}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                    active ? accent.tab : accent.tabIdle,
+                  )}
+                >
+                  {isEn ? topo.badgeEn : topo.badgeJa}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[10px] font-medium text-muted-foreground">
+              {t("ecosystem.viewMode.label")}
+            </p>
+            <ToggleGroup
+              value={[ecosystemViewMode]}
+              onValueChange={(v) => {
+                if (v[0] === "hardware" || v[0] === "software") {
+                  setEcosystemViewMode(v[0])
+                }
+              }}
+              variant="outline"
+              className="flex w-full flex-wrap sm:w-auto"
+              aria-label={t("ecosystem.viewMode.label")}
+            >
+              <ToggleGroupItem
+                value="hardware"
+                className="flex-1 text-xs sm:flex-none"
+              >
+                {t("ecosystem.viewMode.hardware")}
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="software"
+                className="flex-1 text-xs sm:flex-none"
+              >
+                {t("ecosystem.viewMode.software")}
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+
+          <div
+            className={cn(
+              "shrink-0 space-y-2 rounded-xl border bg-black/40 p-3 sm:p-4",
+              ecosystemAccent.panel,
+            )}
+          >
+            <p className="text-xs font-medium text-muted-foreground">
+              {isEn
+                ? "🌍 Main countries & regions using this power model"
+                : "🌍 この給電モデルを採用している主な国・地域"}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {ecosystemAdopterCountries.length === 0 ? (
+                <span className="text-[11px] text-muted-foreground">
+                  {isEn ? "No countries listed" : "該当国なし"}
+                </span>
+              ) : (
+                ecosystemAdopterCountries.map((country) => (
+                  <button
+                    key={country.id}
+                    type="button"
+                    onClick={() => jumpToMapCountry(country.id)}
+                    className={cn(
+                      "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                      ecosystemAccent.chip,
+                    )}
+                  >
+                    {formatMarketEcosystemCountryChip(country, isEn)}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Hide inner ①②③ tabs — parent owns model selection for chip sync.
+              remount on locale / viewMode so wiringFlow + SVG overlays refresh.
+              Hide default wiring-step cards (5th child); re-render below as hardware specs. */}
+          <div className="[&>div>div:first-child]:hidden [&>div>div:nth-child(5)]:hidden">
+            <CountryPvEcosystem
+              key={`${ecosystemModelId}:${ecosystemViewMode}:${isEn ? "en" : "ja"}:${resolveMarketEcosystemWiringFlow(
+                activeEcosystemTopology,
+                isEn,
+              ).generation}`}
+              isEn={isEn}
+              modelId={ecosystemModelId}
+              viewMode={ecosystemViewMode}
+              onSelectOssTab={() => jumpToOssTools()}
+            />
+          </div>
+
+          {/* Hardware wiring specs only — software overlays live on the SVG above */}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {ECOSYSTEM_WIRING_STEPS.map((stepKey) => {
+              const flow = resolveMarketEcosystemWiringFlow(
+                activeEcosystemTopology,
+                isEn,
+              )
+              return (
+                <div
+                  key={stepKey}
+                  className="flex flex-col gap-1.5 rounded-lg border border-border/40 bg-slate-950/50 px-3 py-2"
+                >
+                  <p className="text-[10px] font-medium text-muted-foreground">
+                    {t(`ecosystem.wiringSteps.${stepKey}`)}
+                  </p>
+                  <p className="text-xs leading-relaxed break-words text-slate-200">
+                    {flow[stepKey]}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </TabsContent>
 
