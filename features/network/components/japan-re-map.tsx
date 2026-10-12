@@ -16,6 +16,7 @@ import {
   localizedMapSite,
   matchesModelCategory,
   uiText,
+  type MapRegionFocus,
   type ModelCategory,
   type NetworkLocale,
   type NetworkModel,
@@ -41,13 +42,6 @@ const MAP_SCALE = 1350
 
 type MapCamera = { center: [number, number]; zoom: number }
 type CategoryFilter = ModelCategory | "all"
-type RegionFocus =
-  | "all"
-  | "tohoku"
-  | "kanto"
-  | "chubu"
-  | "kansai"
-  | "kyushu"
 
 interface JapanReMapProps {
   locale: NetworkLocale
@@ -55,25 +49,16 @@ interface JapanReMapProps {
   onSelect: (model: NetworkModel | null) => void
 }
 
-const REGION_CAMERA: Record<RegionFocus, MapCamera> = {
+const REGION_CAMERA: Record<MapRegionFocus, MapCamera> = {
   all: { center: MAP_CENTER, zoom: 1 },
+  hokkaido: { center: [142.5, 43.3], zoom: 2.4 },
   tohoku: { center: [140.5, 39.2], zoom: 2.6 },
   kanto: { center: [139.7, 35.9], zoom: 3.4 },
   chubu: { center: [137.8, 35.8], zoom: 3.2 },
   kansai: { center: [135.5, 34.7], zoom: 3.4 },
   kyushu: { center: [130.7, 32.0], zoom: 2.8 },
-}
-
-/** Approximate pin → macro region for filter dimming (paths stay visible). */
-const SITE_REGION: Record<NetworkModel, RegionFocus> = {
-  yamanashi: "chubu",
-  fukushima: "tohoku",
-}
-
-/** Site pin overrides — central Honshu (Yamanashi) / southern Tohoku (Fukushima). */
-const SITE_COORDINATES: Partial<Record<NetworkModel, [number, number]>> = {
-  yamanashi: [138.57, 35.66],
-  fukushima: [140.47, 37.75],
+  okinawa: { center: [127.7, 26.5], zoom: 4.2 },
+  ocean: { center: [132.0, 30.5], zoom: 2.4 },
 }
 
 const FILTER_OPTIONS: readonly {
@@ -81,22 +66,28 @@ const FILTER_OPTIONS: readonly {
   uiKey: keyof typeof NETWORK_UI
 }[] = [
   { id: "all", uiKey: "japanMapFilterAll" },
-  { id: "p2g", uiKey: "japanMapFilterP2g" },
-  { id: "vpp", uiKey: "japanMapFilterVpp" },
-  { id: "microgrid", uiKey: "japanMapFilterMicrogrid" },
-  { id: "self-line", uiKey: "japanMapFilterSelfLine" },
+  { id: "solar", uiKey: "japanMapFilterSolar" },
+  { id: "wind", uiKey: "japanMapFilterWind" },
+  { id: "ocean", uiKey: "japanMapFilterOcean" },
+  { id: "biomass", uiKey: "japanMapFilterBiomass" },
+  { id: "geothermal", uiKey: "japanMapFilterGeothermal" },
+  { id: "hydro", uiKey: "japanMapFilterHydro" },
+  { id: "hydrogen", uiKey: "japanMapFilterHydrogen" },
 ]
 
 const REGION_OPTIONS: readonly {
-  id: RegionFocus
+  id: MapRegionFocus
   uiKey: keyof typeof NETWORK_UI
 }[] = [
   { id: "all", uiKey: "japanMapRegionAll" },
+  { id: "hokkaido", uiKey: "japanMapRegionHokkaido" },
   { id: "tohoku", uiKey: "japanMapRegionTohoku" },
   { id: "kanto", uiKey: "japanMapRegionKanto" },
   { id: "chubu", uiKey: "japanMapRegionChubu" },
   { id: "kansai", uiKey: "japanMapRegionKansai" },
   { id: "kyushu", uiKey: "japanMapRegionKyushu" },
+  { id: "okinawa", uiKey: "japanMapRegionOkinawa" },
+  { id: "ocean", uiKey: "japanMapRegionOcean" },
 ]
 
 const MODEL_IDS = Object.keys(NETWORK_MODELS) as NetworkModel[]
@@ -105,22 +96,18 @@ function clampZoom(z: number) {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 }
 
-function siteCoordinates(id: NetworkModel): [number, number] {
-  return SITE_COORDINATES[id] ?? NETWORK_MODELS[id].coordinates
-}
-
 export function JapanReMap({
   locale,
   selectedModelId,
   onSelect,
 }: JapanReMapProps) {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all")
-  const [regionFocus, setRegionFocus] = useState<RegionFocus>("all")
+  const [regionFocus, setRegionFocus] = useState<MapRegionFocus>("all")
   const [hoveredId, setHoveredId] = useState<NetworkModel | null>(null)
   const [center, setCenter] = useState<[number, number]>(REGION_CAMERA.all.center)
   const [zoom, setZoom] = useState(REGION_CAMERA.all.zoom)
 
-  function focusRegion(id: RegionFocus) {
+  function focusRegion(id: MapRegionFocus) {
     setRegionFocus(id)
     const cam = REGION_CAMERA[id]
     setCenter(cam.center)
@@ -140,24 +127,14 @@ export function JapanReMap({
 
   function selectPin(id: NetworkModel) {
     const config = NETWORK_MODELS[id]
-    if (!matchesModelCategory(config.modelCategory, categoryFilter)) return
-    if (regionFocus !== "all" && SITE_REGION[id] !== regionFocus) return
+    if (!matchesModelCategory(config, categoryFilter)) return
+    if (regionFocus !== "all" && config.mapRegion !== regionFocus) return
     onSelect(selectedModelId === id ? null : id)
   }
 
   const sortedPins = [...MODEL_IDS].sort((a, b) => {
-    const aMatch = matchesModelCategory(
-      NETWORK_MODELS[a].modelCategory,
-      categoryFilter
-    )
-      ? 1
-      : 0
-    const bMatch = matchesModelCategory(
-      NETWORK_MODELS[b].modelCategory,
-      categoryFilter
-    )
-      ? 1
-      : 0
+    const aMatch = matchesModelCategory(NETWORK_MODELS[a], categoryFilter) ? 1 : 0
+    const bMatch = matchesModelCategory(NETWORK_MODELS[b], categoryFilter) ? 1 : 0
     if (aMatch !== bMatch) return aMatch - bMatch
     const aTop = a === selectedModelId || a === hoveredId ? 1 : 0
     const bTop = b === selectedModelId || b === hoveredId ? 1 : 0
@@ -181,7 +158,7 @@ export function JapanReMap({
         </select>
         <select
           value={regionFocus}
-          onChange={(e) => focusRegion(e.target.value as RegionFocus)}
+          onChange={(e) => focusRegion(e.target.value as MapRegionFocus)}
           aria-label={uiText("japanMapRegionAria", locale)}
           className="cursor-pointer rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs font-medium text-slate-100 shadow-sm backdrop-blur hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
         >
@@ -262,10 +239,10 @@ export function JapanReMap({
             {sortedPins.map((id) => {
               const config = NETWORK_MODELS[id]
               const copy = localizedMapSite(config, locale)
-              const coords = siteCoordinates(id)
+              const coords = config.coordinates
               const isMatch =
-                matchesModelCategory(config.modelCategory, categoryFilter) &&
-                (regionFocus === "all" || SITE_REGION[id] === regionFocus)
+                matchesModelCategory(config, categoryFilter) &&
+                (regionFocus === "all" || config.mapRegion === regionFocus)
               const isSelected = id === selectedModelId
               const isHovered = id === hoveredId
               const color = categoryColor(config.modelCategory)

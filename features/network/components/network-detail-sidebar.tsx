@@ -21,7 +21,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import {
   NETWORK_MODELS,
+  caseStatusKey,
   categoryColor,
+  energyTypeFilterKey,
   localizedMapSite,
   localizedModel,
   localizedNode,
@@ -165,21 +167,19 @@ export function NetworkDetailSidebar({
   }, [])
 
   const categoryLabel =
-    config &&
-    uiText(
-      config.modelCategory === "p2g"
-        ? "japanMapFilterP2g"
-        : config.modelCategory === "vpp"
-          ? "japanMapFilterVpp"
-          : config.modelCategory === "microgrid"
-            ? "japanMapFilterMicrogrid"
-            : "japanMapFilterSelfLine",
-      locale,
-    )
+    config && uiText(energyTypeFilterKey(config.modelCategory), locale)
 
   const supplyNodes = config?.nodes.filter((n) => n.kind === "supply") ?? []
   const convertNodes = config?.nodes.filter((n) => n.kind === "convert") ?? []
   const consumeNodes = config?.nodes.filter((n) => n.kind === "consume") ?? []
+  const paradigmText =
+    config &&
+    (locale === "en"
+      ? (config.paradigmPointEn ?? config.paradigmPoint)
+      : config.paradigmPoint)
+  const partnersText =
+    config &&
+    (locale === "en" ? (config.partnersEn ?? config.partners) : config.partners)
 
   return (
     <Card
@@ -248,22 +248,35 @@ export function NetworkDetailSidebar({
                   variant="outline"
                   className="w-fit border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300"
                 >
-                  {uiText(networkMethodKey(config.modelCategory), locale)}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="w-fit border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300"
-                >
-                  {uiText("selfSufficiency", locale)} {config.selfSufficiencyPct}%
+                  {uiText(caseStatusKey(config.caseStatus), locale)}
                 </Badge>
                 <Badge
                   variant="outline"
                   className="w-fit border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-normal text-slate-300"
                 >
-                  {config.modelCategory === "microgrid" || config.modelCategory === "self-line"
-                    ? uiText("gridIsland", locale)
-                    : uiText("gridLinked", locale)}
+                  {uiText(networkMethodKey(config.modelCategory), locale)}
                 </Badge>
+                {config.energyTypes.map((type) => (
+                  <Badge
+                    key={type}
+                    variant="outline"
+                    className="w-fit px-2 py-0.5 text-[10px] font-normal"
+                    style={{
+                      borderColor: `${categoryColor(type)}66`,
+                      color: categoryColor(type),
+                    }}
+                  >
+                    {uiText(energyTypeFilterKey(type), locale)}
+                  </Badge>
+                ))}
+                {typeof config.selfSufficiencyPct === "number" ? (
+                  <Badge
+                    variant="outline"
+                    className="w-fit border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300"
+                  >
+                    {uiText("selfSufficiency", locale)} {config.selfSufficiencyPct}%
+                  </Badge>
+                ) : null}
               </div>
             </div>
 
@@ -310,6 +323,40 @@ export function NetworkDetailSidebar({
           <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pl-5 text-sm">
             <p className="leading-relaxed text-slate-300">{modelCopy.description}</p>
 
+            {paradigmText ? (
+              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+                <p className="text-[10px] font-semibold tracking-wider text-emerald-400 uppercase">
+                  {uiText("caseParadigm", locale)}
+                </p>
+                <p className="mt-1.5 leading-relaxed text-slate-200">{paradigmText}</p>
+              </div>
+            ) : null}
+
+            {partnersText ? (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {uiText("casePartners", locale)}
+                </p>
+                <p className="mt-1 leading-relaxed text-slate-300">{partnersText}</p>
+              </div>
+            ) : null}
+
+            {config.sourceUrl ? (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {uiText("caseSource", locale)}
+                </p>
+                <a
+                  href={config.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-block break-all text-sm text-cyan-400 underline-offset-2 hover:underline"
+                >
+                  {config.sourceUrl}
+                </a>
+              </div>
+            ) : null}
+
             <div className="flex flex-col gap-1">
               <p className="text-xs font-medium text-muted-foreground">
                 {uiText("flowSection", locale)}
@@ -320,13 +367,13 @@ export function NetworkDetailSidebar({
                 nodes={supplyNodes}
                 locale={locale}
               />
-              <FlowConnector mode={flowMode} />
+              {convertNodes.length > 0 ? <FlowConnector mode={flowMode} /> : null}
               <StageSection
                 label={uiText("stageBuffer", locale)}
                 nodes={convertNodes}
                 locale={locale}
               />
-              <FlowConnector mode={flowMode} />
+              {consumeNodes.length > 0 ? <FlowConnector mode={flowMode} /> : null}
               <StageSection
                 label={uiText("stageConsume", locale)}
                 nodes={consumeNodes}

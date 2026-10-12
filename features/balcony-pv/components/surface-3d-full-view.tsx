@@ -1,17 +1,29 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Sofa } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
 import {
+  DEFAULT_LIVING_CONTEXT,
   getCountryArchitectureConfig,
+  getPanelTiltOption,
+  getTiltMetric,
   listArchitectureCatalog,
+  resolveDefaultTiltMode,
+  resolveLivingMetrics,
+  resolveSupportedTiltModes,
   type ArchitectureProfile,
+  type LivingContext,
+  type LivingHabit,
+  type PanelTiltMode,
   type SolarFurnitureId,
   type SurfaceTiltAngle,
+  type WeatherCondition,
 } from '../data'
 import { Surface3DViewer } from './surface-3d-viewer'
 
@@ -23,6 +35,12 @@ export type Surface3DFocus = {
 export type Surface3DFullViewProps = {
   initialFocus?: Surface3DFocus | null
   className?: string
+  /** Controlled install-style (variable tilt / 出仕舞い). */
+  tiltMode?: PanelTiltMode
+  onTiltModeChange?: (mode: PanelTiltMode) => void
+  /** Controlled living / weather scenario (optional). */
+  livingContext?: LivingContext
+  onLivingContextChange?: (ctx: LivingContext) => void
 }
 
 type AnglePreset = '0°' | '30°' | '90°'
@@ -50,9 +68,17 @@ function resolveInitialProfile(
   return { countryId: first.countryId, profile: first.profile }
 }
 
-export function Surface3DFullView({ initialFocus = null, className }: Surface3DFullViewProps) {
+export function Surface3DFullView({
+  initialFocus = null,
+  className,
+  tiltMode: tiltModeProp,
+  onTiltModeChange,
+  livingContext: livingContextProp,
+  onLivingContextChange,
+}: Surface3DFullViewProps) {
   const t = useTranslations('worldPv.architecture')
   const tFull = useTranslations('worldPv.architecture.surface3d.fullView')
+  const tPv = useTranslations('balconyPv')
   const catalog = useMemo(() => listArchitectureCatalog(), [])
   const initial = useMemo(
     () => resolveInitialProfile(initialFocus, catalog),
@@ -70,6 +96,9 @@ export function Surface3DFullView({ initialFocus = null, className }: Surface3DF
   const [furnitureId, setFurnitureId] = useState<SolarFurnitureId | null>(
     initial.profile.adaptedFurnitureIds[0] ?? null,
   )
+  const [tiltModeInternal, setTiltModeInternal] = useState<PanelTiltMode>('optimal_tilt')
+  const [livingContextInternal, setLivingContextInternal] =
+    useState<LivingContext>(DEFAULT_LIVING_CONTEXT)
 
   const profile = useMemo(() => {
     const cfg = getCountryArchitectureConfig(countryId)
@@ -83,6 +112,48 @@ export function Surface3DFullView({ initialFocus = null, className }: Surface3DF
     )
   }, [catalog, profile.id])
 
+  const supportedTiltModes = useMemo(
+    () =>
+      typology
+        ? resolveSupportedTiltModes(typology)
+        : (['horizontal', 'optimal_tilt', 'vertical', 'retracted'] as PanelTiltMode[]),
+    [typology],
+  )
+
+  const tiltMode = tiltModeProp ?? tiltModeInternal
+  const setTiltMode = (mode: PanelTiltMode) => {
+    if (onTiltModeChange) onTiltModeChange(mode)
+    else setTiltModeInternal(mode)
+  }
+
+  const livingContext = livingContextProp ?? livingContextInternal
+  const setLivingContext = (next: LivingContext) => {
+    if (onLivingContextChange) onLivingContextChange(next)
+    else setLivingContextInternal(next)
+  }
+
+  useEffect(() => {
+    if (tiltModeProp !== undefined) return
+    if (!typology) return
+    setTiltModeInternal(resolveDefaultTiltMode(typology))
+  }, [typology, tiltModeProp])
+
+  useEffect(() => {
+    if (livingContext.weather !== 'typhoon_alert') return
+    if (!supportedTiltModes.includes('retracted')) return
+    if (tiltMode === 'retracted') return
+    setTiltMode('retracted')
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to weather / supported modes
+  }, [livingContext.weather, supportedTiltModes])
+
+  const tiltOption = getPanelTiltOption(tiltMode)
+  const tiltMetric = getTiltMetric(tiltMode)
+  const livingMetrics = useMemo(
+    () => resolveLivingMetrics(livingContext, tiltMode, typology?.id),
+    [livingContext, tiltMode, typology?.id],
+  )
+  const isRetracted = tiltMode === 'retracted'
+
   const countryProfiles = useMemo(() => {
     return getCountryArchitectureConfig(countryId)?.profiles ?? [profile]
   }, [countryId, profile])
@@ -94,6 +165,11 @@ export function Surface3DFullView({ initialFocus = null, className }: Surface3DF
       setAngle(nextProfile.tiltAngle as AnglePreset)
     }
     setFurnitureId(nextProfile.adaptedFurnitureIds[0] ?? null)
+    const nextTypology =
+      catalog.find((r) => r.profile.id === nextProfile.id)?.typology ?? typology
+    if (nextTypology && tiltModeProp === undefined) {
+      setTiltModeInternal(resolveDefaultTiltMode(nextTypology))
+    }
   }
 
   const angleMatches = (tilt: SurfaceTiltAngle) => {
@@ -114,6 +190,8 @@ export function Surface3DFullView({ initialFocus = null, className }: Surface3DF
           profileId={profile.model3dId}
           variant="full"
           cameraPreset={angle}
+          tiltDeg={tiltOption.tiltDeg}
+          isRetracted={isRetracted}
           className="h-full rounded-none border-0"
         />
         <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/55 to-transparent px-4 py-3">
@@ -122,6 +200,17 @@ export function Surface3DFullView({ initialFocus = null, className }: Surface3DF
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-300">
             {tFull('lead')}
           </p>
+        </div>
+        <div className="pointer-events-none absolute right-3 bottom-3 z-10">
+          <Badge
+            variant="outline"
+            className="bg-background/85 font-mono text-[10px] shadow-sm ring-1 ring-border/50"
+          >
+            {tPv('operatingTilt', {
+              deg: tiltOption.tiltDeg,
+              label: tPv(`tiltMode.${tiltMode}`),
+            })}
+          </Badge>
         </div>
       </div>
 
@@ -178,6 +267,125 @@ export function Surface3DFullView({ initialFocus = null, className }: Surface3DF
             </div>
           </div>
         )}
+
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[11px] font-semibold text-muted-foreground">
+            {tPv('tiltModeLabel')}
+          </p>
+          <ToggleGroup
+            value={[tiltMode]}
+            onValueChange={(v) => v[0] && setTiltMode(v[0] as PanelTiltMode)}
+            variant="outline"
+            className="flex w-full flex-wrap"
+          >
+            {supportedTiltModes.map((mode) => (
+              <ToggleGroupItem key={mode} value={mode} className="flex-1 text-xs">
+                {tPv(`tiltMode.${mode}`)}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[11px] font-semibold text-muted-foreground">
+            {tPv('conditions.livingHabit')}
+          </p>
+          <ToggleGroup
+            value={[livingContext.habit]}
+            onValueChange={(v) => {
+              const habit = v[0] as LivingHabit | undefined
+              if (habit) setLivingContext({ ...livingContext, habit })
+            }}
+            variant="outline"
+            className="flex w-full flex-wrap"
+          >
+            {(
+              [
+                'laundry_drying',
+                'view_preservation_terrace',
+                'outdoor_unit_service',
+              ] as const
+            ).map((habit) => (
+              <ToggleGroupItem key={habit} value={habit} className="flex-1 text-[10px]">
+                {tPv(`livingHabit.${habit}`)}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[11px] font-semibold text-muted-foreground">
+            {tPv('conditions.weather')}
+          </p>
+          <ToggleGroup
+            value={[livingContext.weather]}
+            onValueChange={(v) => {
+              const weather = v[0] as WeatherCondition | undefined
+              if (weather) setLivingContext({ ...livingContext, weather })
+            }}
+            variant="outline"
+            className="flex w-full flex-wrap"
+          >
+            {(['clear', 'overcast_tsuyu', 'typhoon_alert'] as const).map((weather) => (
+              <ToggleGroupItem key={weather} value={weather} className="flex-1 text-[10px]">
+                {tPv(`weather.${weather}`)}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
+
+        <Card className="border-border/50 bg-muted/40 shadow-none">
+          <CardHeader className="space-y-0 px-3 pt-3 pb-1.5">
+            <CardTitle className="text-[11px] font-semibold text-muted-foreground">
+              {tPv('livingMetrics.cardTitle')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2.5 px-3 pb-3">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[10px] text-muted-foreground">
+                  {tPv('livingMetrics.relativeEfficiency')}
+                </span>
+                <span className="font-mono text-xs tabular-nums text-foreground">
+                  {livingMetrics.displayEfficiencyPct}%
+                  {tiltMetric.efficiencyNote ? ` (${tiltMetric.efficiencyNote})` : null}
+                </span>
+              </div>
+              <Progress value={livingMetrics.displayEfficiencyPct} className="h-1.5" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[10px] text-muted-foreground">
+                  {tPv('livingMetrics.lifeCompliance')}
+                </span>
+                <span className="font-mono text-xs tabular-nums text-primary">
+                  {livingMetrics.lifeCompliancePct}%
+                </span>
+              </div>
+              <Progress value={livingMetrics.lifeCompliancePct} className="h-1.5" />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <Badge
+                variant="secondary"
+                className="h-5 rounded-md px-1.5 text-[10px] font-medium"
+              >
+                {tiltMetric.winterAdvantage}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="h-5 rounded-md px-1.5 text-[10px] font-medium"
+              >
+                {tPv('livingMetrics.windRisk')}: {tiltMetric.windRisk}
+              </Badge>
+            </div>
+            {livingContext.weather === 'typhoon_alert' && (
+              <p className="text-[10px] text-amber-300/90">
+                {tPv('livingMetrics.typhoonStowHint')}
+              </p>
+            )}
+            <p className="text-[11px] leading-relaxed text-slate-300">{tiltMetric.summary}</p>
+          </CardContent>
+        </Card>
 
         <div className="flex flex-col gap-1.5">
           <p className="text-[11px] font-semibold text-muted-foreground">{tFull('angleLabel')}</p>
@@ -268,7 +476,10 @@ export function Surface3DFullView({ initialFocus = null, className }: Surface3DF
         <div className="mt-auto rounded-lg border border-border/40 bg-muted/30 px-3 py-2">
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="outline" className="font-mono text-[10px]">
-              {t('surface3d.tiltLabel')}: {profile.tiltAngle}
+              {tPv('operatingTilt', {
+                deg: tiltOption.tiltDeg,
+                label: tPv(`tiltMode.${tiltMode}`),
+              })}
             </Badge>
             {typology ? (
               <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground">

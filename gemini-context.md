@@ -1,6 +1,6 @@
 # 本日のセッション前提コンテキスト
 
-- **実行日時（JST）**: 2026/10/10(土) 16:21:27
+- **実行日時（JST）**: 2026/10/12(月) 12:02:41
 - **プロジェクト**: my-project
 
 ## ディレクトリ構造（最大深度 3）
@@ -360,6 +360,564 @@ export function getRoofTypePreset(type: RoofType): RoofTypePreset {
   return ROOF_TYPES.find((p) => p.value === type) ?? ROOF_TYPES[0]
 }
 
+// ---------------------------------------------------------------------------
+// Typology-first surface master (建築形態が第一級エンティティ)
+// i18n: `balconyPv.typologies.*`
+// ---------------------------------------------------------------------------
+
+/** Architectural balcony / roof receiving-surface typology (locale-independent). */
+export type SurfaceTypology =
+  | 'haussmann_balconet'
+  | 'mansard_dormer'
+  | 'exposed_concrete_parapet'
+  | 'japan_egress_balcony'
+  | 'japanese_tiled_roof'
+  | 'flat_roof_terrace'
+  | 'juliet_balcony'
+  | 'recessed_loggia'
+  | 'pitched_gable_terrace'
+
+/** Biomimetic / living-furniture mount family suited to a typology. */
+export type BiomimeticMechanism =
+  | 'nastic_origami'
+  | 'flexible_perovskite'
+  | 'clamp_mount'
+  | 'catenary_hook'
+
+/** Receiving-surface optical / irradiance character (locale-independent). */
+export type OpticalProfile = 'diffuse_dominant' | 'direct_beam' | 'high_altitude'
+
+/** Locale-independent typical-region keys under `balconyPv.typologies.regions.*`. */
+export type TypicalRegionKey =
+  | 'urban_europe'
+  | 'historic_district'
+  | 'multifamily_general'
+  | 'multifamily_egress'
+  | 'central_europe_stock'
+  | 'tiled_pitch_roofs'
+  | 'flat_deck_roofs'
+  | 'terrace_house_roofs'
+  | 'rental_facades'
+
+/** Recommended mount / fix method for a receiving surface (locale-independent). */
+export type SurfaceMountMethod =
+  | 'clamp_no_drill'
+  | 'freestanding_furniture'
+  | 'vertical_rail_hook'
+  | 'louver_hanger'
+  | 'tile_hook'
+
+export interface SurfaceMountOption {
+  mountMethod: SurfaceMountMethod
+  /** i18n key under `balconyPv.mount.*` (e.g. `mount.clamp_no_drill`). */
+  labelKey: string
+}
+
+export interface PrevalentCountry {
+  code: string
+  /** i18n key under `balconyPv.countries.*` (e.g. `countries.fr`). */
+  nameKey: string
+}
+
+/**
+ * Deployable panel tilt / stow posture (locale-independent).
+ * Labels: `balconyPv.tiltMode.*`.
+ */
+export type PanelTiltMode = 'horizontal' | 'optimal_tilt' | 'vertical' | 'retracted'
+
+export interface PanelTiltOption {
+  id: PanelTiltMode
+  /** Degrees from horizontal when deployed (`retracted` is 0° + stowed pose). */
+  tiltDeg: number
+  /** i18n key under `balconyPv.tiltMode.*`. */
+  labelKey: string
+}
+
+/** Master of install-style (variable tilt / 出仕舞い) options. */
+export const PANEL_TILT_OPTIONS: readonly PanelTiltOption[] = [
+  { id: 'horizontal', tiltDeg: 0, labelKey: 'tiltMode.horizontal' },
+  { id: 'optimal_tilt', tiltDeg: 30, labelKey: 'tiltMode.optimal_tilt' },
+  { id: 'vertical', tiltDeg: 90, labelKey: 'tiltMode.vertical' },
+  { id: 'retracted', tiltDeg: 0, labelKey: 'tiltMode.retracted' },
+] as const
+
+export function getPanelTiltOption(mode: PanelTiltMode): PanelTiltOption {
+  return PANEL_TILT_OPTIONS.find((o) => o.id === mode) ?? PANEL_TILT_OPTIONS[0]
+}
+
+/** Efficiency / safety trade-offs for each install-style (demo heuristic). */
+export interface TiltMetric {
+  annualEfficiencyPct: number
+  /** Season / irradiance fit (display copy). */
+  winterAdvantage: string
+  /** Wind-load character (display copy). */
+  windRisk: string
+  /** One-line living / install trade-off hint. */
+  summary: string
+  /** Optional progress caption (e.g. winter relative note). */
+  efficiencyNote?: string
+}
+
+/**
+ * Angle-wise generation & safety metrics keyed by PanelTiltMode.
+ * Relative annual efficiency vs optimal_tilt = 100%.
+ */
+export const TILT_METRICS: Record<PanelTiltMode, TiltMetric> = {
+  optimal_tilt: {
+    annualEfficiencyPct: 100,
+    winterAdvantage: '年間ピーク',
+    windRisk: '中',
+    summary:
+      '緯度相当の傾斜で年間発電のピークを狙う。生活動線と風圧のバランスが取りやすい基準姿勢。',
+    efficiencyNote: '年間基準',
+  },
+  horizontal: {
+    annualEfficiencyPct: 84,
+    winterAdvantage: '散乱光・平置き',
+    windRisk: '注意（下からの風圧大）',
+    summary:
+      '床置き・家具型に向く平置き。曇天の散乱光は拾いやすいが、下からの風圧と避難動線の占有に注意。',
+    efficiencyNote: '散乱光向き',
+  },
+  vertical: {
+    annualEfficiencyPct: 72,
+    winterAdvantage: '冬季・朝夕に強い',
+    windRisk: '安全（風を受け流す）',
+    summary:
+      '垂直設置は風を壁面で受け流し、冬の低い太陽光を効率的に捉えます。',
+    efficiencyNote: '冬期は90%超',
+  },
+  retracted: {
+    annualEfficiencyPct: 0,
+    winterAdvantage: '外力回避',
+    windRisk: '完全回避',
+    summary:
+      '出仕舞いで発電は止める代わりに、台風・突風時の外力と避難路を完全に優先する退避姿勢。',
+    efficiencyNote: '発電オフ',
+  },
+}
+
+export function getTiltMetric(mode: PanelTiltMode): TiltMetric {
+  return TILT_METRICS[mode]
+}
+
+export interface SurfaceTypologyDetail {
+  id: SurfaceTypology
+  category: 'balcony' | 'roof'
+  /** i18n key under `balconyPv.typologies.<id>.name` (short path stored). */
+  nameKey: string
+  defaultTiltDeg: number
+  irradiance: SurfaceIrradianceParams
+  /** Optical / beam character of the receiving geometry. */
+  opticalProfile: OpticalProfile
+  /** Secondary context only — not card identity (i18n via `regions.*`). */
+  typicalRegions: TypicalRegionKey[]
+  /** Countries where this form is mainly seen (i18n via `countries.*`). */
+  prevalentCountries: PrevalentCountry[]
+  /** Recommended fix methods for install-job support. */
+  mountOptions: SurfaceMountOption[]
+  /** 出仕舞い（強風時退避機構）が必要か */
+  requiresDeShimai: boolean
+  /** i18n key under `balconyPv.typologies.<id>.constraints`. */
+  constraintsKey: string
+  biomimeticSuitability: {
+    mechanism: BiomimeticMechanism
+    /** 出仕舞い（退避機構）が必須か */
+    deShimaiRequired: boolean
+    descriptionKey: string
+  }
+  /** Install-style modes the form can physically support. */
+  supportedTiltModes?: PanelTiltMode[]
+  /** Initial install-style when the typology is selected. */
+  defaultTiltMode?: PanelTiltMode
+}
+
+/** Resolve supported tilt modes with geometry-aware fallback. */
+export function resolveSupportedTiltModes(
+  detail: SurfaceTypologyDetail,
+): PanelTiltMode[] {
+  if (detail.supportedTiltModes && detail.supportedTiltModes.length > 0) {
+    return [...detail.supportedTiltModes]
+  }
+  if (detail.defaultTiltDeg >= 80) return ['vertical', 'horizontal', 'retracted']
+  if (detail.defaultTiltDeg >= 20) return ['optimal_tilt', 'horizontal', 'retracted']
+  return ['horizontal', 'optimal_tilt', 'retracted']
+}
+
+/** Resolve default tilt mode with geometry-aware fallback. */
+export function resolveDefaultTiltMode(
+  detail: SurfaceTypologyDetail,
+): PanelTiltMode {
+  if (detail.defaultTiltMode) return detail.defaultTiltMode
+  if (detail.defaultTiltDeg >= 80) return 'vertical'
+  if (detail.defaultTiltDeg >= 20) return 'optimal_tilt'
+  return 'horizontal'
+}
+
+/**
+ * Master catalog: pure architectural form + irradiance geometry first;
+ * typical regions and regulations are secondary context only.
+ */
+export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
+  {
+    id: 'haussmann_balconet',
+    category: 'balcony',
+    nameKey: 'haussmann_balconet.name',
+    defaultTiltDeg: 90,
+    irradiance: {
+      receivingAreaM2: 1.8,
+      tiltDeg: 90,
+      directRatio: 0.4,
+      diffuseRatio: 0.6,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['urban_europe', 'historic_district'],
+    prevalentCountries: [
+      { code: 'FR', nameKey: 'countries.fr' },
+      { code: 'BE', nameKey: 'countries.be' },
+    ],
+    mountOptions: [
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+      { mountMethod: 'vertical_rail_hook', labelKey: 'mount.vertical_rail_hook' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'haussmann_balconet.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'haussmann_balconet.mechanism',
+    },
+    supportedTiltModes: ['vertical', 'horizontal', 'retracted'],
+    defaultTiltMode: 'vertical',
+  },
+  {
+    id: 'mansard_dormer',
+    category: 'roof',
+    nameKey: 'mansard_dormer.name',
+    defaultTiltDeg: 45,
+    irradiance: {
+      receivingAreaM2: 10,
+      tiltDeg: 45,
+      directRatio: 0.38,
+      diffuseRatio: 0.62,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['urban_europe', 'historic_district'],
+    prevalentCountries: [
+      { code: 'FR', nameKey: 'countries.fr' },
+      { code: 'BE', nameKey: 'countries.be' },
+    ],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'mansard_dormer.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'mansard_dormer.mechanism',
+    },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
+  },
+  {
+    id: 'exposed_concrete_parapet',
+    category: 'balcony',
+    nameKey: 'exposed_concrete_parapet.name',
+    defaultTiltDeg: 90,
+    irradiance: {
+      receivingAreaM2: 3.2,
+      tiltDeg: 90,
+      directRatio: 0.42,
+      diffuseRatio: 0.58,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['central_europe_stock', 'multifamily_general'],
+    prevalentCountries: [
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'AT', nameKey: 'countries.at' },
+    ],
+    mountOptions: [
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'exposed_concrete_parapet.constraints',
+    biomimeticSuitability: {
+      mechanism: 'clamp_mount',
+      deShimaiRequired: false,
+      descriptionKey: 'exposed_concrete_parapet.mechanism',
+    },
+    supportedTiltModes: ['vertical', 'horizontal', 'retracted'],
+    defaultTiltMode: 'vertical',
+  },
+  {
+    id: 'japan_egress_balcony',
+    category: 'balcony',
+    nameKey: 'japan_egress_balcony.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 4.5,
+      tiltDeg: 0,
+      directRatio: 0.45,
+      diffuseRatio: 0.55,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['multifamily_egress', 'multifamily_general'],
+    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
+    mountOptions: [
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: true,
+    constraintsKey: 'japan_egress_balcony.constraints',
+    biomimeticSuitability: {
+      mechanism: 'nastic_origami',
+      deShimaiRequired: true,
+      descriptionKey: 'japan_egress_balcony.mechanism',
+    },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
+  },
+  {
+    id: 'japanese_tiled_roof',
+    category: 'roof',
+    nameKey: 'japanese_tiled_roof.name',
+    defaultTiltDeg: 30,
+    irradiance: {
+      receivingAreaM2: 12,
+      tiltDeg: 30,
+      directRatio: 0.48,
+      diffuseRatio: 0.52,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['tiled_pitch_roofs'],
+    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'japanese_tiled_roof.constraints',
+    biomimeticSuitability: {
+      mechanism: 'catenary_hook',
+      deShimaiRequired: false,
+      descriptionKey: 'japanese_tiled_roof.mechanism',
+    },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
+  },
+  {
+    id: 'flat_roof_terrace',
+    category: 'roof',
+    nameKey: 'flat_roof_terrace.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 18,
+      tiltDeg: 5,
+      directRatio: 0.5,
+      diffuseRatio: 0.5,
+    },
+    opticalProfile: 'high_altitude',
+    typicalRegions: ['flat_deck_roofs', 'multifamily_general'],
+    prevalentCountries: [
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'JP', nameKey: 'countries.jp' },
+      { code: 'FR', nameKey: 'countries.fr' },
+    ],
+    mountOptions: [
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+    ],
+    requiresDeShimai: true,
+    constraintsKey: 'flat_roof_terrace.constraints',
+    biomimeticSuitability: {
+      mechanism: 'nastic_origami',
+      deShimaiRequired: true,
+      descriptionKey: 'flat_roof_terrace.mechanism',
+    },
+    supportedTiltModes: ['horizontal', 'optimal_tilt', 'retracted'],
+    defaultTiltMode: 'horizontal',
+  },
+  {
+    id: 'juliet_balcony',
+    category: 'balcony',
+    nameKey: 'juliet_balcony.name',
+    defaultTiltDeg: 90,
+    irradiance: {
+      receivingAreaM2: 2.2,
+      tiltDeg: 90,
+      directRatio: 0.35,
+      diffuseRatio: 0.65,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['rental_facades', 'urban_europe'],
+    prevalentCountries: [
+      { code: 'GB', nameKey: 'countries.gb' },
+      { code: 'FR', nameKey: 'countries.fr' },
+    ],
+    mountOptions: [
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+      { mountMethod: 'vertical_rail_hook', labelKey: 'mount.vertical_rail_hook' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'juliet_balcony.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'juliet_balcony.mechanism',
+    },
+    supportedTiltModes: ['vertical', 'horizontal', 'retracted'],
+    defaultTiltMode: 'vertical',
+  },
+  {
+    id: 'recessed_loggia',
+    category: 'balcony',
+    nameKey: 'recessed_loggia.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 3.8,
+      tiltDeg: 0,
+      directRatio: 0.28,
+      diffuseRatio: 0.72,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['multifamily_general', 'urban_europe'],
+    prevalentCountries: [
+      { code: 'IT', nameKey: 'countries.it' },
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'FR', nameKey: 'countries.fr' },
+    ],
+    mountOptions: [
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'recessed_loggia.constraints',
+    biomimeticSuitability: {
+      mechanism: 'clamp_mount',
+      deShimaiRequired: false,
+      descriptionKey: 'recessed_loggia.mechanism',
+    },
+    supportedTiltModes: ['horizontal', 'optimal_tilt', 'retracted'],
+    defaultTiltMode: 'horizontal',
+  },
+  {
+    id: 'pitched_gable_terrace',
+    category: 'roof',
+    nameKey: 'pitched_gable_terrace.name',
+    defaultTiltDeg: 45,
+    irradiance: {
+      receivingAreaM2: 14,
+      tiltDeg: 40,
+      directRatio: 0.42,
+      diffuseRatio: 0.58,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['terrace_house_roofs', 'tiled_pitch_roofs'],
+    prevalentCountries: [
+      { code: 'GB', nameKey: 'countries.gb' },
+      { code: 'DE', nameKey: 'countries.de' },
+    ],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'pitched_gable_terrace.constraints',
+    biomimeticSuitability: {
+      mechanism: 'clamp_mount',
+      deShimaiRequired: false,
+      descriptionKey: 'pitched_gable_terrace.mechanism',
+    },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
+  },
+] as const
+
+export function getSurfaceTypologyDetail(
+  id: SurfaceTypology,
+): SurfaceTypologyDetail {
+  return SURFACE_TYPOLOGIES.find((t) => t.id === id) ?? SURFACE_TYPOLOGIES[0]
+}
+
+/** Typology → legacy balcony selector (undefined when roof-primary). */
+const TYPOLOGY_TO_BALCONY: Partial<Record<SurfaceTypology, BalconyType>> = {
+  haussmann_balconet: 'juliet',
+  exposed_concrete_parapet: 'standard',
+  japan_egress_balcony: 'standard',
+  flat_roof_terrace: 'roof_terrace',
+  juliet_balcony: 'juliet',
+  recessed_loggia: 'recessed',
+}
+
+/** Typology → legacy roof selector (undefined when balcony-primary). */
+const TYPOLOGY_TO_ROOF: Partial<Record<SurfaceTypology, RoofType>> = {
+  mansard_dormer: 'pitched_mansard_dormer',
+  japanese_tiled_roof: 'pitched_gable',
+  flat_roof_terrace: 'flat',
+  pitched_gable_terrace: 'pitched_gable',
+}
+
+const BALCONY_TO_TYPOLOGY: Record<BalconyType, SurfaceTypology> = {
+  standard: 'japan_egress_balcony',
+  juliet: 'juliet_balcony',
+  recessed: 'recessed_loggia',
+  roof_terrace: 'flat_roof_terrace',
+}
+
+const ROOF_TO_TYPOLOGY: Record<RoofType, SurfaceTypology> = {
+  flat: 'flat_roof_terrace',
+  pitched_gable: 'pitched_gable_terrace',
+  pitched_mansard_dormer: 'mansard_dormer',
+}
+
+export function typologyToBalconyType(id: SurfaceTypology): BalconyType | undefined {
+  return TYPOLOGY_TO_BALCONY[id]
+}
+
+export function typologyToRoofType(id: SurfaceTypology): RoofType | undefined {
+  return TYPOLOGY_TO_ROOF[id]
+}
+
+/** Bridge: balcony selector → primary typology. */
+export function balconyTypeToTypology(type: BalconyType): SurfaceTypology {
+  return BALCONY_TO_TYPOLOGY[type]
+}
+
+/** Bridge: roof selector → primary typology. */
+export function roofTypeToTypology(type: RoofType): SurfaceTypology {
+  return ROOF_TO_TYPOLOGY[type]
+}
+
+/**
+ * Irradiance preset for a typology, falling back to legacy balcony/roof tables
+ * when a bridge mapping exists.
+ */
+export function getTypologyIrradiance(id: SurfaceTypology): SurfaceIrradianceParams {
+  const detail = getSurfaceTypologyDetail(id)
+  const balcony = typologyToBalconyType(id)
+  if (balcony && detail.category === 'balcony') {
+    const preset = getBalconyTypePreset(balcony)
+    return {
+      receivingAreaM2: detail.irradiance.receivingAreaM2 || preset.receivingAreaM2,
+      tiltDeg: detail.defaultTiltDeg,
+      directRatio: detail.irradiance.directRatio,
+      diffuseRatio: detail.irradiance.diffuseRatio,
+    }
+  }
+  const roof = typologyToRoofType(id)
+  if (roof && detail.category === 'roof') {
+    const preset = getRoofTypePreset(roof)
+    return {
+      receivingAreaM2: detail.irradiance.receivingAreaM2 || preset.receivingAreaM2,
+      tiltDeg: detail.defaultTiltDeg,
+      directRatio: detail.irradiance.directRatio,
+      diffuseRatio: detail.irradiance.diffuseRatio,
+    }
+  }
+  return detail.irradiance
+}
+
 // Returns a suitability score (0-100) for the balcony simulator based on
 // direction, railing type, and time of day.
 export function computeBalconyScore(direction: Direction, railing: RailingType, hour: number): number {
@@ -482,6 +1040,7 @@ export type AdoptedVendorId =
   | 'hoymiles'
   | 'anker-solix'
   | 'ecoflow'
+  | 'jackery'
   | 'tesla-energy'
   | 'mkopa'
   | 'sun-king'
@@ -491,6 +1050,129 @@ export type AdoptedVendorId =
   | 'solaredge'
   | 'sunrun'
   | 'goodleap'
+
+/** Country-level history milestone (balcony / rooftop / plug-in PV). */
+export interface CountryTimelineMilestone {
+  date: string // e.g. "2014-12", "2020-03", "2024-05"
+  category: 'policy' | 'civil-movement' | 'grid-rule' | 'urban-housing'
+  titleJa: string
+  titleEn: string
+  descriptionJa: string
+  descriptionEn: string
+  orgName?: string
+  orgUrl?: string
+  breakthrough?: string // barrier overcome / contested issue
+  outcome?: string // win / adoption result
+}
+
+/** Phase grouping for a country's renewable / balcony-PV history. */
+export interface CountryTimelinePhase {
+  period: string // e.g. "2010年代半ば〜2020", "2024〜2026"
+  phaseTitleJa: string
+  phaseTitleEn: string
+  milestones: CountryTimelineMilestone[]
+}
+
+/** Local-first / OSS tools for autonomous energy control (EMS, firmware, automation). */
+export interface OssProject {
+  id: string
+  name: string
+  category: 'ems' | 'firmware' | 'automation' | 'protocol' | 'community'
+  descriptionJa: string
+  descriptionEn: string
+  repoUrl?: string
+  siteUrl?: string
+  starsOrBadge?: string
+  /** Job hired (e.g. cloud-off, fully local control). */
+  keyJobJa: string
+  keyJobEn: string
+  compatibleHardwareJa?: string
+  compatibleHardwareEn?: string
+}
+
+/**
+ * Globally useful OSS / software for living-scale energy autonomy
+ * (no central grid SCADA / vendor cloud dependency).
+ */
+export const COMMON_OSS_PROJECTS: OssProject[] = [
+  {
+    id: 'home-assistant',
+    name: 'Home Assistant',
+    category: 'ems',
+    descriptionJa:
+      'ローカル完結のホームオートメーション基盤。発電・蓄電・家電をMQTT等で束ね、クラウドなしで需給と生活動線を可視化・制御できる。',
+    descriptionEn:
+      'Local-first home automation that ties generation, storage, and appliances via MQTT—visualize and control supply/demand without a vendor cloud.',
+    siteUrl: 'https://www.home-assistant.io/',
+    repoUrl: 'https://github.com/home-assistant/core',
+    starsOrBadge: 'EMS',
+    keyJobJa: 'クラウド不要・ローカル完結のエネルギー需給・家電連動ダッシュボード',
+    keyJobEn: 'Cloud-free local energy dashboard with appliance automation',
+    compatibleHardwareJa: 'ESP32, MQTT機器, スマートプラグ, ポータブル電源',
+    compatibleHardwareEn: 'ESP32, MQTT devices, smart plugs, portable power stations',
+  },
+  {
+    id: 'opendtu',
+    name: 'OpenDTU',
+    category: 'firmware',
+    descriptionJa:
+      'Hoymilesマイクロインバータ向けオープンファームウェア。メーカークラウドを介さずESP32で発電データを取得しMQTT公開する。',
+    descriptionEn:
+      'Open firmware for Hoymiles microinverters—read production on ESP32 and publish MQTT without the vendor cloud.',
+    repoUrl: 'https://github.com/tbnobody/OpenDTU',
+    starsOrBadge: 'Firmware',
+    keyJobJa: 'Hoymiles製マイクロインバータの独自クラウドを解雇し、ESP32で完全ローカルMQTT制御',
+    keyJobEn: 'Fire Hoymiles vendor cloud; full local MQTT control via ESP32',
+    compatibleHardwareJa: 'Hoymiles, ESP32',
+    compatibleHardwareEn: 'Hoymiles, ESP32',
+  },
+  {
+    id: 'ahoydtu',
+    name: 'AhoyDTU',
+    category: 'firmware',
+    descriptionJa:
+      'NRF24L01+とESP8266/ESP32でHoymilesインバータと直接通信するDIYプロトコル実装。ベランダ発電のローカル監視に使う。',
+    descriptionEn:
+      'DIY protocol stack using NRF24L01+ and ESP8266/ESP32 to talk directly to Hoymiles inverters for local balcony monitoring.',
+    repoUrl: 'https://github.com/lumapu/ahoy',
+    starsOrBadge: 'Firmware',
+    keyJobJa: 'NRF24L01+ / ESP8266/ESP32によるHoymilesインバータDIY通信プロトコル',
+    keyJobEn: 'DIY Hoymiles inverter protocol via NRF24L01+ / ESP8266/ESP32',
+    compatibleHardwareJa: 'Hoymiles, NRF24L01+, ESP8266, ESP32',
+    compatibleHardwareEn: 'Hoymiles, NRF24L01+, ESP8266, ESP32',
+  },
+  {
+    id: 'solar-assistant',
+    name: 'Solar-Assistant',
+    category: 'ems',
+    descriptionJa:
+      'オフグリッドインバータ・蓄電池向けのスタンドアロン監視OS。Deye等を常時ローカルで見える化し、クラウド依存を避けられる。',
+    descriptionEn:
+      'Standalone monitoring OS for off-grid inverters and batteries (e.g. Deye)—always-on local visibility without cloud lock-in.',
+    siteUrl: 'https://solar-assistant.io/',
+    starsOrBadge: 'EMS',
+    keyJobJa: 'オフグリッドインバータ・蓄電池（Deye等）の常時スタンドアロン監視OS',
+    keyJobEn: 'Always-on standalone monitoring OS for off-grid inverters & batteries (Deye etc.)',
+    compatibleHardwareJa: 'Deye, オフグリッドインバータ, 蓄電池',
+    compatibleHardwareEn: 'Deye, off-grid inverters, battery storage',
+  },
+  {
+    id: 'node-red',
+    name: 'Node-RED',
+    category: 'automation',
+    descriptionJa:
+      'フローベースの自動化ランタイム。天候・日射予測と連動し、パネル退避や充電閾値など生活者ルールを手元で組める。',
+    descriptionEn:
+      'Flow-based automation runtime—wire weather/irradiance forecasts to stow rules and charge thresholds on your own hardware.',
+    siteUrl: 'https://nodered.org/',
+    repoUrl: 'https://github.com/node-red/node-red',
+    starsOrBadge: 'Automation',
+    keyJobJa: '天候API・日射量予測と連動した自律退避・バッテリー充電閾値のフロー制御',
+    keyJobEn: 'Flow control for autonomous stow & battery charge thresholds tied to weather/irradiance APIs',
+    compatibleHardwareJa: 'Raspberry Pi, MQTT, Home Assistant連携',
+    compatibleHardwareEn: 'Raspberry Pi, MQTT, Home Assistant integrations',
+  },
+]
 
 export interface CountryPvDetail {
   id: string
@@ -549,6 +1231,10 @@ export interface CountryPvDetail {
    * (resolved via `PV_VENDORS`). Not shown in related-orgs.
    */
   adoptedVendors?: AdoptedVendorId[]
+  /** Historical phases for the country detail Timeline tab. */
+  timeline?: CountryTimelinePhase[]
+  /** Country-specific OSS / community tools (merged with COMMON_OSS_PROJECTS in the OSS tab). */
+  localTools?: OssProject[]
 }
 
 /** Map legend rows (labels: `worldPv.map.*` or `label` fallback). */
@@ -607,6 +1293,170 @@ export function matchesModelFilter(country: CountryPvDetail, filter: string): bo
   if (filter === 'all') return true
   if (isGridCategoryFilter(filter)) return resolveGridCategory(country) === filter
   return resolveSystemModel(country) === filter
+}
+
+// ---------------------------------------------------------------------------
+// Market ecosystem / power-flow topology (① plug-in · ② no-export · ③ off-grid)
+// ---------------------------------------------------------------------------
+
+/** Locale-independent market-ecosystem model id (maps from GridCategory). */
+export type MarketEcosystemModelId =
+  | 'grid_plugin_allowed'
+  | 'grid_plugin_prohibited'
+  | 'offgrid_leapfrog'
+
+/** Power-wiring topology for a market model (detail-drawer Ecosystem tab). */
+export interface MarketEcosystemTopology {
+  modelId: string // e.g. 'grid_plugin_allowed' | 'grid_plugin_prohibited' | 'offgrid_leapfrog'
+  titleJa: string
+  titleEn: string
+  badgeJa: string // e.g. "① 系統連系・プラグイン公認"
+  badgeEn: string
+  summaryJa: string
+  summaryEn: string
+  wiringFlow: {
+    generation: string // e.g. "AC/DC太陽光モジュール (600/800W)"
+    conversion: string // e.g. "マイクロインバータ + 蓄電池 (Batteriespeicher)"
+    connection: string // e.g. "230V壁コンセント (Schuko/Wieland) 直挿し"
+    metering: string // e.g. "スマートメーター (Smart Meter Light) 逆潮流抑制/動的単価"
+    consumption: string // e.g. "家庭内ベースロード自家消費 + 余剰は系統/バッテリー"
+  }
+  keyFeaturesJa: string[]
+  keyFeaturesEn: string[]
+}
+
+/** GridCategory → MarketEcosystemModelId */
+const GRID_CATEGORY_TO_ECOSYSTEM: Record<GridCategory, MarketEcosystemModelId> = {
+  grid_plug_in: 'grid_plugin_allowed',
+  grid_no_plug: 'grid_plugin_prohibited',
+  no_grid_leapfrog: 'offgrid_leapfrog',
+}
+
+/** Three market-model power topologies for the Ecosystem diagram. */
+export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
+  {
+    modelId: 'grid_plugin_allowed',
+    titleJa: 'プラグイン公認・系統連系',
+    titleEn: 'Certified plug-in · grid-tied',
+    badgeJa: '① 系統連系・プラグイン公認',
+    badgeEn: '① Grid-tied · plug-in certified',
+    summaryJa:
+      'ベランダの太陽光を壁コンセントへ直挿しし、家のベースロードを自家消費。余剰はスマートメーター経由で系統へ還流できる公認トポロジー。',
+    summaryEn:
+      'Balcony PV plugs straight into a wall outlet for baseload self-consumption; surplus can export via a smart meter under certified rules.',
+    wiringFlow: {
+      generation: 'AC/DC太陽光モジュール (600/800W)',
+      conversion: 'マイクロインバータ (+ 任意の Batteriespeicher)',
+      connection: '230V壁コンセント (Schuko/Wieland) 直挿し',
+      metering: 'スマートメーター (Smart Meter Light) · 動的単価/逆潮流計測',
+      consumption: '家庭内ベースロード自家消費 + 余剰は系統/バッテリー',
+    },
+    keyFeaturesJa: [
+      '電気工事士不要・自己責任プラグイン',
+      'スマートメーターと連動した動的価格・自動制御',
+      '800W/1,200W などの公認上限内で即日導入',
+      '余剰電力の系統還流（ネットメータリング/フィードイン）',
+    ],
+    keyFeaturesEn: [
+      'No licensed electrician — self-responsibility plug-in',
+      'Dynamic tariffs & automation tied to the smart meter',
+      'Same-day install within certified 800W / 1,200W caps',
+      'Surplus export via net metering / feed-in',
+    ],
+  },
+  {
+    modelId: 'grid_plugin_prohibited',
+    titleJa: '系統あり・逆潮流禁止 / 蓄電自衛',
+    titleEn: 'Grid present · no export / storage self-supply',
+    badgeJa: '② 系統あり・逆潮流禁止/蓄電自衛',
+    badgeEn: '② Grid present · no export / storage self-supply',
+    summaryJa:
+      'コンセント連系は禁止または厳格。太陽光→充放電→家電の閉ループで自家消費し、逆潮流ゼロを守る蓄電自衛トポロジー。',
+    summaryEn:
+      'Outlet tie-in is banned or tightly restricted. A closed PV→battery→loads loop keeps self-supply with zero reverse power flow.',
+    wiringFlow: {
+      generation: 'DC太陽光モジュール (ポータブル/ベランダキット)',
+      conversion: 'ハイブリッド/オフグリッドインバータ + 蓄電池',
+      connection: '分電盤分岐 or 専用電路 (コンセント直挿し不可)',
+      metering: '逆潮流防止リレー / CTクランプ消費追従 (ゼロエクスポート)',
+      consumption: '家電・PC・空調の自己消費のみ · 余剰は蓄電池へ',
+    },
+    keyFeaturesJa: [
+      '逆潮流ゼロ・系統保護を最優先',
+      '蓄電池で昼間発電を夜間ベースロードへシフト',
+      'コンセント直挿し禁止地域でも生活実感の自家消費を確保',
+      'EMS/スマートプラグで負荷を発電曲線に追従',
+    ],
+    keyFeaturesEn: [
+      'Zero export & grid protection first',
+      'Battery shifts daytime PV to night baseload',
+      'Self-consumption without illegal outlet tie-in',
+      'EMS / smart plugs follow the generation curve',
+    ],
+  },
+  {
+    modelId: 'offgrid_leapfrog',
+    titleJa: '系統なし / オフグリッド跳躍',
+    titleEn: 'No/weak grid · off-grid leapfrog',
+    badgeJa: '③ 系統なし/オフグリッド跳躍',
+    badgeEn: '③ No/weak grid · off-grid leapfrog',
+    summaryJa:
+      '中央系統に頼らず、太陽光＋蓄電池＋ローカル制御で照明・灌漑・保冷・通信を賄う自律マイクロ給電トポロジー。',
+    summaryEn:
+      'Skip the central grid: PV + storage + local control power lighting, irrigation, cold-chain, and connectivity as an autonomous micro-supply.',
+    wiringFlow: {
+      generation: 'DC太陽光モジュール / ピコ・キット (PayGo対応可)',
+      conversion: 'オフグリッドインバータ + 鉛/Li蓄電池',
+      connection: 'DCバス or 小規模AC分電 (島嶼・村落マイクログリッド)',
+      metering: 'PayGo/ローカル計測 · クラウド非依存の自律制御',
+      consumption: '照明・灌漑・保冷・通信など生産・生活負荷',
+    },
+    keyFeaturesJa: [
+      '系統延伸を待たず生活・生産インフラを先に電化',
+      'PayGo / マイクロファイナンスと親和',
+      'ローカルEMSで需給を自律制御（クラウド不要）',
+      '灌漑・保冷など収入直結のプロダクティブユース',
+    ],
+    keyFeaturesEn: [
+      'Electrify livelihoods before grid extension arrives',
+      'Fits PayGo / microfinance models',
+      'Local EMS for cloud-free autonomous balancing',
+      'Productive uses: irrigation, cold-chain, income loads',
+    ],
+  },
+]
+
+/** Resolve ecosystem model id from a country's grid category. */
+export function resolveMarketEcosystemModelId(
+  country: CountryPvDetail,
+): MarketEcosystemModelId {
+  return GRID_CATEGORY_TO_ECOSYSTEM[resolveGridCategory(country)]
+}
+
+/** Look up ecosystem topology by model id (or GridCategory alias). */
+export function getMarketEcosystemTopology(
+  modelId: string,
+): MarketEcosystemTopology | undefined {
+  const aliases: Record<string, MarketEcosystemModelId> = {
+    grid_plug_in: 'grid_plugin_allowed',
+    grid_no_plug: 'grid_plugin_prohibited',
+    no_grid_leapfrog: 'offgrid_leapfrog',
+    grid_plugin_allowed: 'grid_plugin_allowed',
+    grid_plugin_prohibited: 'grid_plugin_prohibited',
+    offgrid_leapfrog: 'offgrid_leapfrog',
+  }
+  const resolved = aliases[modelId] ?? modelId
+  return MARKET_ECOSYSTEM_TOPOLOGIES.find((t) => t.modelId === resolved)
+}
+
+/** Ecosystem topology for a country (defaults to ① plug-in if unknown). */
+export function getMarketEcosystemForCountry(
+  country: CountryPvDetail,
+): MarketEcosystemTopology {
+  return (
+    getMarketEcosystemTopology(resolveMarketEcosystemModelId(country)) ??
+    MARKET_ECOSYSTEM_TOPOLOGIES[0]
+  )
 }
 
 export function resolveRegionCategory(country: CountryPvDetail): RegionCategory {
@@ -718,6 +1568,13 @@ export const PV_VENDORS: Record<AdoptedVendorId, PvVendor> = {
     role: 'ポータブル電源・ベランダ向け蓄電キット',
     roleEn: 'Portable power stations & balcony storage kits',
     url: 'https://www.ecoflow.com/',
+  },
+  jackery: {
+    id: 'jackery',
+    name: 'Jackery',
+    role: 'ポータブル電源・ソーラーパネル',
+    roleEn: 'Portable power stations & solar panels',
+    url: 'https://www.jackery.com/',
   },
   'tesla-energy': {
     id: 'tesla-energy',
@@ -976,6 +1833,37 @@ export const GLOBAL_PV_VENDORS: GlobalPvVendor[] = [
     ],
     targetRegions: ['asia-oceania', 'americas', 'africa'],
     url: 'https://www.ecoflow.com/',
+  },
+  {
+    id: 'jackery',
+    name: 'Jackery / 华宝新能',
+    nameJa: 'ジャッカリー',
+    hqCountry: '中国（深圳）',
+    hqCountryEn: 'China (Shenzhen)',
+    headquartersRegion: 'asia-oceania',
+    category: 'ポータブル電源',
+    description:
+      '元Appleのバッテリーエンジニアである孫中偉氏が2012年に米国シリコンバレーで設立しましたが、親会社は深セン上場企業の「深圳市华宝新能源（Hello Tech Energy）」であり、実質的な開発・製造・資本の中核は中国です。',
+    descriptionEn:
+      'Founded in Silicon Valley in 2012 by Zhongwei “Jack” Sun (ex-Apple battery engineer); the parent is Shenzhen-listed Hello Tech Energy (华宝新能), so R&D, manufacturing, and capital are centered in China.',
+    keyProducts: ['Explorer series', 'SolarSaga panels', 'Portable power stations'],
+    targetRegionIds: [
+      'japan',
+      'usa',
+      'us-ca',
+      'us-tx',
+      'us-fl',
+      'us-ny',
+      'germany',
+      'uk',
+      'france',
+      'au',
+      'china',
+      'tw',
+      'sg',
+    ],
+    targetRegions: ['asia-oceania', 'americas', 'europe'],
+    url: 'https://www.jackery.com/',
   },
   {
     id: 'tesla-energy',
@@ -1689,932 +2577,9 @@ export const ECOSYSTEM_ACTORS: EcosystemActor[] = [
   {
     id: 'epra-ke',
     name: 'エネルギー・石油規制庁 (EPRA)',
-    nameEn: 'Energy and Petroleum Regulatory Authority (EPRA)',
-    type: 'government',
-    countryId: 'kenya',
-    role: 'オフグリッド品質基準・エネルギー市場規制',
-    roleEn: 'Off-grid quality standards & energy market regulation',
-    url: 'https://www.epra.go.ke/',
-  },
-  {
-    id: 'reg-rw',
-    name: 'ルワンダエネルギー公社 (REG)',
-    nameEn: 'Rwanda Energy Group (REG)',
-    type: 'government',
-    countryId: 'rw',
-    role: '官民連携・PAYG電化モデルを含む国家電化の実装機関',
-    roleEn: 'National electrification implementer incl. PPP / PAYG models',
-    url: 'https://www.reg.rw/',
-  },
-  {
-    id: 'steckersolar',
-    name: '欧州プラグインソーラー連盟 (Stecker-Solar)',
-    nameEn: 'European Plug-in Solar Alliance (Stecker-Solar)',
-    type: 'npo',
-    countryId: 'germany',
-    role: 'プラグインPV普及・規格提言のコモンズ',
-    roleEn: 'Commons for plug-in PV adoption & standards advocacy',
-    url: 'https://www.steckersolar.org/',
-  },
-  {
-    id: 'dgs',
-    name: 'Deutsche Gesellschaft für Sonnenenergie (DGS)',
-    type: 'npo',
-    countryId: 'germany',
-    role: '市民太陽エネルギー推進団体',
-    roleEn: 'Citizen solar energy advocacy association',
-    url: 'https://www.dgs.de/',
-  },
-  {
-    id: 'bnetza',
-    name: '連邦ネットワーク庁 (BNetzA)',
-    nameEn: 'Federal Network Agency (BNetzA)',
-    type: 'government',
-    countryId: 'germany',
-    role: 'MaStR登録・系統ルール監督',
-    roleEn: 'MaStR registration & grid rule oversight',
-    url: 'https://www.bundesnetzagentur.de/',
-  },
-  {
-    id: 'esti',
-    name: 'スイス連邦検査機関 (ESTI)',
-    nameEn: 'Swiss Federal Inspectorate (ESTI)',
-    type: 'government',
-    countryId: 'switzerland',
-    role: '600W家電区分・安全指針',
-    roleEn: '600W appliance category & safety guidance',
-    url: 'https://www.esti.admin.ch/',
-  },
-  {
-    id: 'arera',
-    name: 'ARERA',
-    type: 'government',
-    countryId: 'italy',
-    role: 'プラグインPV規則 (Delibera) 策定',
-    roleEn: 'Plug-in PV rules (Delibera) drafting',
-    url: 'https://www.arera.it/',
-  },
-  {
-    id: 'ena',
-    name: 'Energy Networks Association (ENA)',
-    type: 'npo',
-    countryId: 'uk',
-    role: 'G98接続規程・事後通知枠組み',
-    roleEn: 'G98 connection rules & post-install notice framework',
-    url: 'https://www.energynetworks.org/',
-  },
-  {
-    id: 'meti-enecho',
-    name: '経済産業省 資源エネルギー庁',
-    nameEn: 'Agency for Natural Resources and Energy (METI)',
-    type: 'government',
-    countryId: 'japan',
-    role: 'エネルギー政策・系統連系制度の所管',
-    roleEn: 'Energy policy & grid interconnection regulation',
-    url: 'https://www.enecho.meti.go.jp/',
-  },
-  {
-    id: 'jema',
-    name: '日本電機工業会 (JEMA)',
-    nameEn: 'Japan Electrical Manufacturers’ Association (JEMA)',
-    type: 'npo',
-    countryId: 'japan',
-    role: '電機・蓄電・PV関連の業界規格・普及',
-    roleEn: 'Industry standards & outreach for electrical / storage / PV',
-    url: 'https://www.jema-net.or.jp/',
-  },
-  {
-    id: 'nef',
-    name: '新エネルギー財団 (NEF)',
-    nameEn: 'New Energy Foundation (NEF)',
-    type: 'npo',
-    countryId: 'japan',
-    role: '新エネルギー普及・調査研究の公益財団',
-    roleEn: 'Public foundation for new-energy outreach & research',
-    url: 'https://www.nef.or.jp/',
-  },
-  // India (in)
-  {
-    id: 'mnre-in',
-    name: '新・再生可能エネルギー省 (MNRE)',
-    nameEn: 'Ministry of New and Renewable Energy (MNRE)',
-    type: 'government',
-    countryId: 'in',
-    role: 'PM-Surya Ghar（1,000万戸屋根上・小型PV普及計画）主導官庁',
-    roleEn: 'Lead ministry for PM-Surya Ghar (10M rooftop / small PV households)',
-    url: 'https://mnre.gov.in/',
-  },
-  {
-    id: 'selco-in',
-    name: 'SELCO India',
-    type: 'npo',
-    countryId: 'in',
-    role: '分散型ソーラーによる貧困層・都市低所得層のエネルギーアクセス支援NGO',
-    roleEn: 'NGO expanding energy access via distributed solar for low-income urban communities',
-    url: 'https://selco-india.org/',
-  },
-  // Brazil (br)
-  {
-    id: 'absolar-br',
-    name: 'ブラジル太陽光発電協会 (ABSOLAR)',
-    nameEn: 'Brazilian Photovoltaic Solar Energy Association (ABSOLAR)',
-    type: 'npo',
-    countryId: 'br',
-    role: '分散型発電法（Marco Legal da GD）の推進と政策提言',
-    roleEn: 'Advocates distributed-generation law (Marco Legal da GD) & policy',
-    url: 'https://www.absolar.org.br/',
-  },
-  {
-    id: 'aneel-br',
-    name: '電力庁 (ANEEL)',
-    nameEn: 'Brazilian Electricity Regulatory Agency (ANEEL)',
-    type: 'government',
-    countryId: 'br',
-    role: 'ネットメータリング（相殺制度）および接続規格の規制・監督機関',
-    roleEn: 'Regulator for net metering & interconnection standards',
-    url: 'https://www.gov.br/aneel/pt-br',
-  },
-  // Singapore (sg)
-  {
-    id: 'ema-sg',
-    name: 'エネルギー市場庁 (EMA)',
-    nameEn: 'Energy Market Authority (EMA)',
-    type: 'government',
-    countryId: 'sg',
-    role: '小規模分散型電源の配電網接続要件・安全基準の策定',
-    roleEn: 'Sets interconnection & safety rules for small distributed generation',
-    url: 'https://www.ema.gov.sg/',
-  },
-  {
-    id: 'hdb-sg',
-    name: '住宅開発庁 (HDB)',
-    nameEn: 'Housing & Development Board (HDB)',
-    type: 'government',
-    countryId: 'sg',
-    role: '公営高層住宅におけるベランダ・壁面BIPV（建材一体型）実証を管轄',
-    roleEn: 'Oversees balcony / facade BIPV pilots in public high-rise housing',
-    url: 'https://www.hdb.gov.sg/',
-  },
-  {
-    id: 'seris-sg',
-    name: 'Solar Energy Research Institute of Singapore (SERIS)',
-    type: 'npo',
-    countryId: 'sg',
-    role: '高密度都市・熱帯環境における垂直受光・BIPVの技術研究・標準化',
-    roleEn: 'R&D and standards for vertical irradiance & BIPV in dense tropical cities',
-    url: 'https://www.seris.nus.edu.sg/',
-  },
-  // Taiwan (tw)
-  {
-    id: 'moeaea-tw',
-    name: '経済部 能源署（Energy Administration）',
-    nameEn: 'Energy Administration, Ministry of Economic Affairs',
-    type: 'government',
-    countryId: 'tw',
-    role: '再生エネルギー発展条例の制定、自家消費型設備の政策支援',
-    roleEn: 'Renewable Energy Development Act & self-consumption policy support',
-    url: 'https://www.moeaea.gov.tw/',
-  },
-  // US California (us-ca)
-  {
-    id: 'cpuc-us-ca',
-    name: 'カリフォルニア州公益事業委員会 (CPUC)',
-    nameEn: 'California Public Utilities Commission (CPUC)',
-    type: 'government',
-    countryId: 'us-ca',
-    role: 'SB 868（プラグイン免除）の細則策定およびNEM 3.0配電ルールの管轄',
-    roleEn: 'Rules for SB 868 plug-in exemption & NEM 3.0 distribution policy',
-    url: 'https://www.cpuc.ca.gov/',
-  },
-  {
-    id: 'calssa-us-ca',
-    name: 'CALSSA (California Solar & Storage Association)',
-    type: 'npo',
-    countryId: 'us-ca',
-    role: '市民のベランダ・分散ソーラー設置権利と蓄電併用を推進する州内最大の団体',
-    roleEn: 'State’s largest group advancing balcony / distributed solar rights & storage pairing',
-    url: 'https://calssa.org/',
-  },
-  // Other US states (plug-exemption / strict-code coverage)
-  {
-    id: 'office-energy-us-ut',
-    name: 'ユタ州エネルギー局',
-    nameEn: 'Utah Office of Energy Development',
-    type: 'government',
-    countryId: 'us-ut',
-    role: '1,200Wプラグイン免除法の州内周知・再エネ普及支援',
-    roleEn: 'State outreach for 1,200W plug-in exemption & renewables',
-    url: 'https://energy.utah.gov/',
-  },
-  {
-    id: 'utah-clean-energy-us-ut',
-    name: 'ユタ・クリーン・エナジー',
-    nameEn: 'Utah Clean Energy',
-    type: 'npo',
-    countryId: 'us-ut',
-    role: 'ユタ州の屋根上ソーラー普及・プラグイン免除法・クリーンエネルギー政策を主導する非営利団体。',
-    roleEn: 'Nonprofit leading rooftop solar, plug-in exemption advocacy & clean energy policy in Utah',
-    url: 'https://utahcleanenergy.org',
-  },
-  {
-    id: 'utah-forge-us-ut',
-    name: 'ユタ・フォージ（ユタ大学）',
-    nameEn: 'UTAH FORGE',
-    type: 'npo',
-    countryId: 'us-ut',
-    role: '米エネルギー省（DOE）とユタ大学による次世代拡張地熱（EGS）の世界的地下実証ハブ。',
-    roleEn: 'DOE–University of Utah next-gen EGS underground demonstration hub',
-    url: 'https://utahforge.com',
-  },
-  {
-    id: 'utah-psc-us-ut',
-    name: 'ユタ州公共事業委員会（PSC）',
-    nameEn: 'Public Service Commission of Utah',
-    type: 'government',
-    countryId: 'us-ut',
-    role: '州内の系統連系免除規則、分散型エネルギー調達、公益電気事業の規制・監督を行う州機関。',
-    roleEn: 'State regulator for interconnection waivers, distributed energy procurement & utilities',
-    url: 'https://psc.utah.gov',
-  },
-  {
-    id: 'seco-us-co',
-    name: 'コロラド州エネルギー局 (CEO)',
-    nameEn: 'Colorado Energy Office',
-    type: 'government',
-    countryId: 'us-co',
-    role: 'ユタ型プラグイン免除追認とコミュニティ再エネ支援',
-    roleEn: 'Utah-template plug-in exemption follow-on & community renewables',
-    url: 'https://energyoffice.colorado.gov/',
-  },
-  {
-    id: 'commerce-us-wa',
-    name: 'ワシントン州商業省 エネルギー部門',
-    nameEn: 'Washington State Department of Commerce — Energy',
-    type: 'government',
-    countryId: 'us-wa',
-    role: '再エネ権利拡大と1,200W免除法の州内実装支援',
-    roleEn: 'Supports renewable rights expansion & 1,200W exemption rollout',
-    url: 'https://www.commerce.wa.gov/',
-  },
-  {
-    id: 'oedo-us-or',
-    name: 'オレゴン州エネルギー局 (ODOE)',
-    nameEn: 'Oregon Department of Energy',
-    type: 'government',
-    countryId: 'us-or',
-    role: '西海岸型プラグイン免除と家庭用再エネ助成の所管',
-    roleEn: 'West Coast plug-in exemption & household renewable incentives',
-    url: 'https://www.oregon.gov/energy/',
-  },
-  {
-    id: 'azcc-us-az',
-    name: 'アリゾナ州公益事業委員会 (ACC)',
-    nameEn: 'Arizona Corporation Commission',
-    type: 'government',
-    countryId: 'us-az',
-    role: '配電規則・家庭用自給・プラグイン免除関連ルールの監督',
-    roleEn: 'Oversees distribution rules & household self-supply / plug-in policy',
-    url: 'https://www.azcc.gov/',
-  },
-  {
-    id: 'maine-puc-us-me',
-    name: 'メイン州公益事業委員会 (PUC)',
-    nameEn: 'Maine Public Utilities Commission',
-    type: 'government',
-    countryId: 'us-me',
-    role: '北東部プラグイン許認可免除の配電ルール管轄',
-    roleEn: 'Distribution rules for Northeast plug-in permitting exemption',
-    url: 'https://www.maine.gov/mpuc/',
-  },
-  {
-    id: 'commerce-us-mn',
-    name: 'ミネソタ州商業省 エネルギー局',
-    nameEn: 'Minnesota Department of Commerce — Energy',
-    type: 'government',
-    countryId: 'us-mn',
-    role: '寒冷地分散EMSと1,200Wプラグイン免除の推進',
-    roleEn: 'Advances cold-climate distributed EMS & 1,200W plug-in exemption',
-    url: 'https://mn.gov/commerce/energy/',
-  },
-  {
-    id: 'puc-us-tx',
-    name: 'テキサス州公益事業委員会 (PUCT)',
-    nameEn: 'Public Utility Commission of Texas',
-    type: 'government',
-    countryId: 'us-tx',
-    role: 'ERCOT連系・分散電源・蓄電関連の州規制監督',
-    roleEn: 'State oversight of ERCOT interconnection, DG & storage rules',
-    url: 'https://www.puc.texas.gov/',
-  },
-  {
-    id: 'fpsc-us-fl',
-    name: 'フロリダ州公益事業委員会 (FPSC)',
-    nameEn: 'Florida Public Service Commission',
-    type: 'government',
-    countryId: 'us-fl',
-    role: '州内ユーティリティ規制・分散電源連系ルールの監督',
-    roleEn: 'Utility regulation & distributed-generation interconnection oversight',
-    url: 'https://www.floridapsc.com/',
-  },
-  {
-    id: 'nyserda-us-ny',
-    name: 'ニューヨーク州エネルギー研究開発局 (NYSERDA)',
-    nameEn: 'New York State Energy Research and Development Authority',
-    type: 'government',
-    countryId: 'us-ny',
-    role: '州再エネ助成・分散型電源プログラムの実施機関',
-    roleEn: 'Implements state renewable incentives & distributed-energy programs',
-    url: 'https://www.nyserda.ny.gov/',
-  },
-]
+    nameEn: 'Energy and Petroleum Regul
 
-export function getEcosystemActorsByCountry(
-  countryId: string,
-  filter: EcosystemActorFilter = 'all',
-): EcosystemActor[] {
-  const country = WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === countryId)
-  const ids = new Set<string>([countryId])
-  // Parent gov/NPO only — never inherit parent-scoped equipment vendors.
-  if (country?.parentId) ids.add(country.parentId)
-  return ECOSYSTEM_ACTORS.filter(
-    (a) => ids.has(a.countryId) && (filter === 'all' || a.type === filter),
-  )
-}
-
-export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
-  {
-    id: 'germany',
-    name: 'ドイツ',
-    nameEn: 'Germany',
-    code: 'DE',
-    rating: '★★★★★',
-    status: 'legal_plug',
-    statusLabel: '800Wプラグ公認',
-    systemModel: 'plug_800w',
-    regionCategory: 'europe',
-    powerLimit: '800W（家電扱いで家中へ給電）',
-    connectionMethod: 'コンセント直結 (プラグイン)',
-    connectionMethodEn: 'Plug-in Direct Connection',
-    tenantRights: '法的に権利保障',
-    tenantRightsEn: 'Legally Guaranteed',
-    regulation: '800Wまで公認。オンライン登録のみで届出完了。',
-    regulationEn: 'Certified up to 800W. Online registration alone completes the filing.',
-    costRange: '€350〜€500 (約5〜8万円)',
-    paybackYears: '3〜4年',
-    baseLoadCoverage: '昼間ベースロードの約70〜90%相殺',
-    incentives: '付加価値税(VAT)0% + 各自治体補助金(€100〜€500)',
-    antiIslanding: 'VDE-AR-N 4105 (プラグ抜去時0.2秒以内の電圧喪失)',
-    meterRequirement: '旧メーター逆回転を暫定許容（順次スマートメーター化）',
-    windSafety: '強風時の手すり内側退避推奨（無突起クランプ推奨）',
-    mountingRules: 'ビス留め穴あけ原則禁止（挟み込みブラケット必須・所要15分）',
-    summary:
-      '連邦ネットワーク庁(MaStR)への登録のみで無届連系可能。賃貸人の設置権が法制化され100万世帯以上に急速普及。',
-    coordinates: [10.4, 51.1],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'austria',
-    name: 'オーストリア',
-    code: 'AT',
-    rating: '★★★★★',
-    status: 'legal_plug',
-    statusLabel: '800Wプラグ公認',
-    systemModel: 'plug_800w',
-    regionCategory: 'europe',
-    powerLimit: '800W（家電扱いで家中へ給電）',
-    connectionMethod: 'コンセント直結 (プラグイン)',
-    connectionMethodEn: 'Plug-in Direct Connection',
-    tenantRights: '法的に権利保障',
-    tenantRightsEn: 'Legally Guaranteed',
-    regulation: 'TOR Erzeuger Typ A / E-Control — 登録のみ（オンライン簡易届出で即日運用）',
-    costRange: '€400〜€600 (約6〜9万円)',
-    paybackYears: '4〜5年',
-    baseLoadCoverage: '昼間ベースロードの約60〜80%相殺',
-    incentives: '一部自治体での環境助成あり',
-    antiIslanding: 'TOR Erzeuger Typ A (瞬時単独運転防止)',
-    meterRequirement: 'スマートメーター設置家庭推奨（2週間前通知）',
-    windSafety: '耐風圧基準準拠（台風時は取り外し推奨）',
-    mountingRules: '手すり無穿孔固定（小型家電分類のため電気工事士不要）',
-    summary:
-      '小型家電製品として分類。系統事業者への2週間前事前通知のみで手軽にコンセント給電が可能。',
-    coordinates: [14.5, 47.5],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'italy',
-    name: 'イタリア',
-    code: 'IT',
-    rating: '★★★★☆',
-    status: 'legal_plug',
-    statusLabel: '800Wプラグ公認',
-    systemModel: 'plug_800w',
-    regionCategory: 'europe',
-    powerLimit: '800W（家電扱いで家中へ給電）',
-    connectionMethod: 'コンセント直結 (プラグイン)',
-    connectionMethodEn: 'Plug-in Direct Connection',
-    tenantRights: '法的に権利保障',
-    tenantRightsEn: 'Legally Guaranteed',
-    regulation: 'ARERA Delibera 315/2020/R/eel — 登録のみ（オンライン簡易届出で即日運用）',
-    costRange: '€400〜€550 (約6〜9万円)',
-    paybackYears: '3〜5年 (日照豊富)',
-    baseLoadCoverage: '昼間ベースロードの約80〜100%相殺',
-    incentives: '税額控除50%（Ecobonus対象）',
-    antiIslanding: 'CEI 0-21 (単独運転防止・認証インバータ)',
-    meterRequirement: '双方向スマートメーター対応（350W以下は届出不要）',
-    windSafety: '地中海突風対策（固定式または手動折りたたみ退避）',
-    mountingRules: '外観景観規制エリアを除き手すりクランプ設置可能',
-    summary:
-      'ARERA規則により350W以下は届出不要の完全自由。350〜800Wは簡易通信票の送付のみでプラグイン可能。',
-    coordinates: [12.5, 41.9],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'uk',
-    name: 'イギリス',
-    code: 'GB',
-    rating: '★★★★☆',
-    status: 'legal_plug',
-    statusLabel: '800Wプラグ公認',
-    systemModel: 'plug_800w',
-    regionCategory: 'europe',
-    powerLimit: '800W（家電扱いで家中へ給電）',
-    connectionMethod: 'コンセント直結 (プラグイン)',
-    connectionMethodEn: 'Plug-in Direct Connection',
-    tenantRights: '規約・協議要',
-    tenantRightsEn: 'Rules / consent required',
-    regulation: 'ENA EREC G98 / BS 1363 — 登録のみ（オンライン簡易届出で即日運用）',
-    costRange: '£400〜£650 (約8〜12万円)',
-    paybackYears: '5〜7年',
-    baseLoadCoverage: '昼間ベースロードの約50〜70%相殺',
-    incentives: 'VAT 0%（省エネ部材特例）',
-    antiIslanding: 'ENA G98認証 (プラグ抜去時0.5秒以内停止)',
-    meterRequirement: 'スマートメーター推奨（ENAへの事後28日以内通知）',
-    windSafety: '沿岸強風地域は風速30m/s耐性または出仕舞い退避',
-    mountingRules: 'BS 1363 (5Aヒューズ付プラグ必須・屋外防滴コンセント要)',
-    summary:
-      '5Aヒューズ付きプラグを条件に配電事業者(ENA)への28日以内事後通知で800Wまで連系可能。',
-    coordinates: [-1.2, 52.3],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'france',
-    name: 'フランス',
-    code: 'FR',
-    rating: '★★★★☆',
-    status: 'legal_plug',
-    statusLabel: '800Wプラグ公認',
-    systemModel: 'plug_800w',
-    regionCategory: 'europe',
-    powerLimit: '800W',
-    connectionMethod: 'コンセント直結 (プラグイン)',
-    connectionMethodEn: 'Plug-in Direct Connection',
-    tenantRights: '規約・協議要',
-    tenantRightsEn: 'Rules / consent required',
-    regulation: 'CACSI (Enedis)',
-    costRange: '€450〜€700 (約7〜11万円)',
-    paybackYears: '5〜6年',
-    baseLoadCoverage: '昼間ベースロードの約60〜75%相殺',
-    incentives: 'なし（低価格キットが量販店で定着）',
-    antiIslanding: 'DIN VDE 0126-1-1 / VFR 2019準拠',
-    meterRequirement: 'Linky（スマートメーター）による自己消費協約',
-    windSafety: '強風注意報時の角度フラット化・格納推奨',
-    mountingRules: '工具不要のワンタッチ手すりストラップ/ブラケット主流',
-    summary:
-      '配電事業者Enedisへの無料CACSIオンライン申告で即日利用可能。大手ホームセンターでキットが広く流通。',
-    coordinates: [2.2, 46.2],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'belgium',
-    name: 'ベルギー',
-    code: 'BE',
-    rating: '★★★☆☆',
-    status: 'legal_plug',
-    statusLabel: '800Wプラグ公認',
-    systemModel: 'plug_800w',
-    regionCategory: 'europe',
-    powerLimit: '800W',
-    connectionMethod: 'コンセント直結 (プラグイン)',
-    connectionMethodEn: 'Plug-in Direct Connection',
-    tenantRights: '規約・協議要',
-    tenantRightsEn: 'Rules / consent required',
-    regulation: 'Synergrid C10/11',
-    costRange: '€400〜€600 (約6〜9万円)',
-    paybackYears: '5〜7年',
-    baseLoadCoverage: '昼間ベースロードの約60〜70%相殺',
-    incentives: 'フランデレン地域等での個別補助金',
-    antiIslanding: 'Synergrid公認インバータリスト準拠',
-    meterRequirement: 'デジタルスマートメーター設置必須（円盤逆回転不可）',
-    windSafety: '突風時の固定確認義務',
-    mountingRules: '共有部手すり設置は管理組合合意要',
-    summary:
-      '旧型円盤メーターの逆回転を防ぐためデジタルスマートメーター設置家庭でのみプラグイン連系を認可。',
-    coordinates: [4.4, 50.8],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'switzerland',
-    name: 'スイス',
-    code: 'CH',
-    rating: '★★★☆☆',
-    status: 'appliance_notified',
-    statusLabel: '600W/家電製品区分',
-    systemModel: 'plug_600w',
-    regionCategory: 'europe',
-    powerLimit: '600W',
-    connectionMethod: 'コンセント直結 (プラグイン)',
-    connectionMethodEn: 'Plug-in Direct Connection',
-    tenantRights: '規約・協議要',
-    tenantRightsEn: 'Rules / consent required',
-    regulation: 'NIV Art. 16 / ESTI',
-    costRange: 'CHF 600〜900 (約10〜15万円)',
-    paybackYears: '6〜8年',
-    baseLoadCoverage: '昼間ベースロードの約50〜65%相殺',
-    incentives: 'カントン（州）ごとの再エネ助成',
-    antiIslanding: 'ESTI指針・差込プラグPRCD（漏電遮断器）要件',
-    meterRequirement: '電力会社への事前届出必須',
-    windSafety: '降雪荷重・アルプス山間部強風耐性要',
-    mountingRules: 'ベランダ手すり外側設置は賃貸家主の書面合意必須',
-    summary:
-      '定格600Wまでプラグ接続容認。ベランダ内側は自由だが手すり外側設置は賃貸管理者の合意が必要。',
-    coordinates: [8.2, 46.8],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'china',
-    name: '中国',
-    nameEn: 'China',
-    code: 'CN',
-    rating: '★★☆☆☆',
-    status: 'storage_only',
-    statusLabel: 'オフグリッド蓄電型',
-    systemModel: 'offgrid_storage',
-    regionCategory: 'asia-oceania',
-    powerLimit: '800W',
-    connectionMethod: 'オフグリッド蓄電 / マイクロインバータ系統工事',
-    connectionMethodEn: 'Off-grid storage / microinverter interconnect work',
-    tenantRights: '原則不可',
-    tenantRightsEn: 'Generally not allowed',
-    regulation: '国家標準 GB/T',
-    regulationEn: 'National standard GB/T',
-    costRange: '1,500〜3,000元 (約3〜6万円)',
-    paybackYears: '3〜4年 (電気代水準による)',
-    baseLoadCoverage: '昼間ベースロードの約60〜80%相殺',
-    incentives: '一部都市の実証モデル推進',
-    antiIslanding: 'NB/T 32004 (系統連系規格)',
-    meterRequirement: '双方向スマートメーター（集合住宅での直結は非公認）',
-    windSafety: '高層ビル特有のビル風・落下防止ワイヤー多重化必須',
-    mountingRules: '管理会社（物業）の許可極めて困難・防護ネット内設置中心',
-    summary:
-      '世界のバルコニーPV機器（インバータ・蓄電池）の最大輸出国。国内集合住宅でも実証が進む。',
-    coordinates: [104.1, 35.8],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'japan',
-    name: '日本',
-    nameEn: 'Japan',
-    code: 'JP',
-    rating: '★★☆☆☆',
-    status: 'storage_only',
-    statusLabel: 'オフグリッド蓄電型',
-    systemModel: 'offgrid_storage',
-    regionCategory: 'asia-oceania',
-    powerLimit: 'ポータブル蓄電池・自給（300W〜800W目安）',
-    connectionMethod: 'オフグリッド蓄電',
-    connectionMethodEn: 'Off-grid storage',
-    tenantRights: 'コンセント直結不可（蓄電自給）',
-    tenantRightsEn: 'No outlet plug-in (storage self-supply)',
-    regulation: '内線規程によりコンセント直結は不可。ポータブル電源での自給が合法。',
-    regulationEn:
-      'Indoor wiring rules ban outlet plug-in. Self-supply via portable power stations is lawful.',
-    costRange: '10〜18万円 (ポータブル電源込み)',
-    paybackYears: '10年以上 (蓄電投資が主体)',
-    baseLoadCoverage: 'ポータブル電源経由で夜間家電・スマホ等の部分自給',
-    incentives: '一部自治体の防災蓄電池購入補助',
-    antiIslanding: 'JET認証（系統連系用は別途協議要）',
-    meterRequirement: '逆潮流禁止（逆電力継電器RPRなしの直結不可）',
-    windSafety: '台風時の出仕舞い（室内完全退避）必須 / 落下防止基準厳格',
-    mountingRules: '管理規約でベランダ手すり私物設置禁止が一般的',
-    summary:
-      '内線規程によりコンセント直結は不可。ポータブル電源での自給が合法な主流ルート。',
-    coordinates: [138.2, 36.2],
-    lastUpdated: '2026-09-30',
-    adoptedVendors: ['ecoflow', 'anker-solix'],
-  },
-  {
-    id: 'usa',
-    name: 'アメリカ合衆国',
-    nameEn: 'United States',
-    code: 'US',
-    rating: '★★☆☆☆',
-    status: 'strict_code',
-    statusLabel: '州別制度（連邦NEC＋州法）',
-    systemModel: 'nec_strict',
-    gridCategory: 'grid_no_plug',
-    regionCategory: 'americas',
-    keyDrivers: ['州ごとの規制改革', '電気代高騰', '停電・レジリエンス'],
-    keyDriversEn: ['State-by-state regulatory reform', 'Rising electricity prices', 'Outage resilience'],
-    bottlenecks: ['連邦NEC 690の急速遮断', '州間格差', '訪問販売の高額マージン'],
-    bottlenecksEn: [
-      'Federal NEC 690 rapid shutdown',
-      'Interstate disparities',
-      'High door-to-door sales margins',
-    ],
-    powerLimit: '州により800〜1,200W / オフグリッド',
-    connectionMethod: '州法次第（プラグ免除〜蓄電のみ）',
-    connectionMethodEn: 'State-dependent (plug exemption to storage-only)',
-    tenantRights: '州・HOA規約による',
-    tenantRightsEn: 'Varies by state / HOA rules',
-    regulation: 'NEC Article 690 + 州独自法',
-    regulationEn: 'NEC Article 690 + state statutes',
-    costRange: '$400〜$1,500（州・構成による）',
-    paybackYears: '州制度次第（3年〜回収困難）',
-    baseLoadCoverage: '州モデルにより昼間ベース〜停電バックアップ',
-    incentives: '連邦ITC・州リベートは州ごとに異なる',
-    antiIslanding: 'UL 1741 / 州認可機器リスト',
-    meterRequirement: 'ユーティリティ・州規則に依存',
-    windSafety: 'ハリケーン・竜巻地域は剛体耐風基準',
-    mountingRules: 'HOA・建築条例が州都市で大きく異なる',
-    summary:
-      '連邦は厳格な電気工事規程が基調だが、ユタの1,200W免除やカリフォルニアの届出免除＋蓄電併用など州差が実装を分ける。下位ピンで州別詳細を表示。',
-    coordinates: [-95.7, 37.1],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'ecoflow'],
-  },
-  {
-    id: 'us-ut',
-    name: '米ユタ州',
-    code: 'US-UT',
-    rating: '★★★★★',
-    status: 'plug_exemption',
-    statusLabel: '1,200W許認可免除',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['全米初の1200W完全免除法', '系統協議・手数料撤廃'],
-    powerLimit: '1,200W（大型冷蔵庫・空調の負荷相殺）',
-    connectionMethod: 'コンセント直結（系統協議免除）',
-    connectionMethodEn: 'Plug-in (interconnection study waived)',
-    tenantRights: '州法でプラグイン容認（HOAは別途）',
-    tenantRightsEn: 'State plug-in allowance (HOA may still apply)',
-    regulation: '2025年プラグイン免除法',
-    regulationEn: '2025 plug-in exemption statute',
-    costRange: '$400〜$800（1,200W級キット）',
-    paybackYears: '4〜6年',
-    baseLoadCoverage: '昼間ベースロードの約70〜90%相殺',
-    incentives: '連邦ITCとの併用は機器・設置形態による',
-    antiIslanding: '認証マイクロインバータ＋プラグ抜去時停止',
-    meterRequirement: '系統協議・申請の完全免除（上限内）',
-    windSafety: '山岳・谷風地域はクランプ二重化推奨',
-    mountingRules: '手すりクランプ中心・穿孔は賃貸規約確認',
-    summary:
-      '2025年法制化により1,200Wまで系統協議を完全免除。米国内で最もプラグイン寄りの先進州。',
-    coordinates: [-111.9, 39.3],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'us-ca',
-    name: '米カリフォルニア州',
-    code: 'US-CA',
-    rating: '★★★★☆',
-    status: 'plug_exemption',
-    statusLabel: '1,200W免除 / 蓄電併用',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['1,200W級届出免除の推進', '売電単価低下による蓄電池併用の主流化'],
-    bottlenecks: ['電力会社による買い取り単価削減'],
-    powerLimit: '1,200W',
-    connectionMethod: 'コンセント直結 / 蓄電自己消費',
-    connectionMethodEn: 'Plug-in / storage self-consumption',
-    tenantRights: '規約・HOA協議が残る',
-    tenantRightsEn: 'Rules / HOA consent often required',
-    regulation: '1,200Wまで届出免除。ただし売電単価が低いため蓄電併用が主流。',
-    regulationEn:
-      'Permit-exempt up to 1,200W. Low export rates make storage pairing mainstream.',
-    costRange: '$900〜$2,000（蓄電込み）',
-    paybackYears: '6〜10年（自己消費率が鍵）',
-    baseLoadCoverage: '蓄電経由で夕方ピークを含む部分自給',
-    incentives: '蓄電インセンティブ（枠・所得要件あり）',
-    antiIslanding: '認証スマートインバータ準拠機器',
-    meterRequirement: '売電契約・スマートインバータ要件',
-    windSafety: '沿岸強風・山火事煙害時の点検推奨',
-    mountingRules: 'バルコニー設置は都市・HOA条例を確認',
-    summary:
-      '1,200Wまで届出免除が進む一方、売電単価が低く蓄電自己消費が主流化。',
-    coordinates: [-119.4, 36.7],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'us-co',
-    name: '米コロラド州',
-    code: 'US-CO',
-    rating: '★★★★☆',
-    status: 'plug_exemption',
-    statusLabel: '1,200W許認可免除',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['ユタ州テンプレート追認', '脱炭素コミュニティ自律'],
-    powerLimit: '1,200W',
-    connectionMethod: 'コンセント直結（系統協議免除）',
-    connectionMethodEn: 'Plug-in (interconnection study waived)',
-    tenantRights: '州法でプラグイン容認（HOAは別途）',
-    tenantRightsEn: 'State plug-in allowance (HOA may still apply)',
-    regulation: 'ユタ型プラグイン免除の州法追認',
-    regulationEn: 'Utah-template plug-in exemption',
-    costRange: '$400〜$900（1,200W級キット）',
-    paybackYears: '4〜7年',
-    baseLoadCoverage: '昼間ベースロードの約65〜85%相殺',
-    incentives: '連邦ITC・コミュニティ再エネ助成（枠あり）',
-    antiIslanding: '認証マイクロインバータ＋プラグ抜去時停止',
-    meterRequirement: '上限内は系統協議免除',
-    windSafety: '高地突風・降雪荷重へのクランプ耐性要',
-    mountingRules: '手すりクランプ中心・HOA規約確認',
-    summary:
-      'ユタ州の1,200W免除テンプレートを追認し、脱炭素コミュニティ自律を軸にプラグイン導入を拡大。',
-    coordinates: [-105.7, 39.5],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles'],
-  },
-  {
-    id: 'us-wa',
-    name: '米ワシントン州',
-    code: 'US-WA',
-    rating: '★★★★☆',
-    status: 'plug_exemption',
-    statusLabel: '1,200W許認可免除',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['再エネ権利拡大', '1200W免除法導入'],
-    powerLimit: '1,200W',
-    connectionMethod: 'コンセント直結（系統協議免除）',
-    connectionMethodEn: 'Plug-in (interconnection study waived)',
-    tenantRights: '州法でプラグイン容認（HOAは別途）',
-    tenantRightsEn: 'State plug-in allowance (HOA may still apply)',
-    regulation: '1200Wプラグイン免除法',
-    regulationEn: '1,200W plug-in exemption statute',
-    costRange: '$400〜$900（1,200W級キット）',
-    paybackYears: '5〜7年',
-    baseLoadCoverage: '昼間ベースロードの約60〜80%相殺',
-    incentives: '州再エネ権利・連邦ITC併用',
-    antiIslanding: '認証マイクロインバータ＋プラグ抜去時停止',
-    meterRequirement: '上限内は系統協議免除',
-    windSafety: '沿岸強風時の固定確認義務',
-    mountingRules: '手すりクランプ中心・賃貸規約確認',
-    summary:
-      '再エネ権利拡大の一環として1,200W免除法を導入。西海岸でユタ追随の先進州の一つ。',
-    coordinates: [-120.7, 47.7],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles'],
-  },
-  {
-    id: 'us-or',
-    name: '米オレゴン州',
-    code: 'US-OR',
-    rating: '★★★★☆',
-    status: 'plug_exemption',
-    statusLabel: '1,200W許認可免除',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['西海岸プラグイン法制化推進'],
-    powerLimit: '1,200W',
-    connectionMethod: 'コンセント直結（系統協議免除）',
-    connectionMethodEn: 'Plug-in (interconnection study waived)',
-    tenantRights: '州法でプラグイン容認（HOAは別途）',
-    tenantRightsEn: 'State plug-in allowance (HOA may still apply)',
-    regulation: '西海岸型プラグイン免除',
-    regulationEn: 'West Coast plug-in exemption',
-    costRange: '$400〜$900（1,200W級キット）',
-    paybackYears: '5〜7年',
-    baseLoadCoverage: '昼間ベースロードの約60〜80%相殺',
-    incentives: '州・自治体の再エネ助成（枠あり）',
-    antiIslanding: '認証マイクロインバータ＋プラグ抜去時停止',
-    meterRequirement: '上限内は系統協議免除',
-    windSafety: '沿岸・峡谷風へのクランプ二重化推奨',
-    mountingRules: '手すりクランプ中心・賃貸規約確認',
-    summary:
-      '西海岸プラグイン法制化の一角として1,200W免除を推進。ユタ州モデルの追随州。',
-    coordinates: [-120.5, 43.8],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles'],
-  },
-  {
-    id: 'us-az',
-    name: '米アリゾナ州',
-    code: 'US-AZ',
-    rating: '★★★★☆',
-    status: 'plug_exemption',
-    statusLabel: '1,200W許認可免除',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['日照量全米屈指', '家庭用自給推進'],
-    powerLimit: '1,200W',
-    connectionMethod: 'コンセント直結（系統協議免除）',
-    connectionMethodEn: 'Plug-in (interconnection study waived)',
-    tenantRights: '州法でプラグイン容認（HOAは別途）',
-    tenantRightsEn: 'State plug-in allowance (HOA may still apply)',
-    regulation: 'プラグイン免除・家庭用自給推進',
-    regulationEn: 'Plug-in exemption / household self-supply',
-    costRange: '$400〜$850（1,200W級キット）',
-    paybackYears: '3〜5年（高日照）',
-    baseLoadCoverage: '昼間ベースロードの約80〜100%相殺',
-    incentives: '連邦ITC・ピーク料金回避メリット大',
-    antiIslanding: '認証マイクロインバータ＋プラグ抜去時停止',
-    meterRequirement: '上限内は系統協議免除',
-    windSafety: '砂塵・高温下の配線保護',
-    mountingRules: '手すりクランプ中心・HOA景観規約確認',
-    summary:
-      '日照量全米屈指を背景に家庭用自給を推進。ユタ追随で1,200Wプラグイン免除を導入。',
-    coordinates: [-111.0, 34.0],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles', 'anker-solix'],
-  },
-  {
-    id: 'us-me',
-    name: '米メイン州',
-    code: 'US-ME',
-    rating: '★★★★☆',
-    status: 'plug_exemption',
-    statusLabel: '1,200W許認可免除',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['北東部での許認可免除'],
-    powerLimit: '1,200W',
-    connectionMethod: 'コンセント直結（系統協議免除）',
-    connectionMethodEn: 'Plug-in (interconnection study waived)',
-    tenantRights: '州法でプラグイン容認（HOAは別途）',
-    tenantRightsEn: 'State plug-in allowance (HOA may still apply)',
-    regulation: '北東部プラグイン許認可免除',
-    regulationEn: 'Northeast plug-in permitting exemption',
-    costRange: '$450〜$950（1,200W級キット）',
-    paybackYears: '5〜8年',
-    baseLoadCoverage: '昼間ベースロードの約50〜70%相殺',
-    incentives: '州再エネ助成・連邦ITC',
-    antiIslanding: '認証マイクロインバータ＋プラグ抜去時停止',
-    meterRequirement: '上限内は系統協議免除',
-    windSafety: '沿岸暴風・積雪荷重への耐性要',
-    mountingRules: '手すりクランプ中心・冬季出仕舞い推奨',
-    summary:
-      '北東部で許認可免除を先行導入。ユタ州モデルを東海岸側で追認した先進州の一つ。',
-    coordinates: [-69.4, 45.2],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles'],
-  },
-  {
-    id: 'us-mn',
-    name: '米ミネソタ州',
-    code: 'US-MN',
-    rating: '★★★★☆',
-    status: 'plug_exemption',
-    statusLabel: '1,200W許認可免除',
-    systemModel: 'plug_1200w',
-    regionCategory: 'americas',
-    parentId: 'usa',
-    keyDrivers: ['寒冷地分散EMS推進'],
-    powerLimit: '1,200W（大型冷蔵庫・空調の負荷相殺）',
-    connectionMethod: 'コンセント直結（系統協議免除）',
-    connectionMethodEn: 'Plug-in (interconnection study waived)',
-    tenantRights: '1,200Wまで免除',
-    tenantRightsEn: 'Exempt up to 1,200W',
-    regulation: '1,200Wまで免除 — プラグイン免除・分散EMS推進',
-    regulationEn: 'Exempt up to 1,200W — plug-in exemption / distributed EMS',
-    costRange: '$450〜$950（1,200W級キット）',
-    paybackYears: '5〜8年',
-    baseLoadCoverage: '昼間ベースロードの約55〜75%相殺',
-    incentives: '州分散EMS・連邦ITC',
-    antiIslanding: '認証マイクロインバータ＋プラグ抜去時停止',
-    meterRequirement: '上限内は系統協議免除',
-    windSafety: '厳冬・着氷時の固定確認義務',
-    mountingRules: '手すりクランプ中心・積雪クリアランス確保',
-    summary:
-      '寒冷地分散EMS推進の一環として1,200Wプラグイン免除を導入。中西部のユタ追随州。',
-    coordinates: [-94.6, 46.7],
-    lastUpdated: '2026-10-04',
-    adoptedVendors: ['enphase', 'hoymiles'],
-  },
-  {
-    id: 'us-tx',
-    name: '米テキサス州',
-    code: 'US-TX',
-    
-
-/* … truncated (201722 bytes total) … */
+/* … truncated (253633 bytes total) … */
 ```
 
 ### `features/basin-dam/data.ts`
@@ -3440,10 +3405,51 @@ export const HOME_FLOW: FlowNode[] = [
 
 export type NetworkLocale = "ja" | "en"
 
-export type NetworkModel = "yamanashi" | "fukushima"
+/** Japan map site id — sourced from Notion「再生可能エネルギーの導入事例（日本）」 */
+export type NetworkModel =
+  | "ichinoseki-solar-sharing"
+  | "goto-tidal"
+  | "goto-floating-wind"
+  | "kairyu-ocean-current"
+  | "fh2r"
+  | "gifu-biomass"
+  | "yumesakura-p2g"
+  | "choshi-offshore-wind"
+  | "tomakomai-biomass"
+  | "kumejima-otec"
+  | "katatsumuri-geothermal"
+  | "wasabizawa-geothermal"
+  | "nagayoshigawa-hydro"
+  | "hiratsuka-wave"
 
-/** Japan RE map filter / pin category */
-export type ModelCategory = "p2g" | "vpp" | "microgrid" | "self-line"
+/** Japan RE map filter / pin category (再エネ種別) */
+export type ModelCategory =
+  | "solar"
+  | "wind"
+  | "ocean"
+  | "biomass"
+  | "geothermal"
+  | "hydro"
+  | "hydrogen"
+
+/** Macro region for map camera / filter */
+export type MapRegionFocus =
+  | "all"
+  | "hokkaido"
+  | "tohoku"
+  | "kanto"
+  | "chubu"
+  | "kansai"
+  | "kyushu"
+  | "okinawa"
+  | "ocean"
+
+/** ステータス（Notion select） */
+export type CaseStatus =
+  | "commercial"
+  | "demo"
+  | "planning"
+  | "construction"
 
 export type NetworkNodeStatus = "normal" | "watch"
 
@@ -3482,11 +3488,21 @@ export type NetworkModelConfig = {
   coordinates: [number, number]
   regionName: string
   regionNameEn?: string
+  /** Primary pin color / filter category */
   modelCategory: ModelCategory
+  /** All RE types on the case (Notion multi_select) */
+  energyTypes: ModelCategory[]
+  mapRegion: Exclude<MapRegionFocus, "all">
+  caseStatus: CaseStatus
   scaleLabel: string
   scaleLabelEn?: string
-  /** Demo self-sufficiency ratio (0–100) */
-  selfSufficiencyPct: number
+  /** Demo self-sufficiency ratio (0–100); omit when not meaningful */
+  selfSufficiencyPct?: number
+  partners?: string
+  partnersEn?: string
+  paradigmPoint: string
+  paradigmPointEn?: string
+  sourceUrl?: string | null
   nodes: NetworkNode[]
   edges: NetworkEdge[]
 }
@@ -3553,10 +3569,13 @@ export const NETWORK_UI = {
   stageGeneration: { ja: "01. GENERATION", en: "01. GENERATION" },
   stageBuffer: { ja: "02. BUFFER & CONVERSION", en: "02. BUFFER & CONVERSION" },
   stageConsume: { ja: "03. LOCAL CONSUMPTION", en: "03. LOCAL CONSUMPTION" },
-  methodP2g: { ja: "P2G水素循環", en: "P2G Hydrogen Cycle" },
-  methodVpp: { ja: "系統協調型VPP", en: "Grid-coordinated VPP" },
-  methodMicrogrid: { ja: "マイクログリッド自営線", en: "Microgrid Private Line" },
-  methodSelfLine: { ja: "自営線マイクログリッド", en: "Self-owned Line Microgrid" },
+  methodSolar: { ja: "太陽光・ソーラーシェアリング", en: "Solar / agrivoltaics" },
+  methodWind: { ja: "風力発電", en: "Wind power" },
+  methodOcean: { ja: "海洋エネルギー", en: "Ocean energy" },
+  methodBiomass: { ja: "バイオマス発電", en: "Biomass power" },
+  methodGeothermal: { ja: "地熱発電", en: "Geothermal power" },
+  methodHydro: { ja: "中小水力発電", en: "Small hydro" },
+  methodHydrogen: { ja: "水素・P2G", en: "Hydrogen / P2G" },
   selfSufficiency: { ja: "自給率", en: "Self-sufficiency" },
   gridLinked: { ja: "系統協調連系", en: "Grid-coordinated" },
   gridIsland: { ja: "島運用可", en: "Islandable" },
@@ -3575,26 +3594,44 @@ export const NETWORK_UI = {
   badgeOffGrid: { ja: "オフグリッド蓄電型", en: "Off-grid Storage Type" },
   badgeNec: { ja: "NEC/電気工事規程", en: "NEC / Electrical Code" },
   japanMapTitle: { ja: "地域再エネ日本マップ", en: "Japan Regional RE Map" },
-  japanMapFilterAll: { ja: "全モデル", en: "All models" },
-  japanMapFilterP2g: { ja: "P2G水素", en: "P2G Hydrogen" },
-  japanMapFilterVpp: { ja: "広域VPP", en: "Regional VPP" },
-  japanMapFilterMicrogrid: { ja: "マイクログリッド", en: "Microgrid" },
-  japanMapFilterSelfLine: { ja: "自営線", en: "Self-owned line" },
+  japanMapFilterAll: { ja: "全種別", en: "All types" },
+  japanMapFilterSolar: { ja: "太陽光", en: "Solar" },
+  japanMapFilterWind: { ja: "風力", en: "Wind" },
+  japanMapFilterOcean: { ja: "海洋", en: "Ocean" },
+  japanMapFilterBiomass: { ja: "バイオマス", en: "Biomass" },
+  japanMapFilterGeothermal: { ja: "地熱", en: "Geothermal" },
+  japanMapFilterHydro: { ja: "中小水力", en: "Small hydro" },
+  japanMapFilterHydrogen: { ja: "水素", en: "Hydrogen" },
   japanMapZoomIn: { ja: "拡大", en: "Zoom in" },
   japanMapZoomOut: { ja: "縮小", en: "Zoom out" },
   japanMapReset: { ja: "表示をリセット", en: "Reset view" },
-  japanMapFilterAria: { ja: "モデル種別フィルタ", en: "Model category filter" },
+  japanMapFilterAria: { ja: "再エネ種別フィルタ", en: "RE type filter" },
   japanMapRegionAria: { ja: "地方別", en: "Region" },
   japanMapRegionAll: { ja: "全地方", en: "All regions" },
+  japanMapRegionHokkaido: { ja: "北海道", en: "Hokkaido" },
   japanMapRegionTohoku: { ja: "東北", en: "Tohoku" },
   japanMapRegionKanto: { ja: "関東", en: "Kanto" },
   japanMapRegionChubu: { ja: "中部", en: "Chubu" },
   japanMapRegionKansai: { ja: "関西", en: "Kansai" },
   japanMapRegionKyushu: { ja: "九州", en: "Kyushu" },
+  japanMapRegionOkinawa: { ja: "沖縄", en: "Okinawa" },
+  japanMapRegionOcean: { ja: "海洋", en: "Offshore" },
   japanMapAttribution: {
-    ja: "地図: 地球地図日本",
-    en: "Map: Global Map Japan",
+    ja: "地図: 地球地図日本 / 事例: Notion導入事例DB",
+    en: "Map: Global Map Japan / Cases: Notion RE DB",
   },
+  caseStatus: { ja: "ステータス", en: "Status" },
+  casePartners: { ja: "参画・出資", en: "Partners" },
+  caseParadigm: {
+    ja: "新旧パラダイムからみたポイント",
+    en: "Old vs new power-system lens",
+  },
+  caseSource: { ja: "参考リンク", en: "Source" },
+  caseEnergyTypes: { ja: "再エネ種別", en: "RE types" },
+  statusCommercial: { ja: "商用運転", en: "Commercial" },
+  statusDemo: { ja: "実証事業", en: "Demonstration" },
+  statusPlanning: { ja: "計画段階", en: "Planning" },
+  statusConstruction: { ja: "建設中", en: "Under construction" },
 } as const
 
 export function uiText(
@@ -3983,81 +4020,391 @@ export const COUNTRIES: Country[] = [
 ]
 
 export const NETWORK_MODELS: Record<NetworkModel, NetworkModelConfig> = {
-  yamanashi: {
-    label: "山梨 P2G 水素モデル",
-    labelEn: "Yamanashi P2G Hydrogen Model",
+  "ichinoseki-solar-sharing": {
+    label: "一関市吉高太陽光発電所（ソーラーシェアリング）",
+    labelEn: "Ichinoseki Yoshitaka Solar (agrivoltaics)",
     description:
-      "北杜のメガソーラー余剰電力を米倉山のP2Gプラントで水素に変換し、地域に供給します。",
+      "農業と発電を重ねるソーラーシェアリング。太陽光由来の電力・水素活用で、土地リソースを地域内で最適化します。",
     descriptionEn:
-      "Surplus power from Hokuto mega-solar is converted to hydrogen at the Yume-sakura P2G plant and supplied locally.",
-    coordinates: [138.4239, 35.8667],
-    regionName: "山梨県 北杜市",
-    regionNameEn: "Hokuto, Yamanashi",
-    modelCategory: "p2g",
-    scaleLabel: "12.4MW / P2G",
-    scaleLabelEn: "12.4MW / P2G",
-    selfSufficiencyPct: 78,
+      "Agrivoltaics stacking farming and generation. Solar power and hydrogen use optimize local land resources.",
+    coordinates: [141.13, 38.93],
+    regionName: "岩手県 一関市",
+    regionNameEn: "Ichinoseki, Iwate",
+    modelCategory: "hydrogen",
+    energyTypes: ["hydrogen", "solar"],
+    mapRegion: "tohoku",
+    caseStatus: "commercial",
+    scaleLabel: "商用運転 · 水素/太陽光",
+    scaleLabelEn: "Commercial · H₂/Solar",
+    partners: "リニューアブル・ジャパン、東急不動産 等",
+    partnersEn: "Renewable Japan, Tokyu Land, et al.",
+    paradigmPoint: "土地の多目的利用: 農業と発電の共生による地域リソースの最適化。",
+    paradigmPointEn:
+      "Multi-use land: co-locating farming and generation to optimize regional resources.",
+    sourceUrl: "http://solar-sharing.net/archives/598",
     nodes: [
       {
         id: "solar",
-        label: "メガソーラー(北杜)",
-        labelEn: "Mega-solar (Hokuto)",
-        sublabel: "出力 12.4MW",
-        sublabelEn: "Output 12.4MW",
+        label: "ソーラーシェアリング",
+        labelEn: "Agrivoltaics array",
+        sublabel: "営農と発電の共生",
+        sublabelEn: "Farming + generation",
         kind: "supply",
         icon: "sun-medium",
       },
       {
-        id: "hydro",
-        label: "小水力",
-        labelEn: "Small hydro",
-        sublabel: "出力 1.8MW",
-        sublabelEn: "Output 1.8MW",
+        id: "h2",
+        label: "水素活用",
+        labelEn: "Hydrogen use",
+        sublabel: "再エネ由来水素",
+        sublabelEn: "RE-derived hydrogen",
+        kind: "convert",
+        icon: "flame",
+      },
+      {
+        id: "farm",
+        label: "地域・営農",
+        labelEn: "Local farming",
+        sublabel: "土地の多目的利用",
+        sublabelEn: "Multi-use land",
+        kind: "consume",
+        icon: "sprout",
+      },
+    ],
+    edges: [
+      { from: "solar", to: "h2" },
+      { from: "solar", to: "farm" },
+      { from: "h2", to: "farm" },
+    ],
+  },
+  "goto-tidal": {
+    label: "五島市奈留瀬戸 潮流発電装置",
+    labelEn: "Goto Narushima tidal generator",
+    description:
+      "潮の満ち引きという周期的な物理現象を電源化する潮流発電の実証。予測精度の高い海洋再エネです。",
+    descriptionEn:
+      "Tidal demonstration that turns predictable ebb-and-flow physics into power—highly forecastable ocean RE.",
+    coordinates: [128.93, 32.84],
+    regionName: "長崎県 五島市",
+    regionNameEn: "Goto, Nagasaki",
+    modelCategory: "ocean",
+    energyTypes: ["ocean"],
+    mapRegion: "kyushu",
+    caseStatus: "demo",
+    scaleLabel: "実証事業 · 海洋",
+    scaleLabelEn: "Demo · Ocean",
+    partners: "九電みらいエナジー 等",
+    partnersEn: "Kyuden Mirai Energy, et al.",
+    paradigmPoint:
+      "周期的エネルギー: 潮の満ち引きという確実な物理現象に基づく、予測精度の高い再エネ。",
+    paradigmPointEn:
+      "Periodic energy: tidal cycles make this ocean RE highly predictable.",
+    sourceUrl: null,
+    nodes: [
+      {
+        id: "tidal",
+        label: "潮流発電装置",
+        labelEn: "Tidal generator",
+        sublabel: "奈留瀬戸",
+        sublabelEn: "Narushima Strait",
         kind: "supply",
         icon: "droplets",
       },
       {
-        id: "p2g",
-        label: "水電解P2G水素プラント",
-        labelEn: "Electrolysis P2G Hydrogen Plant",
-        sublabel: "米倉山 / 変換効率 68%",
-        sublabelEn: "Yume-sakura / Efficiency 68%",
+        id: "grid",
+        label: "離島系統",
+        labelEn: "Island grid",
+        sublabel: "地域供給",
+        sublabelEn: "Local supply",
+        kind: "consume",
+        icon: "building-2",
+      },
+    ],
+    edges: [{ from: "tidal", to: "grid" }],
+  },
+  "goto-floating-wind": {
+    label: "五島市沖 商用浮体式洋上ウィンドファーム",
+    labelEn: "Goto commercial floating offshore wind",
+    description:
+      "水深の深い海域でも発電できる浮体式洋上風力。日本の地理的制約を突破するフロンティアです。",
+    descriptionEn:
+      "Floating offshore wind for deeper waters—pushing past Japan’s geographic constraints.",
+    coordinates: [128.7, 32.7],
+    regionName: "長崎県 五島市沖",
+    regionNameEn: "Off Goto, Nagasaki",
+    modelCategory: "wind",
+    energyTypes: ["wind"],
+    mapRegion: "kyushu",
+    caseStatus: "planning",
+    scaleLabel: "計画段階 · 風力",
+    scaleLabelEn: "Planning · Wind",
+    partners: "戸田建設コンソーシアム、INPEX",
+    partnersEn: "Toda Construction consortium, INPEX",
+    paradigmPoint:
+      "フロンティア拡大: 水深の深い海域での発電を可能にし、日本の地理的制約を突破。",
+    paradigmPointEn:
+      "Frontier expansion: generation in deeper seas beyond Japan’s land/grid limits.",
+    sourceUrl:
+      "https://www.toda.co.jp/business/ecology/special/offshorewind/index.html",
+    nodes: [
+      {
+        id: "wind",
+        label: "浮体式洋上風力",
+        labelEn: "Floating offshore wind",
+        sublabel: "五島市沖",
+        sublabelEn: "Off Goto",
+        kind: "supply",
+        icon: "wind",
+      },
+      {
+        id: "island",
+        label: "離島・地域需要",
+        labelEn: "Island demand",
+        sublabel: "基幹電源化",
+        sublabelEn: "Toward baseload role",
+        kind: "consume",
+        icon: "home",
+      },
+    ],
+    edges: [{ from: "wind", to: "island" }],
+  },
+  "kairyu-ocean-current": {
+    label: "海流発電実証機「かいりゅう」",
+    labelEn: "Kairyu ocean-current demo",
+    description:
+      "黒潮など季節変動の少ない海流を利用する実証機。極めて安定した新世代の海洋電源を狙います。",
+    descriptionEn:
+      "Demo turbine using steady currents like the Kuroshio—aiming for highly stable ocean power.",
+    coordinates: [130.0, 30.0],
+    regionName: "黒潮海域（海洋）",
+    regionNameEn: "Kuroshio waters (offshore)",
+    modelCategory: "ocean",
+    energyTypes: ["ocean"],
+    mapRegion: "ocean",
+    caseStatus: "demo",
+    scaleLabel: "実証事業 · 海洋",
+    scaleLabelEn: "Demo · Ocean",
+    partners: "IHI、NEDO",
+    partnersEn: "IHI, NEDO",
+    paradigmPoint:
+      "予測可能性: 季節変動の少ない黒潮等の海流を利用した、極めて安定した新世代電源。",
+    paradigmPointEn:
+      "Predictability: Kuroshio-class currents offer unusually stable next-gen power.",
+    sourceUrl: null,
+    nodes: [
+      {
+        id: "current",
+        label: "海流タービン",
+        labelEn: "Ocean-current turbine",
+        sublabel: "かいりゅう",
+        sublabelEn: "Kairyu",
+        kind: "supply",
+        icon: "droplets",
+      },
+      {
+        id: "demo",
+        label: "実証評価",
+        labelEn: "Demo evaluation",
+        sublabel: "NEDO連携",
+        sublabelEn: "NEDO partnership",
+        kind: "consume",
+        icon: "building-2",
+      },
+    ],
+    edges: [{ from: "current", to: "demo" }],
+  },
+  fh2r: {
+    label: "福島水素エネルギー研究フィールド (FH2R)",
+    labelEn: "Fukushima Hydrogen Energy Research Field (FH2R)",
+    description:
+      "再エネ由来の大規模グリーン水素で、変動する太陽光を水素という「物理パケット」に変換し供給網を構築します。",
+    descriptionEn:
+      "Large-scale green hydrogen from RE—turning variable solar into a physical energy packet for supply networks.",
+    coordinates: [141.0, 37.48],
+    regionName: "福島県 浪江町",
+    regionNameEn: "Namie, Fukushima",
+    modelCategory: "hydrogen",
+    energyTypes: ["hydrogen", "solar"],
+    mapRegion: "tohoku",
+    caseStatus: "demo",
+    scaleLabel: "実証事業 · 水素/太陽光",
+    scaleLabelEn: "Demo · H₂/Solar",
+    partners: "NEDO・参画企業コンソーシアム",
+    partnersEn: "NEDO & industry consortium",
+    paradigmPoint:
+      "大規模グリーン水素: 再エネ由来水素による大規模な脱炭素エネルギー供給網の構築。",
+    paradigmPointEn:
+      "Large-scale green hydrogen: RE-derived H₂ building a decarbonized supply network.",
+    sourceUrl: "https://www.nedo.go.jp/news/press/AA5_101293.html",
+    selfSufficiencyPct: 64,
+    nodes: [
+      {
+        id: "solar",
+        label: "メガソーラー",
+        labelEn: "Mega-solar",
+        sublabel: "再エネ電源",
+        sublabelEn: "RE supply",
+        kind: "supply",
+        icon: "sun-medium",
+      },
+      {
+        id: "electrolysis",
+        label: "水電解水素プラント",
+        labelEn: "Electrolysis plant",
+        sublabel: "グリーン水素製造",
+        sublabelEn: "Green H₂ production",
         kind: "convert",
         icon: "flame",
       },
       {
         id: "storage",
-        label: "定置型蓄電池",
-        labelEn: "Stationary Battery",
-        sublabel: "容量 4.2MWh",
-        sublabelEn: "Capacity 4.2MWh",
+        label: "水素貯蔵",
+        labelEn: "Hydrogen storage",
+        sublabel: "時間シフト",
+        sublabelEn: "Time shifting",
         kind: "convert",
         icon: "battery-charging",
       },
       {
-        id: "city",
-        label: "地元スマートシティ",
-        labelEn: "Local Smart City",
-        sublabel: "世帯数 3,200",
-        sublabelEn: "3,200 households",
+        id: "demand",
+        label: "地域・産業需要",
+        labelEn: "Local / industry demand",
+        sublabel: "脱炭素供給",
+        sublabelEn: "Decarbonized supply",
         kind: "consume",
         icon: "building-2",
       },
+    ],
+    edges: [
+      { from: "solar", to: "electrolysis" },
+      { from: "electrolysis", to: "storage" },
+      { from: "storage", to: "demand" },
+    ],
+  },
+  "gifu-biomass": {
+    label: "岐阜バイオマスパワー発電所",
+    labelEn: "Gifu Biomass Power Plant",
+    description:
+      "林業と連携したバイオマス発電。24時間安定した再エネとして地域産業とエネルギーを垂直統合します。",
+    descriptionEn:
+      "Forestry-linked biomass—24/7 renewable power vertically integrating regional industry and energy.",
+    coordinates: [136.72, 35.39],
+    regionName: "岐阜県",
+    regionNameEn: "Gifu Prefecture",
+    modelCategory: "biomass",
+    energyTypes: ["biomass"],
+    mapRegion: "chubu",
+    caseStatus: "commercial",
+    scaleLabel: "商用運転 · バイオマス",
+    scaleLabelEn: "Commercial · Biomass",
+    partners: "バイオマスエナジー東海、岐阜バイオマスパワー",
+    partnersEn: "Biomass Energy Tokai, Gifu Biomass Power",
+    paradigmPoint:
+      "産業連携: 林業とエネルギー産業の垂直統合による地域経済の活性化。",
+    paradigmPointEn:
+      "Industry linkage: vertical integration of forestry and energy for local economies.",
+    sourceUrl: "http://www.bio-gifu.co.jp/",
+    nodes: [
+      {
+        id: "fuel",
+        label: "木質バイオマス",
+        labelEn: "Woody biomass",
+        sublabel: "地域林産資源",
+        sublabelEn: "Regional forest resources",
+        kind: "supply",
+        icon: "sprout",
+      },
+      {
+        id: "plant",
+        label: "バイオマス発電",
+        labelEn: "Biomass plant",
+        sublabel: "ベースロード",
+        sublabelEn: "Baseload",
+        kind: "convert",
+        icon: "flame",
+      },
+      {
+        id: "region",
+        label: "地域需要",
+        labelEn: "Regional demand",
+        sublabel: "産業・生活",
+        sublabelEn: "Industry & homes",
+        kind: "consume",
+        icon: "building-2",
+      },
+    ],
+    edges: [
+      { from: "fuel", to: "plant" },
+      { from: "plant", to: "region" },
+    ],
+  },
+  "yumesakura-p2g": {
+    label: "米倉山 P2G システム実証研究",
+    labelEn: "Yumesakura P2G demonstration",
+    description:
+      "変動する太陽光を水素に変換（P2G）し、時間・場所の制約を超えて地域にエネルギーを届けます。",
+    descriptionEn:
+      "Converts variable solar to hydrogen (P2G), delivering energy beyond time and place constraints.",
+    coordinates: [138.68, 35.6],
+    regionName: "山梨県 甲府市（米倉山）",
+    regionNameEn: "Kofu (Yumesakura), Yamanashi",
+    modelCategory: "hydrogen",
+    energyTypes: ["hydrogen", "solar"],
+    mapRegion: "chubu",
+    caseStatus: "demo",
+    scaleLabel: "実証事業 · 水素/太陽光",
+    scaleLabelEn: "Demo · H₂/Solar",
+    selfSufficiencyPct: 78,
+    partners: "山梨県、東レ、東京電力HD、東光高岳、NEDO",
+    partnersEn: "Yamanashi Pref., Toray, TEPCO HD, TAKAOKA TOKO, NEDO",
+    paradigmPoint:
+      "エネルギー貯蔵: 変動性の高い再エネを水素に変換（P2G）し、時間・場所の制約を克服。",
+    paradigmPointEn:
+      "Energy storage: P2G turns variable RE into hydrogen, overcoming time/place limits.",
+    sourceUrl: null,
+    nodes: [
+      {
+        id: "solar",
+        label: "太陽光（米倉山）",
+        labelEn: "Solar (Yumesakura)",
+        sublabel: "変動電源",
+        sublabelEn: "Variable supply",
+        kind: "supply",
+        icon: "sun-medium",
+      },
+      {
+        id: "p2g",
+        label: "水電解P2G",
+        labelEn: "Electrolysis P2G",
+        sublabel: "電力→水素",
+        sublabelEn: "Power → H₂",
+        kind: "convert",
+        icon: "flame",
+      },
+      {
+        id: "storage",
+        label: "水素・蓄電バッファ",
+        labelEn: "H₂ / battery buffer",
+        sublabel: "時間シフト",
+        sublabelEn: "Time shifting",
+        kind: "convert",
+        icon: "battery-charging",
+      },
       {
         id: "station",
-        label: "水素ステーション",
-        labelEn: "Hydrogen Station",
-        sublabel: "供給 320kg/日",
-        sublabelEn: "Supply 320kg/day",
+        label: "水素利用",
+        labelEn: "Hydrogen use",
+        sublabel: "モビリティ・熱",
+        sublabelEn: "Mobility & heat",
         kind: "consume",
         icon: "fuel",
       },
       {
         id: "home",
-        label: "家庭",
-        labelEn: "Homes",
-        sublabel: "接続 8,600件",
-        sublabelEn: "8,600 connections",
+        label: "地域需要",
+        labelEn: "Local demand",
+        sublabel: "家庭・施設",
+        sublabelEn: "Homes & facilities",
         kind: "consume",
         icon: "home",
       },
@@ -4065,109 +4412,404 @@ export const NETWORK_MODELS: Record<NetworkModel, NetworkModelConfig> = {
     edges: [
       { from: "solar", to: "p2g" },
       { from: "solar", to: "storage" },
-      { from: "hydro", to: "storage" },
       { from: "p2g", to: "station" },
-      { from: "storage", to: "city" },
       { from: "storage", to: "home" },
     ],
   },
-  fukushima: {
-    label: "福島 広域VPPモデル",
-    labelEn: "Fukushima Regional VPP Model",
+  "choshi-offshore-wind": {
+    label: "銚子沖洋上ウィンドファーム",
+    labelEn: "Choshi offshore wind farm",
     description:
-      "郡山の風力とメガソーラーを束ね、広域VPP(バーチャルパワープラント)として需給を最適化します。",
+      "海洋空間を使った大規模洋上風力。中央集権型グリッドに匹敵する再エネ供給を目指します。",
     descriptionEn:
-      "Wind and mega-solar around Koriyama are aggregated into a regional VPP (virtual power plant) to optimize supply and demand.",
-    coordinates: [140.3595, 37.4005],
-    regionName: "福島県 郡山市",
-    regionNameEn: "Koriyama, Fukushima",
-    modelCategory: "vpp",
-    scaleLabel: "22.6MW / VPP",
-    scaleLabelEn: "22.6MW / VPP",
-    selfSufficiencyPct: 64,
+      "Large offshore wind using ocean space—aiming for RE supply at central-grid scale.",
+    coordinates: [140.89, 35.73],
+    regionName: "千葉県 銚子沖",
+    regionNameEn: "Off Choshi, Chiba",
+    modelCategory: "wind",
+    energyTypes: ["wind"],
+    mapRegion: "kanto",
+    caseStatus: "planning",
+    scaleLabel: "計画段階 · 風力",
+    scaleLabelEn: "Planning · Wind",
+    partners:
+      "東京電力、オーステッド、三菱商事、シーテック、Amazon、GE Renewable Energy、NEDO",
+    partnersEn:
+      "TEPCO, Ørsted, Mitsubishi Corp, C-Tech, Amazon, GE Renewable Energy, NEDO",
+    paradigmPoint:
+      "大規模電源化: 海洋空間を利用した、中央集権型グリッドに匹敵する大規模再エネ供給。",
+    paradigmPointEn:
+      "Utility-scale supply: ocean space enabling RE at central-grid magnitude.",
+    sourceUrl: "https://www.chsow.co.jp/",
     nodes: [
       {
         id: "wind",
-        label: "風力(郡山)",
-        labelEn: "Wind (Koriyama)",
-        sublabel: "出力 22.6MW",
-        sublabelEn: "Output 22.6MW",
+        label: "洋上風力",
+        labelEn: "Offshore wind",
+        sublabel: "銚子沖",
+        sublabelEn: "Off Choshi",
         kind: "supply",
         icon: "wind",
       },
       {
-        id: "solar",
-        label: "メガソーラー",
-        labelEn: "Mega-solar",
-        sublabel: "出力 9.1MW",
-        sublabelEn: "Output 9.1MW",
+        id: "grid",
+        label: "系統・需要地",
+        labelEn: "Grid / demand hubs",
+        sublabel: "首都圏連携",
+        sublabelEn: "Greater Tokyo link",
+        kind: "consume",
+        icon: "building-2",
+      },
+    ],
+    edges: [{ from: "wind", to: "grid" }],
+  },
+  "tomakomai-biomass": {
+    label: "苫小牧バイオマス発電所",
+    labelEn: "Tomakomai Biomass Power Plant",
+    description:
+      "未利用間伐材を活かす地産地消型ベースロード。森林整備とエネルギーを循環させます。",
+    descriptionEn:
+      "Local baseload from unused thinnings—circulating forest stewardship into energy.",
+    coordinates: [141.61, 42.63],
+    regionName: "北海道 苫小牧市",
+    regionNameEn: "Tomakomai, Hokkaido",
+    modelCategory: "biomass",
+    energyTypes: ["biomass"],
+    mapRegion: "hokkaido",
+    caseStatus: "commercial",
+    scaleLabel: "商用運転 · バイオマス",
+    scaleLabelEn: "Commercial · Biomass",
+    partners: "三井物産、イワクラ、住友林業 等",
+    partnersEn: "Mitsui & Co., Iwakura, Sumitomo Forestry, et al.",
+    paradigmPoint:
+      "地域資源循環: 未利用間伐材の活用による、地産地消型のベースロード電源。",
+    paradigmPointEn:
+      "Local resource loops: unused thinnings as community-scale baseload.",
+    sourceUrl: null,
+    nodes: [
+      {
+        id: "forest",
+        label: "間伐材・林地残材",
+        labelEn: "Thinnings / residues",
+        sublabel: "森林整備と連携",
+        sublabelEn: "Linked to forestry",
         kind: "supply",
-        icon: "sun-medium",
+        icon: "sprout",
       },
       {
-        id: "hydro",
-        label: "小水力",
-        labelEn: "Small hydro",
-        sublabel: "出力 2.3MW",
-        sublabelEn: "Output 2.3MW",
+        id: "plant",
+        label: "バイオマス発電",
+        labelEn: "Biomass plant",
+        sublabel: "地産地消ベースロード",
+        sublabelEn: "Local baseload",
+        kind: "convert",
+        icon: "flame",
+      },
+      {
+        id: "city",
+        label: "苫小牧・地域需要",
+        labelEn: "Tomakomai demand",
+        sublabel: "市戦略と連携",
+        sublabelEn: "City RE strategy",
+        kind: "consume",
+        icon: "building-2",
+      },
+    ],
+    edges: [
+      { from: "forest", to: "plant" },
+      { from: "plant", to: "city" },
+    ],
+  },
+  "kumejima-otec": {
+    label: "海洋温度差発電（久米島）",
+    labelEn: "OTEC (Kumejima)",
+    description:
+      "表層と深層の温度差を使うOTEC。24時間稼働しうる究極の安定型海洋再エネです。",
+    descriptionEn:
+      "OTEC using surface–deep temperature gaps—an ultra-stable, potentially 24/7 ocean RE.",
+    coordinates: [126.8, 26.34],
+    regionName: "沖縄県 久米島",
+    regionNameEn: "Kumejima, Okinawa",
+    modelCategory: "ocean",
+    energyTypes: ["ocean"],
+    mapRegion: "okinawa",
+    caseStatus: "demo",
+    scaleLabel: "実証事業 · 海洋",
+    scaleLabelEn: "Demo · Ocean",
+    partners: "沖縄県、IHIプラント建設、ゼネシス 等",
+    partnersEn: "Okinawa Pref., IHI Plant Construction, Xenesys, et al.",
+    paradigmPoint:
+      "24時間稼働: 表層と深層の温度差を利用した、究極の安定型再エネ（OTEC）。",
+    paradigmPointEn:
+      "24/7 potential: OTEC from surface–deep temperature difference—ultra-stable RE.",
+    sourceUrl: null,
+    nodes: [
+      {
+        id: "otec",
+        label: "OTECプラント",
+        labelEn: "OTEC plant",
+        sublabel: "温度差発電",
+        sublabelEn: "Thermal gradient",
         kind: "supply",
         icon: "droplets",
       },
       {
-        id: "storage",
-        label: "定置型蓄電池",
-        labelEn: "Stationary Battery",
-        sublabel: "VPP統合 / 6.8MWh",
-        sublabelEn: "VPP integrated / 6.8MWh",
-        kind: "convert",
-        icon: "battery-charging",
+        id: "island",
+        label: "離島需要",
+        labelEn: "Island demand",
+        sublabel: "久米島",
+        sublabelEn: "Kumejima",
+        kind: "consume",
+        icon: "home",
+      },
+    ],
+    edges: [{ from: "otec", to: "island" }],
+  },
+  "katatsumuri-geothermal": {
+    label: "かたつむり山発電所（仮称）",
+    labelEn: "Katatsumuri-yama geothermal (provisional)",
+    description:
+      "化石燃料開発の掘削・探査技術を地熱へ転用する建設中プロジェクト。純国産の安定電源を増やします。",
+    descriptionEn:
+      "Under-construction project reusing oil/gas drilling skills for geothermal—growing stable domestic power.",
+    coordinates: [140.72, 39.16],
+    regionName: "秋田県 湯沢市",
+    regionNameEn: "Yuzawa, Akita",
+    modelCategory: "geothermal",
+    energyTypes: ["geothermal"],
+    mapRegion: "tohoku",
+    caseStatus: "construction",
+    scaleLabel: "建設中 · 地熱",
+    scaleLabelEn: "Building · Geothermal",
+    partners: "出光興産、INPEX、三井石油開発",
+    partnersEn: "Idemitsu, INPEX, MOECO",
+    paradigmPoint:
+      "資源開発の転換: 化石燃料開発の技術（掘削・探査）を地熱というクリーンエネルギーへ転用。",
+    paradigmPointEn:
+      "Resource pivot: oil/gas drilling & exploration skills applied to geothermal.",
+    sourceUrl:
+      "https://www.inpex.com/business/project/katatsumuri-yama.html",
+    nodes: [
+      {
+        id: "geo",
+        label: "地熱井・蒸気",
+        labelEn: "Geothermal wells",
+        sublabel: "かたつむり山",
+        sublabelEn: "Katatsumuri-yama",
+        kind: "supply",
+        icon: "flame",
       },
       {
-        id: "city",
-        label: "地元スマートシティ",
-        labelEn: "Local Smart City",
-        sublabel: "世帯数 5,400",
-        sublabelEn: "5,400 households",
-        kind: "consume",
+        id: "plant",
+        label: "地熱発電所",
+        labelEn: "Geothermal plant",
+        sublabel: "建設中",
+        sublabelEn: "Under construction",
+        kind: "convert",
         icon: "building-2",
       },
       {
-        id: "home",
-        label: "家庭",
-        labelEn: "Homes",
-        sublabel: "接続 14,200件",
-        sublabelEn: "14,200 connections",
+        id: "grid",
+        label: "系統・地域",
+        labelEn: "Grid / region",
+        sublabel: "ベースロード",
+        sublabelEn: "Baseload",
         kind: "consume",
         icon: "home",
       },
     ],
     edges: [
-      { from: "wind", to: "storage" },
-      { from: "solar", to: "storage" },
-      { from: "hydro", to: "storage" },
-      { from: "storage", to: "city" },
-      { from: "storage", to: "home" },
+      { from: "geo", to: "plant" },
+      { from: "plant", to: "grid" },
     ],
+  },
+  "wasabizawa-geothermal": {
+    label: "山葵沢地熱発電所",
+    labelEn: "Wasabizawa Geothermal Power Station",
+    description:
+      "天候に左右されない純国産ベースロード。地熱の安定性が地域の電力の安心感につながります。",
+    descriptionEn:
+      "Weather-independent domestic baseload—geothermal stability as regional power security.",
+    coordinates: [140.75, 39.05],
+    regionName: "秋田県 湯沢市",
+    regionNameEn: "Yuzawa, Akita",
+    modelCategory: "geothermal",
+    energyTypes: ["geothermal"],
+    mapRegion: "tohoku",
+    caseStatus: "commercial",
+    scaleLabel: "商用運転 · 地熱",
+    scaleLabelEn: "Commercial · Geothermal",
+    partners: "電源開発、三菱マテリアル、三菱ガス化学",
+    partnersEn: "J-POWER, Mitsubishi Materials, Mitsubishi Gas Chemical",
+    paradigmPoint:
+      "安定性: 天候に左右されない、純国産の強力なベースロード電源。",
+    paradigmPointEn:
+      "Stability: weather-independent, strong domestic baseload.",
+    sourceUrl: "https://yuzawa-geothermal.com/wasabizawa-power-station/",
+    nodes: [
+      {
+        id: "geo",
+        label: "地熱資源",
+        labelEn: "Geothermal resource",
+        sublabel: "山葵沢",
+        sublabelEn: "Wasabizawa",
+        kind: "supply",
+        icon: "flame",
+      },
+      {
+        id: "plant",
+        label: "地熱発電所",
+        labelEn: "Geothermal plant",
+        sublabel: "商用運転",
+        sublabelEn: "Commercial",
+        kind: "convert",
+        icon: "building-2",
+      },
+      {
+        id: "grid",
+        label: "系統・地域需要",
+        labelEn: "Grid / local demand",
+        sublabel: "ベースロード供給",
+        sublabelEn: "Baseload supply",
+        kind: "consume",
+        icon: "home",
+      },
+    ],
+    edges: [
+      { from: "geo", to: "plant" },
+      { from: "plant", to: "grid" },
+    ],
+  },
+  "nagayoshigawa-hydro": {
+    label: "永吉川水力発電所",
+    labelEn: "Nagayoshi-gawa hydro plant",
+    description:
+      "地域金融機関や地元企業が支えるコミュニティ主導の小水力。分散型投資のモデルです。",
+    descriptionEn:
+      "Community-led small hydro backed by local banks and firms—a distributed investment model.",
+    coordinates: [130.4, 31.63],
+    regionName: "鹿児島県 日置市",
+    regionNameEn: "Hioki, Kagoshima",
+    modelCategory: "hydro",
+    energyTypes: ["hydro"],
+    mapRegion: "kyushu",
+    caseStatus: "commercial",
+    scaleLabel: "商用運転 · 中小水力",
+    scaleLabelEn: "Commercial · Small hydro",
+    partners: "日置市、鹿児島銀行、地元企業等",
+    partnersEn: "Hioki City, Kagoshima Bank, local firms",
+    paradigmPoint:
+      "分散型投資: 地域金融機関や地元企業による、コミュニティ主導の小規模分散型電源。",
+    paradigmPointEn:
+      "Distributed investment: community-led small power backed by local finance.",
+    sourceUrl: null,
+    nodes: [
+      {
+        id: "hydro",
+        label: "小水力",
+        labelEn: "Small hydro",
+        sublabel: "永吉川",
+        sublabelEn: "Nagayoshi River",
+        kind: "supply",
+        icon: "droplets",
+      },
+      {
+        id: "community",
+        label: "地域エネルギー会社",
+        labelEn: "Local energy company",
+        sublabel: "コミュニティ主導",
+        sublabelEn: "Community-led",
+        kind: "convert",
+        icon: "building-2",
+      },
+      {
+        id: "home",
+        label: "地域需要",
+        labelEn: "Local demand",
+        sublabel: "地産地消",
+        sublabelEn: "Local consumption",
+        kind: "consume",
+        icon: "home",
+      },
+    ],
+    edges: [
+      { from: "hydro", to: "community" },
+      { from: "community", to: "home" },
+    ],
+  },
+  "hiratsuka-wave": {
+    label: "平塚波力発電所",
+    labelEn: "Hiratsuka wave power plant",
+    description:
+      "沿岸の波エネルギーを直接回収する都市近接型の分散電源。エッジで再エネを取り込む実証です。",
+    descriptionEn:
+      "Coastal wave energy harvested near the city—edge-side RE demonstration.",
+    coordinates: [139.35, 35.33],
+    regionName: "神奈川県 平塚市",
+    regionNameEn: "Hiratsuka, Kanagawa",
+    modelCategory: "ocean",
+    energyTypes: ["ocean"],
+    mapRegion: "kanto",
+    caseStatus: "demo",
+    scaleLabel: "実証事業 · 海洋",
+    scaleLabelEn: "Demo · Ocean",
+    partners: "東京大学生産技術研究所グループ 等",
+    partnersEn: "Univ. of Tokyo IIS group, et al.",
+    paradigmPoint:
+      "エッジ利用: 沿岸部の波エネルギーを直接回収する、都市近接型の分散電源。",
+    paradigmPointEn:
+      "Edge harvest: coastal wave energy as near-city distributed power.",
+    sourceUrl: null,
+    nodes: [
+      {
+        id: "wave",
+        label: "波力発電",
+        labelEn: "Wave power",
+        sublabel: "平塚沿岸",
+        sublabelEn: "Hiratsuka coast",
+        kind: "supply",
+        icon: "droplets",
+      },
+      {
+        id: "lab",
+        label: "実証・研究需要",
+        labelEn: "Demo / research load",
+        sublabel: "都市近接",
+        sublabelEn: "Near-city",
+        kind: "consume",
+        icon: "building-2",
+      },
+    ],
+    edges: [{ from: "wave", to: "lab" }],
   },
 }
 
 export function matchesModelCategory(
-  category: ModelCategory,
+  config: Pick<NetworkModelConfig, "modelCategory" | "energyTypes">,
   filter: ModelCategory | "all"
 ): boolean {
-  return filter === "all" || category === filter
+  if (filter === "all") return true
+  return (
+    config.modelCategory === filter || config.energyTypes.includes(filter)
+  )
 }
 
 export function categoryColor(category: ModelCategory): string {
   switch (category) {
-    case "p2g":
-      return "#10b981"
-    case "vpp":
-      return "#3b82f6"
-    case "microgrid":
-      return "#8b5cf6"
-    case "self-line":
+    case "solar":
       return "#f59e0b"
+    case "wind":
+      return "#3b82f6"
+    case "ocean":
+      return "#06b6d4"
+    case "biomass":
+      return "#84cc16"
+    case "geothermal":
+      return "#f97316"
+    case "hydro":
+      return "#6366f1"
+    case "hydrogen":
+      return "#10b981"
     default:
       return "#6b7280"
   }
@@ -4175,16 +4817,76 @@ export function categoryColor(category: ModelCategory): string {
 
 export function networkMethodKey(
   category: ModelCategory
-): "methodP2g" | "methodVpp" | "methodMicrogrid" | "methodSelfLine" {
+):
+  | "methodSolar"
+  | "methodWind"
+  | "methodOcean"
+  | "methodBiomass"
+  | "methodGeothermal"
+  | "methodHydro"
+  | "methodHydrogen" {
   switch (category) {
-    case "p2g":
-      return "methodP2g"
-    case "vpp":
-      return "methodVpp"
-    case "microgrid":
-      return "methodMicrogrid"
-    case "self-line":
-      return "methodSelfLine"
+    case "solar":
+      return "methodSolar"
+    case "wind":
+      return "methodWind"
+    case "ocean":
+      return "methodOcean"
+    case "biomass":
+      return "methodBiomass"
+    case "geothermal":
+      return "methodGeothermal"
+    case "hydro":
+      return "methodHydro"
+    case "hydrogen":
+      return "methodHydrogen"
+  }
+}
+
+export function caseStatusKey(
+  status: CaseStatus
+):
+  | "statusCommercial"
+  | "statusDemo"
+  | "statusPlanning"
+  | "statusConstruction" {
+  switch (status) {
+    case "commercial":
+      return "statusCommercial"
+    case "demo":
+      return "statusDemo"
+    case "planning":
+      return "statusPlanning"
+    case "construction":
+      return "statusConstruction"
+  }
+}
+
+export function energyTypeFilterKey(
+  category: ModelCategory
+):
+  | "japanMapFilterSolar"
+  | "japanMapFilterWind"
+  | "japanMapFilterOcean"
+  | "japanMapFilterBiomass"
+  | "japanMapFilterGeothermal"
+  | "japanMapFilterHydro"
+  | "japanMapFilterHydrogen" {
+  switch (category) {
+    case "solar":
+      return "japanMapFilterSolar"
+    case "wind":
+      return "japanMapFilterWind"
+    case "ocean":
+      return "japanMapFilterOcean"
+    case "biomass":
+      return "japanMapFilterBiomass"
+    case "geothermal":
+      return "japanMapFilterGeothermal"
+    case "hydro":
+      return "japanMapFilterHydro"
+    case "hydrogen":
+      return "japanMapFilterHydrogen"
   }
 }
 

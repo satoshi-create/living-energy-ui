@@ -1,19 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
+import { MathUtils } from "three"
 import { useTranslations } from "next-intl"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   SURFACE_TYPOLOGIES,
+  getPanelTiltOption,
+  resolveDefaultTiltMode,
   typologyToBalconyType,
   typologyToRoofType,
   type BalconyType,
   type Direction,
   type RailingType,
   type RoofType,
+  DEFAULT_LIVING_CONTEXT,
+  type LivingContext,
   type SurfaceTypology,
   type SurfaceTypologyDetail,
+  type WeatherCondition,
 } from "../data"
 
 type SurfaceCategoryFilter = "all" | "balcony" | "roof"
@@ -34,6 +40,150 @@ export type BalconyIllustrationProps = {
   roofType?: RoofType
   /** Optional typology override (bridges to balcony/roof presets). */
   typologyId?: SurfaceTypology
+  /** Panel tilt from horizontal (degrees); drives mesh X-axis rotation. */
+  tiltDeg?: number
+  /** Stow / 出仕舞い — fold panels flat inside the rail. */
+  isRetracted?: boolean
+  /** Laundry / egress / weather overlays for lived-experience simulation. */
+  livingContext?: LivingContext
+  /** Show 60 cm egress stripe + hatch no-go zones. */
+  showEgressOverlay?: boolean
+}
+
+function LifeLayerDefs() {
+  return (
+    <defs>
+      <pattern
+        id="egress-stripe"
+        patternUnits="userSpaceOnUse"
+        width="8"
+        height="8"
+        patternTransform="rotate(45)"
+      >
+        <rect width="8" height="8" fill="var(--color-amber-500)" opacity="0.12" />
+        <line x1="0" y1="0" x2="0" y2="8" stroke="var(--color-amber-500)" strokeWidth="3" opacity="0.45" />
+      </pattern>
+      <pattern id="hatch-no-go" patternUnits="userSpaceOnUse" width="6" height="6">
+        <path d="M0,6 L6,0 M-1,1 L1,-1 M5,7 L7,5" stroke="var(--color-rose-500)" strokeWidth="1" opacity="0.5" />
+      </pattern>
+    </defs>
+  )
+}
+
+function EgressOverlay({ showHatch }: { showHatch: boolean }) {
+  return (
+    <g aria-hidden>
+      <rect x="0" y="140" width="72" height="60" fill="url(#egress-stripe)" opacity="0.85" />
+      {showHatch && (
+        <>
+          <rect x="228" y="148" width="52" height="44" fill="url(#hatch-no-go)" opacity="0.55" />
+          <rect
+            x="228"
+            y="148"
+            width="52"
+            height="44"
+            fill="none"
+            stroke="var(--color-rose-500)"
+            strokeWidth="1.5"
+            strokeDasharray="4 3"
+            opacity="0.7"
+          />
+        </>
+      )}
+    </g>
+  )
+}
+
+function LaundryLayer({
+  sunX,
+  sunY,
+  shadowStrength,
+  collapsed,
+}: {
+  sunX: number
+  sunY: number
+  shadowStrength: number
+  collapsed: boolean
+}) {
+  if (collapsed) {
+    return (
+      <g aria-hidden opacity="0.5">
+        <line x1="60" y1="132" x2="240" y2="132" stroke="var(--color-foreground)" strokeWidth="2" opacity="0.35" />
+      </g>
+    )
+  }
+  const poleY = 118
+  const items = [
+    { x: 85, w: 22, h: 28 },
+    { x: 120, w: 18, h: 32 },
+    { x: 155, w: 24, h: 26 },
+    { x: 190, w: 20, h: 30 },
+  ]
+  return (
+    <g aria-hidden>
+      <line x1="50" y1={poleY} x2="250" y2={poleY} stroke="var(--color-foreground)" strokeWidth="2.5" opacity="0.55" />
+      <line x1="50" y1={poleY + 14} x2="250" y2={poleY + 14} stroke="var(--color-foreground)" strokeWidth="1.5" opacity="0.35" />
+      {items.map((item, i) => {
+        const cx = item.x + item.w / 2
+        const cy = poleY + item.h / 2 + 8
+        const dx = cx - sunX
+        const dy = cy - sunY
+        const len = Math.hypot(dx, dy) || 1
+        const shadowLen = 18 + shadowStrength * 24
+        const sx = cx + (dx / len) * shadowLen
+        const sy = cy + (dy / len) * shadowLen
+        return (
+          <g key={i}>
+            <polygon
+              points={`${cx},${cy} ${cx + item.w / 2},${cy + item.h} ${sx + item.w / 2},${sy + item.h} ${sx},${sy}`}
+              fill="var(--color-foreground)"
+              opacity={0.12 + shadowStrength * 0.18}
+            />
+            <rect
+              x={item.x}
+              y={poleY + 6}
+              width={item.w}
+              height={item.h}
+              rx="2"
+              fill="var(--color-muted-foreground)"
+              opacity="0.55"
+            />
+          </g>
+        )
+      })}
+    </g>
+  )
+}
+
+function weatherSkyOpacity(weather: WeatherCondition): number {
+  if (weather === "overcast_tsuyu") return 0.72
+  if (weather === "typhoon_alert") return 0.85
+  return 0.5
+}
+
+function weatherSunOpacity(weather: WeatherCondition): number {
+  if (weather === "overcast_tsuyu") return 0.45
+  if (weather === "typhoon_alert") return 0.15
+  return 0.9
+}
+
+/** Panel group style: X-axis tilt via THREE.MathUtils.degToRad (+ stow pose). */
+function panelTiltStyle(tiltDeg: number, isRetracted: boolean): CSSProperties {
+  const rad = MathUtils.degToRad(isRetracted ? 0 : tiltDeg)
+  const deg = (rad * 180) / Math.PI
+  if (isRetracted) {
+    return {
+      transform: "rotateX(0deg) translateY(6px) scaleY(0.2)",
+      transformOrigin: "center bottom",
+      transformBox: "fill-box",
+      opacity: 0.55,
+    }
+  }
+  return {
+    transform: `rotateX(${deg}deg)`,
+    transformOrigin: "center bottom",
+    transformBox: "fill-box",
+  }
 }
 
 function StandardDeck({
@@ -41,22 +191,43 @@ function StandardDeck({
   railing,
   railingOpacity,
   shadowLength,
+  tiltDeg,
+  isRetracted,
 }: {
   rotation: number
   railing: RailingType
   railingOpacity: number
   shadowLength: number
+  tiltDeg: number
+  isRetracted: boolean
 }) {
+  const panelStyle = panelTiltStyle(tiltDeg, isRetracted)
+  const railMount = tiltDeg >= 70 && !isRetracted
   return (
     <>
       <rect x="0" y="140" width="300" height="60" fill="var(--color-card)" />
-      <g transform={`rotate(${rotation} 150 168)`}>
-        <rect x="105" y="158" width="90" height="20" rx="3" fill="var(--color-primary)" opacity="0.85" />
-        <line x1="120" y1="158" x2="120" y2="178" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
-        <line x1="135" y1="158" x2="135" y2="178" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
-        <line x1="150" y1="158" x2="150" y2="178" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
-        <line x1="165" y1="158" x2="165" y2="178" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
-        <line x1="180" y1="158" x2="180" y2="178" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
+      <g
+        transform={
+          railMount
+            ? `rotate(${rotation} 150 124) translate(0 -34)`
+            : `rotate(${rotation} 150 168)`
+        }
+        style={panelStyle}
+      >
+        <rect
+          x="105"
+          y={railMount ? 118 : 158}
+          width="90"
+          height={railMount ? 36 : 20}
+          rx="3"
+          fill="var(--color-primary)"
+          opacity="0.85"
+        />
+        <line x1="120" y1={railMount ? 118 : 158} x2="120" y2={railMount ? 154 : 178} stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
+        <line x1="135" y1={railMount ? 118 : 158} x2="135" y2={railMount ? 154 : 178} stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
+        <line x1="150" y1={railMount ? 118 : 158} x2="150" y2={railMount ? 154 : 178} stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
+        <line x1="165" y1={railMount ? 118 : 158} x2="165" y2={railMount ? 154 : 178} stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
+        <line x1="180" y1={railMount ? 118 : 158} x2="180" y2={railMount ? 154 : 178} stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
       </g>
       <g>
         <rect x="0" y="138" width="300" height="4" fill="var(--color-foreground)" opacity="0.4" />
@@ -90,8 +261,17 @@ function StandardDeck({
 }
 
 /** Juliet: no protruding deck — French doors + rail/glass with thin-film mesh. */
-function JulietSurface({ railing }: { railing: RailingType }) {
+function JulietSurface({
+  railing,
+  tiltDeg,
+  isRetracted,
+}: {
+  railing: RailingType
+  tiltDeg: number
+  isRetracted: boolean
+}) {
   const isGlass = railing === "glass"
+  const panelStyle = panelTiltStyle(tiltDeg, isRetracted)
   return (
     <>
       {/* building façade */}
@@ -150,14 +330,14 @@ function JulietSurface({ railing }: { railing: RailingType }) {
           ))
         )}
         {/* flexible thin-film / receiving mesh along rail */}
-        <g opacity="0.9">
+        <g opacity="0.9" style={panelStyle}>
           {Array.from({ length: 6 }, (_, i) => (
             <rect
               key={i}
               x={90 + i * 20}
-              y="120"
+              y={isRetracted ? 150 : 120}
               width="16"
-              height="32"
+              height={isRetracted ? 10 : 32}
               rx="1"
               fill="var(--color-primary)"
               opacity={0.55 + (i % 2) * 0.15}
@@ -173,10 +353,15 @@ function JulietSurface({ railing }: { railing: RailingType }) {
 function RecessedSurface({
   rotation,
   shadowLength,
+  tiltDeg,
+  isRetracted,
 }: {
   rotation: number
   shadowLength: number
+  tiltDeg: number
+  isRetracted: boolean
 }) {
+  const panelStyle = panelTiltStyle(tiltDeg, isRetracted)
   return (
     <>
       {/* outer façade plane */}
@@ -217,8 +402,16 @@ function RecessedSurface({
       />
 
       {/* PV on recessed deck */}
-      <g transform={`rotate(${rotation} 150 188)`}>
-        <rect x="115" y="178" width="70" height="16" rx="2" fill="var(--color-primary)" opacity="0.85" />
+      <g transform={`rotate(${rotation} 150 188)`} style={panelStyle}>
+        <rect
+          x="115"
+          y={isRetracted ? 184 : 178}
+          width="70"
+          height={isRetracted ? 8 : 16}
+          rx="2"
+          fill="var(--color-primary)"
+          opacity="0.85"
+        />
         <line x1="132" y1="178" x2="132" y2="194" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
         <line x1="150" y1="178" x2="150" y2="194" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
         <line x1="168" y1="178" x2="168" y2="194" stroke="var(--color-background)" strokeWidth="1" opacity="0.4" />
@@ -231,7 +424,16 @@ function RecessedSurface({
 }
 
 /** Roof terrace: flat roof plane as primary surface. */
-function RoofTerraceSurface({ rotation }: { rotation: number }) {
+function RoofTerraceSurface({
+  rotation,
+  tiltDeg,
+  isRetracted,
+}: {
+  rotation: number
+  tiltDeg: number
+  isRetracted: boolean
+}) {
+  const panelStyle = panelTiltStyle(tiltDeg, isRetracted)
   return (
     <>
       <rect x="0" y="100" width="300" height="100" fill="var(--color-card)" />
@@ -240,7 +442,7 @@ function RoofTerraceSurface({ rotation }: { rotation: number }) {
       <rect x="10" y="70" width="8" height="35" fill="var(--color-foreground)" opacity="0.3" />
       <rect x="282" y="70" width="8" height="35" fill="var(--color-foreground)" opacity="0.3" />
       {/* flat-roof PV array */}
-      <g transform={`rotate(${rotation} 150 145)`}>
+      <g transform={`rotate(${rotation} 150 145)`} style={panelStyle}>
         {Array.from({ length: 3 }, (_, row) =>
           Array.from({ length: 4 }, (_, col) => (
             <rect
@@ -248,7 +450,7 @@ function RoofTerraceSurface({ rotation }: { rotation: number }) {
               x={70 + col * 42}
               y={118 + row * 28}
               width="36"
-              height="22"
+              height={isRetracted ? 8 : 22}
               rx="2"
               fill="var(--color-primary)"
               opacity={0.75 + (row + col) % 2 * 0.1}
@@ -340,10 +542,10 @@ function resolveIllustrationTypes(
   const bridgedBalcony = typologyToBalconyType(typologyId)
   const bridgedRoof = typologyToRoofType(typologyId)
   const railing: RailingType | null =
-    typologyId === "exposed_concrete_parapet"
+    typologyId === "precast_parapet"
       ? "concrete"
-      : typologyId === "haussmann_balconet" || typologyId === "juliet_balcony"
-        ? "grid"
+      : typologyId === "glass_railing"
+        ? "glass"
         : null
   return {
     balconyType: bridgedBalcony ?? balconyType,
@@ -359,6 +561,10 @@ export function BalconyIllustration({
   balconyType = "standard",
   roofType = "flat",
   typologyId,
+  tiltDeg = 0,
+  isRetracted = false,
+  livingContext = DEFAULT_LIVING_CONTEXT,
+  showEgressOverlay = true,
 }: BalconyIllustrationProps) {
   const t = useTranslations("balconyPv")
   // hour ranges 8-17. Map to sun arc position: t=0 at 8:00, t=1 at 17:00.
@@ -381,17 +587,30 @@ export function BalconyIllustration({
   const showPitchedRoof =
     effectiveRoof === "pitched_gable" || effectiveRoof === "pitched_mansard_dormer"
   const hideBalconyDeck = effectiveBalcony === "roof_terrace" && showPitchedRoof
+  const weather = livingContext.weather
+  const showLaundry = livingContext.habit === "laundry_drying"
+  const showEgress =
+    showEgressOverlay &&
+    (livingContext.habit === "outdoor_unit_service" ||
+      effectiveBalcony === "standard" ||
+      effectiveBalcony === "recessed")
+  const typhoonOrStow = weather === "typhoon_alert" || isRetracted
+  const laundryShadowStrength = 1 - elevation * 0.35
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/40 to-background">
       <svg viewBox="0 0 300 200" className="h-56 w-full" role="img" aria-label={t("illustration.ariaLabel")}>
+        <LifeLayerDefs />
         {/* sky */}
-        <rect x="0" y="0" width="300" height="140" fill="var(--color-muted)" opacity="0.5" />
+        <rect x="0" y="0" width="300" height="140" fill="var(--color-muted)" opacity={weatherSkyOpacity(weather)} />
+        {weather === "overcast_tsuyu" && (
+          <rect x="0" y="0" width="300" height="140" fill="var(--color-background)" opacity="0.25" />
+        )}
         {/* sun path arc guide */}
         <path d="M 20 130 Q 150 20 280 130" fill="none" stroke="var(--color-border)" strokeDasharray="3 4" />
         {/* sun */}
-        <circle cx={sunX} cy={sunY} r="10" fill="var(--color-primary)" opacity="0.9" />
-        <circle cx={sunX} cy={sunY} r="18" fill="var(--color-primary)" opacity="0.18" />
+        <circle cx={sunX} cy={sunY} r="10" fill="var(--color-primary)" opacity={weatherSunOpacity(weather)} />
+        <circle cx={sunX} cy={sunY} r="18" fill="var(--color-primary)" opacity={weatherSunOpacity(weather) * 0.2} />
 
         {/* UK pitched roofs sit in the upper / background plane */}
         {effectiveRoof === "pitched_gable" && <PitchedGableRoof />}
@@ -399,19 +618,50 @@ export function BalconyIllustration({
 
         {/* balcony / terrace receiving surface */}
         {!hideBalconyDeck && effectiveBalcony === "standard" && !showPitchedRoof && (
-          <StandardDeck
-            rotation={rotation}
-            railing={effectiveRailing}
-            railingOpacity={railingOpacity}
-            shadowLength={shadowLength}
-          />
+          <>
+            <StandardDeck
+              rotation={rotation}
+              railing={effectiveRailing}
+              railingOpacity={railingOpacity}
+              shadowLength={shadowLength}
+              tiltDeg={tiltDeg}
+              isRetracted={isRetracted}
+            />
+            {showEgress && <EgressOverlay showHatch={livingContext.habit === "outdoor_unit_service"} />}
+            {showLaundry && (
+              <LaundryLayer
+                sunX={sunX}
+                sunY={sunY}
+                shadowStrength={laundryShadowStrength}
+                collapsed={typhoonOrStow}
+              />
+            )}
+          </>
         )}
-        {!hideBalconyDeck && effectiveBalcony === "juliet" && <JulietSurface railing={effectiveRailing} />}
+        {!hideBalconyDeck && effectiveBalcony === "juliet" && (
+          <JulietSurface railing={effectiveRailing} tiltDeg={tiltDeg} isRetracted={isRetracted} />
+        )}
         {!hideBalconyDeck && effectiveBalcony === "recessed" && (
-          <RecessedSurface rotation={rotation} shadowLength={shadowLength} />
+          <>
+            <RecessedSurface
+              rotation={rotation}
+              shadowLength={shadowLength}
+              tiltDeg={tiltDeg}
+              isRetracted={isRetracted}
+            />
+            {showEgress && <EgressOverlay showHatch />}
+            {showLaundry && (
+              <LaundryLayer
+                sunX={sunX}
+                sunY={sunY}
+                shadowStrength={laundryShadowStrength}
+                collapsed={typhoonOrStow}
+              />
+            )}
+          </>
         )}
         {!hideBalconyDeck && effectiveBalcony === "roof_terrace" && !showPitchedRoof && (
-          <RoofTerraceSurface rotation={rotation} />
+          <RoofTerraceSurface rotation={rotation} tiltDeg={tiltDeg} isRetracted={isRetracted} />
         )}
         {/* When a pitched roof is selected with standard deck, keep a simple floor under eaves */}
         {!hideBalconyDeck && effectiveBalcony === "standard" && showPitchedRoof && (
@@ -420,10 +670,12 @@ export function BalconyIllustration({
             railing={effectiveRailing}
             railingOpacity={railingOpacity}
             shadowLength={shadowLength}
+            tiltDeg={tiltDeg}
+            isRetracted={isRetracted}
           />
         )}
         {!hideBalconyDeck && effectiveBalcony === "roof_terrace" && showPitchedRoof && (
-          <RoofTerraceSurface rotation={rotation} />
+          <RoofTerraceSurface rotation={rotation} tiltDeg={tiltDeg} isRetracted={isRetracted} />
         )}
       </svg>
     </div>
@@ -496,7 +748,10 @@ export type SurfaceTypologyCardProps = {
 /** Single typology-first catalog card (title = pure form geometry, not country). */
 export function SurfaceTypologyCard({ typology, selected, onSelect }: SurfaceTypologyCardProps) {
   const t = useTranslations("balconyPv.typologies")
-  const tiltLabel = `${typology.defaultTiltDeg}°`
+  const defaultMode = resolveDefaultTiltMode(typology)
+  const tiltOption = getPanelTiltOption(defaultMode)
+  const tiltDeg = tiltOption.tiltDeg
+  const tiltLabel = `${tiltDeg}°`
   const opticalLabel = t(`opticalProfile.${typology.opticalProfile}`)
 
   return (
@@ -515,6 +770,8 @@ export function SurfaceTypologyCard({ typology, selected, onSelect }: SurfaceTyp
           railing="grid"
           hour={12.5}
           typologyId={typology.id}
+          tiltDeg={tiltDeg}
+          isRetracted={defaultMode === "retracted"}
         />
         <div className="pointer-events-none absolute right-2 top-2 flex flex-col items-end gap-1">
           <span className="rounded-md bg-background/85 px-2 py-0.5 font-mono text-xs text-foreground shadow-sm ring-1 ring-border/50">

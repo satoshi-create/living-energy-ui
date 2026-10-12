@@ -34,13 +34,21 @@ import {
   type Surface3DFocus,
 } from "./surface-3d-full-view"
 import { Surface3DViewer } from "./surface-3d-viewer"
-import { WorldPvMap, type MovementHistoryPhaseId } from "./world-pv-map"
+import {
+  CountryPvEcosystem,
+  CountryPvOssTools,
+  CountryPvTimeline,
+  WorldPvMap,
+  type MovementHistoryPhaseId,
+} from "./world-pv-map"
 import {
   DIRECTIONS,
   ECOSYSTEM_ACTOR_FILTERS,
   RAILING_TYPES,
   WORLD_BALCONY_PV_COUNTRIES,
+  computeBalconyLifeCompliance,
   computeBalconyScore,
+  DEFAULT_LIVING_CONTEXT,
   getCountryArchitectureConfig,
   getEcosystemActorsByCountry,
   getMaturityScore,
@@ -56,6 +64,10 @@ import {
   type Direction,
   type EcosystemActorFilter,
   type EcosystemActorType,
+  type LivingContext,
+  type LivingHabit,
+  type PanelTiltMode,
+  type WeatherCondition,
   type RailingType,
   type SolarFurnitureId,
   type SystemModelType,
@@ -321,7 +333,7 @@ export type BalconyViewProps = {
   onNavigateToEcosystem?: (countryCode: CountryCode) => void
 }
 
-type WorldImplTab = "map" | "vendors" | "nonprofits" | "surfaces"
+type WorldImplTab = "map" | "vendors" | "nonprofits" | "oss" | "ecosystem" | "surfaces"
 
 type SurfaceCategoryFilter = "all" | "balcony" | "roof"
 
@@ -506,9 +518,16 @@ export function WorldImplementationView() {
     <Tabs
       value={viewTab}
       onValueChange={(v) => {
-        if (v === "map" || v === "vendors" || v === "nonprofits" || v === "surfaces") {
+        if (
+          v === "map" ||
+          v === "vendors" ||
+          v === "nonprofits" ||
+          v === "oss" ||
+          v === "ecosystem" ||
+          v === "surfaces"
+        ) {
           setViewTab(v)
-          if (v === "vendors" || v === "nonprofits") {
+          if (v === "vendors" || v === "nonprofits" || v === "oss" || v === "ecosystem") {
             setSelectedId(null)
             setHighlightedFurnitureId(null)
             setIsRankingOpen(false)
@@ -526,7 +545,7 @@ export function WorldImplementationView() {
       style={{ ["--sidebar-w" as string]: `${sidebarWidth}px` }}
     >
       <div className="z-40 flex shrink-0 items-center justify-start gap-2 border-b border-border/50 bg-slate-950/90 px-2 py-2 backdrop-blur-md sm:px-3">
-        <TabsList className="h-8 w-full max-w-4xl bg-black/60 sm:w-auto">
+        <TabsList className="h-8 w-full max-w-5xl bg-black/60 sm:w-auto">
           <TabsTrigger value="map" className="flex-1 px-2 text-xs sm:flex-none">
             🗺️ {t("tabs.map")}
           </TabsTrigger>
@@ -535,6 +554,12 @@ export function WorldImplementationView() {
           </TabsTrigger>
           <TabsTrigger value="nonprofits" className="flex-1 px-2 text-xs sm:flex-none">
             🌐 {t("tabs.nonprofits")}
+          </TabsTrigger>
+          <TabsTrigger value="oss" className="flex-1 px-2 text-xs sm:flex-none">
+            🛠️ {t("tabs.oss")}
+          </TabsTrigger>
+          <TabsTrigger value="ecosystem" className="flex-1 px-2 text-xs sm:flex-none">
+            ⚡ {t("tabs.ecosystem")}
           </TabsTrigger>
           <TabsTrigger value="surfaces" className="flex-1 px-2 text-xs sm:flex-none">
             📐 {t("tabs.surfaces")}
@@ -752,166 +777,193 @@ export function WorldImplementationView() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pl-5 text-sm">
-              <div className="flex flex-col gap-2">
-                {SIDEBAR_SPEC_FIELDS.map(({ key, labelKey }) => {
-                  const isPlugInEase = key === "plugInEase"
-                  const value = isPlugInEase
-                    ? plugInEaseSpec
-                      ? tSidebar(plugInEaseSpec.msgKey)
-                      : ""
-                    : key === "excessPower"
-                      ? excessPowerKey
-                        ? tSidebar(excessPowerKey)
-                        : ""
-                      : sidebarRuleSummary()
-                  return (
-                    <div key={key} className="flex flex-col gap-0.5 rounded-lg bg-muted/50 px-3 py-2">
-                      <span className="text-xs font-semibold text-slate-400">{tSidebar(labelKey)}</span>
-                      <span
-                        className={cn(
-                          "break-words text-sm",
-                          isPlugInEase && plugInEaseSpec
-                            ? OUTLET_TONE_CLASS[plugInEaseSpec.tone]
-                            : "font-medium text-slate-100",
-                        )}
-                      >
-                        {value}
-                      </span>
-                    </div>
-                  )
-                })}
-                <p className="text-sm leading-relaxed text-slate-300">
-                  {countryMsg(
-                    "summary",
-                    isEn && (selectedCountry as { summaryEn?: string }).summaryEn
-                      ? (selectedCountry as { summaryEn?: string }).summaryEn!
-                      : selectedCountry.keyDrivers?.join(" / ") ||
-                        selectedCountry.bottlenecks?.join(" / ") ||
-                        t("analysis.implStatus", {
-                          name: countryMsg(
-                            "name",
-                            isEn && (selectedCountry as { nameEn?: string }).nameEn
-                              ? (selectedCountry as { nameEn?: string }).nameEn!
-                              : selectedCountry.name,
-                          ),
-                        }),
-                  )}
-                </p>
-              </div>
-
-              {architectureConfig && architectureConfig.profiles.length > 0 && (
-                <ArchitectureSidebar
-                  key={selectedCountry.id}
-                  profiles={architectureConfig.profiles}
-                  countryId={selectedCountry.id}
-                  highlightedFurnitureId={highlightedFurnitureId}
-                  onHighlightFurniture={handleHighlightFurniture}
-                  onOpenSurfaceDetail={openSurfaceDetailFromMap}
-                />
-              )}
-
-              {selectedCountry.keyDrivers && selectedCountry.keyDrivers.length > 0 && (
-                <div className="space-y-1.5 border-t border-slate-800 pt-2">
-                  <div className="text-sm font-semibold text-emerald-400">
-                    {tSidebar("drivers")}
-                  </div>
-                  <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
-                    {selectedCountry.keyDrivers.map((driver, idx) => {
-                      const enList = (selectedCountry as { keyDriversEn?: string[] }).keyDriversEn
-                      const fromMsg = countryMsg(`keyDrivers.${idx}`, "")
-                      const text =
-                        (fromMsg && fromMsg) ||
-                        (isEn && enList?.[idx] ? enList[idx] : driver)
-                      return <li key={idx}>{text}</li>
-                    })}
-                  </ul>
-                </div>
-              )}
-              {selectedCountry.bottlenecks && selectedCountry.bottlenecks.length > 0 && (
-                <div className="space-y-1.5 border-t border-slate-800 pt-2">
-                  <div className="text-sm font-semibold text-rose-400">
-                    {tSidebar("bottlenecks")}
-                  </div>
-                  <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
-                    {selectedCountry.bottlenecks.map((bottle, idx) => {
-                      const enList = (selectedCountry as { bottlenecksEn?: string[] }).bottlenecksEn
-                      const fromMsg = countryMsg(`bottlenecks.${idx}`, "")
-                      const text =
-                        (fromMsg && fromMsg) ||
-                        (isEn && enList?.[idx] ? enList[idx] : bottle)
-                      return <li key={idx}>{text}</li>
-                    })}
-                  </ul>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-3">
-                <p className="text-xs font-medium text-muted-foreground">{tSidebar("relatedOrgs")}</p>
-                <ToggleGroup
-                  value={[actorFilter]}
-                  onValueChange={(v) => v[0] && setActorFilter(v[0] as EcosystemActorFilter)}
-                  variant="outline"
-                  className="flex w-full flex-wrap"
+            <CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden pl-5 text-sm">
+              <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col gap-2">
+                <TabsList variant="line" className="w-full shrink-0 justify-start">
+                  <TabsTrigger value="overview">
+                    {isEn ? "Overview" : "概要"}
+                  </TabsTrigger>
+                  <TabsTrigger value="timeline">
+                    {isEn ? "Timeline" : "タイムライン"}
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent
+                  value="overview"
+                  className="mt-0 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto outline-none"
                 >
-                  {ECOSYSTEM_ACTOR_FILTERS.map((f) => (
-                    <ToggleGroupItem key={f.id} value={f.id} className="flex-1 text-xs sm:flex-none">
-                      {tSidebar(`filters.${f.id}`)}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-                <div className="flex flex-col gap-2">
-                  {relatedActors.length === 0 ? (
-                    <p className="rounded-lg bg-muted/40 px-3 py-4 text-center text-xs text-muted-foreground">
-                      {tSidebar("relatedOrgsEmpty")}
-                    </p>
-                  ) : (
-                    relatedActors.map((actor) => {
-                      const Icon = ACTOR_TYPE_ICON[actor.type]
-                      const displayName = isEn && actor.nameEn ? actor.nameEn : actor.name
-                      const displayRole = isEn && actor.roleEn ? actor.roleEn : actor.role
-                      if (actor.url) {
-                        return (
-                          <a
-                            key={actor.id}
-                            href={actor.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5 transition-all duration-150 hover:border-primary/40 hover:bg-muted/50"
-                          >
-                            <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="break-words font-medium text-foreground transition-colors group-hover:text-emerald-400">
-                                  {displayName}
-                                </p>
-                                <ExternalLink className="mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-emerald-400" />
-                              </div>
-                              <p className="mt-0.5 break-words text-xs text-muted-foreground">
-                                {displayRole}
-                              </p>
-                            </div>
-                          </a>
-                        )
-                      }
+                  <div className="flex flex-col gap-2">
+                    {SIDEBAR_SPEC_FIELDS.map(({ key, labelKey }) => {
+                      const isPlugInEase = key === "plugInEase"
+                      const value = isPlugInEase
+                        ? plugInEaseSpec
+                          ? tSidebar(plugInEaseSpec.msgKey)
+                          : ""
+                        : key === "excessPower"
+                          ? excessPowerKey
+                            ? tSidebar(excessPowerKey)
+                            : ""
+                          : sidebarRuleSummary()
                       return (
-                        <div
-                          key={actor.id}
-                          className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5"
-                        >
-                          <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-                          <div className="min-w-0 flex-1">
-                            <p className="break-words font-medium text-foreground">{displayName}</p>
-                            <p className="mt-0.5 break-words text-xs text-muted-foreground">
-                              {displayRole}
-                            </p>
-                          </div>
+                        <div key={key} className="flex flex-col gap-0.5 rounded-lg bg-muted/50 px-3 py-2">
+                          <span className="text-xs font-semibold text-slate-400">{tSidebar(labelKey)}</span>
+                          <span
+                            className={cn(
+                              "break-words text-sm",
+                              isPlugInEase && plugInEaseSpec
+                                ? OUTLET_TONE_CLASS[plugInEaseSpec.tone]
+                                : "font-medium text-slate-100",
+                            )}
+                          >
+                            {value}
+                          </span>
                         </div>
                       )
-                    })
+                    })}
+                    <p className="text-sm leading-relaxed text-slate-300">
+                      {countryMsg(
+                        "summary",
+                        isEn && (selectedCountry as { summaryEn?: string }).summaryEn
+                          ? (selectedCountry as { summaryEn?: string }).summaryEn!
+                          : selectedCountry.keyDrivers?.join(" / ") ||
+                            selectedCountry.bottlenecks?.join(" / ") ||
+                            t("analysis.implStatus", {
+                              name: countryMsg(
+                                "name",
+                                isEn && (selectedCountry as { nameEn?: string }).nameEn
+                                  ? (selectedCountry as { nameEn?: string }).nameEn!
+                                  : selectedCountry.name,
+                              ),
+                            }),
+                      )}
+                    </p>
+                  </div>
+
+                  {architectureConfig && architectureConfig.profiles.length > 0 && (
+                    <ArchitectureSidebar
+                      key={selectedCountry.id}
+                      profiles={architectureConfig.profiles}
+                      countryId={selectedCountry.id}
+                      highlightedFurnitureId={highlightedFurnitureId}
+                      onHighlightFurniture={handleHighlightFurniture}
+                      onOpenSurfaceDetail={openSurfaceDetailFromMap}
+                    />
                   )}
-                </div>
-              </div>
+
+                  {selectedCountry.keyDrivers && selectedCountry.keyDrivers.length > 0 && (
+                    <div className="space-y-1.5 border-t border-slate-800 pt-2">
+                      <div className="text-sm font-semibold text-emerald-400">
+                        {tSidebar("drivers")}
+                      </div>
+                      <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
+                        {selectedCountry.keyDrivers.map((driver, idx) => {
+                          const enList = (selectedCountry as { keyDriversEn?: string[] }).keyDriversEn
+                          const fromMsg = countryMsg(`keyDrivers.${idx}`, "")
+                          const text =
+                            (fromMsg && fromMsg) ||
+                            (isEn && enList?.[idx] ? enList[idx] : driver)
+                          return <li key={idx}>{text}</li>
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                  {selectedCountry.bottlenecks && selectedCountry.bottlenecks.length > 0 && (
+                    <div className="space-y-1.5 border-t border-slate-800 pt-2">
+                      <div className="text-sm font-semibold text-rose-400">
+                        {tSidebar("bottlenecks")}
+                      </div>
+                      <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
+                        {selectedCountry.bottlenecks.map((bottle, idx) => {
+                          const enList = (selectedCountry as { bottlenecksEn?: string[] }).bottlenecksEn
+                          const fromMsg = countryMsg(`bottlenecks.${idx}`, "")
+                          const text =
+                            (fromMsg && fromMsg) ||
+                            (isEn && enList?.[idx] ? enList[idx] : bottle)
+                          return <li key={idx}>{text}</li>
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-3">
+                    <p className="text-xs font-medium text-muted-foreground">{tSidebar("relatedOrgs")}</p>
+                    <ToggleGroup
+                      value={[actorFilter]}
+                      onValueChange={(v) => v[0] && setActorFilter(v[0] as EcosystemActorFilter)}
+                      variant="outline"
+                      className="flex w-full flex-wrap"
+                    >
+                      {ECOSYSTEM_ACTOR_FILTERS.map((f) => (
+                        <ToggleGroupItem key={f.id} value={f.id} className="flex-1 text-xs sm:flex-none">
+                          {tSidebar(`filters.${f.id}`)}
+                        </ToggleGroupItem>
+                      ))}
+                    </ToggleGroup>
+                    <div className="flex flex-col gap-2">
+                      {relatedActors.length === 0 ? (
+                        <p className="rounded-lg bg-muted/40 px-3 py-4 text-center text-xs text-muted-foreground">
+                          {tSidebar("relatedOrgsEmpty")}
+                        </p>
+                      ) : (
+                        relatedActors.map((actor) => {
+                          const Icon = ACTOR_TYPE_ICON[actor.type]
+                          const displayName = isEn && actor.nameEn ? actor.nameEn : actor.name
+                          const displayRole = isEn && actor.roleEn ? actor.roleEn : actor.role
+                          if (actor.url) {
+                            return (
+                              <a
+                                key={actor.id}
+                                href={actor.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5 transition-all duration-150 hover:border-primary/40 hover:bg-muted/50"
+                              >
+                                <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <p className="break-words font-medium text-foreground transition-colors group-hover:text-emerald-400">
+                                      {displayName}
+                                    </p>
+                                    <ExternalLink className="mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-emerald-400" />
+                                  </div>
+                                  <p className="mt-0.5 break-words text-xs text-muted-foreground">
+                                    {displayRole}
+                                  </p>
+                                </div>
+                              </a>
+                            )
+                          }
+                          return (
+                            <div
+                              key={actor.id}
+                              className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5"
+                            >
+                              <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
+                              <div className="min-w-0 flex-1">
+                                <p className="break-words font-medium text-foreground">{displayName}</p>
+                                <p className="mt-0.5 break-words text-xs text-muted-foreground">
+                                  {displayRole}
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent
+                  value="timeline"
+                  className="mt-0 min-h-0 flex-1 overflow-y-auto outline-none"
+                >
+                  <CountryPvTimeline
+                    key={selectedCountry.id}
+                    country={selectedCountry}
+                    isEn={isEn}
+                    barrierLabel={t("analysis.barrierOvercome")}
+                    milestoneLabel={t("analysis.keyMilestone")}
+                  />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </>
         ) : null}
@@ -933,6 +985,32 @@ export function WorldImplementationView() {
       </TabsContent>
 
       <TabsContent
+        value="oss"
+        className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
+      >
+        <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto bg-slate-950/80 p-3 sm:p-4">
+          <div className="shrink-0 space-y-1 rounded-xl border border-border/50 bg-black/60 p-3 sm:p-4">
+            <h2 className="text-sm font-semibold text-foreground">{t("oss.title")}</h2>
+            <p className="text-xs text-muted-foreground">{t("oss.lead")}</p>
+          </div>
+          <CountryPvOssTools isEn={isEn} />
+        </div>
+      </TabsContent>
+
+      <TabsContent
+        value="ecosystem"
+        className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
+      >
+        <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto bg-slate-950/80 p-3 sm:p-4">
+          <div className="shrink-0 space-y-1 rounded-xl border border-border/50 bg-black/60 p-3 sm:p-4">
+            <h2 className="text-sm font-semibold text-foreground">{t("ecosystem.title")}</h2>
+            <p className="text-xs text-muted-foreground">{t("ecosystem.lead")}</p>
+          </div>
+          <CountryPvEcosystem isEn={isEn} />
+        </div>
+      </TabsContent>
+
+      <TabsContent
         value="surfaces"
         className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
       >
@@ -949,11 +1027,13 @@ export function WorldImplementationView() {
                   : tArch("surface3d.backToList")}
               </button>
             </div>
-            <Surface3DFullView
-              key={`${surfacesPanel.focus.countryId}:${surfacesPanel.focus.profileId}`}
-              initialFocus={surfacesPanel.focus}
-              className="h-full min-h-0"
-            />
+            <div className="min-h-0 flex-1">
+              <Surface3DFullView
+                key={`${surfacesPanel.focus.countryId}:${surfacesPanel.focus.profileId}`}
+                initialFocus={surfacesPanel.focus}
+                className="h-full min-h-0"
+              />
+            </div>
           </div>
         ) : (
           <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto px-3 py-3 sm:px-4">
@@ -1089,8 +1169,19 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
   const [direction, setDirection] = useState<Direction>("south")
   const [railing, setRailing] = useState<RailingType>("grid")
   const [hour, setHour] = useState(12.5)
+  const [livingContext, setLivingContext] = useState<LivingContext>(DEFAULT_LIVING_CONTEXT)
 
-  const score = useMemo(() => computeBalconyScore(direction, railing, hour), [direction, railing, hour])
+  const simulatorTiltMode: PanelTiltMode =
+    livingContext.weather === "typhoon_alert" ? "retracted" : "optimal_tilt"
+
+  const score = useMemo(
+    () => computeBalconyScore(direction, railing, hour, livingContext, simulatorTiltMode),
+    [direction, railing, hour, livingContext, simulatorTiltMode],
+  )
+  const lifeCompliance = useMemo(
+    () => computeBalconyLifeCompliance(livingContext, simulatorTiltMode),
+    [livingContext, simulatorTiltMode],
+  )
   const kit = useMemo(() => recommendedKit(score), [score])
 
   return (
@@ -1167,6 +1258,50 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                   <span>{t("conditions.evening")}</span>
                 </div>
               </div>
+
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-medium text-muted-foreground">{t("conditions.livingHabit")}</p>
+                <ToggleGroup
+                  value={[livingContext.habit]}
+                  onValueChange={(v) => {
+                    const habit = v[0] as LivingHabit | undefined
+                    if (habit) setLivingContext((prev) => ({ ...prev, habit }))
+                  }}
+                  variant="outline"
+                  className="flex-wrap"
+                >
+                  {(
+                    [
+                      "laundry_drying",
+                      "view_preservation_terrace",
+                      "outdoor_unit_service",
+                    ] as const
+                  ).map((habit) => (
+                    <ToggleGroupItem key={habit} value={habit} className="text-xs">
+                      {t(`livingHabit.${habit}`)}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <p className="text-xs font-medium text-muted-foreground">{t("conditions.weather")}</p>
+                <ToggleGroup
+                  value={[livingContext.weather]}
+                  onValueChange={(v) => {
+                    const weather = v[0] as WeatherCondition | undefined
+                    if (weather) setLivingContext((prev) => ({ ...prev, weather }))
+                  }}
+                  variant="outline"
+                  className="flex-wrap"
+                >
+                  {(["clear", "overcast_tsuyu", "typhoon_alert"] as const).map((weather) => (
+                    <ToggleGroupItem key={weather} value={weather} className="text-xs">
+                      {t(`weather.${weather}`)}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
             </CardContent>
           </Card>
 
@@ -1176,7 +1311,14 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                 <CardTitle className="text-sm font-semibold">{t("results.visualTitle")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <BalconyIllustration direction={direction} railing={railing} hour={hour} />
+                <BalconyIllustration
+                  direction={direction}
+                  railing={railing}
+                  hour={hour}
+                  livingContext={livingContext}
+                  isRetracted={simulatorTiltMode === "retracted"}
+                  tiltDeg={simulatorTiltMode === "retracted" ? 0 : 30}
+                />
               </CardContent>
             </Card>
 
@@ -1189,6 +1331,10 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                   </div>
                   <span className="font-mono text-5xl font-semibold tabular-nums text-primary">{score}</span>
                   <Badge className="bg-primary/90 text-primary-foreground">{t(`score.${scoreBand(score)}`)}</Badge>
+                  <p className="text-xs text-muted-foreground">
+                    {t("results.lifeComplianceLabel")}:{" "}
+                    <span className="font-mono font-semibold text-emerald-400">{lifeCompliance}%</span>
+                  </p>
                 </CardContent>
               </Card>
 

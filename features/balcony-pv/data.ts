@@ -135,14 +135,14 @@ export function getRoofTypePreset(type: RoofType): RoofTypePreset {
 
 /** Architectural balcony / roof receiving-surface typology (locale-independent). */
 export type SurfaceTypology =
-  | 'haussmann_balconet'
+  | 'egress_cantilever'
+  | 'precast_parapet'
+  | 'recessed_loggia'
+  | 'glass_railing'
+  | 'access_gallery'
   | 'mansard_dormer'
-  | 'exposed_concrete_parapet'
-  | 'japan_egress_balcony'
   | 'japanese_tiled_roof'
   | 'flat_roof_terrace'
-  | 'juliet_balcony'
-  | 'recessed_loggia'
   | 'pitched_gable_terrace'
 
 /** Biomimetic / living-furniture mount family suited to a typology. */
@@ -187,6 +187,241 @@ export interface PrevalentCountry {
   nameKey: string
 }
 
+/**
+ * Deployable panel tilt / stow posture (locale-independent).
+ * Labels: `balconyPv.tiltMode.*`.
+ */
+export type PanelTiltMode = 'horizontal' | 'optimal_tilt' | 'vertical' | 'retracted'
+
+export interface PanelTiltOption {
+  id: PanelTiltMode
+  /** Degrees from horizontal when deployed (`retracted` is 0° + stowed pose). */
+  tiltDeg: number
+  /** i18n key under `balconyPv.tiltMode.*`. */
+  labelKey: string
+}
+
+/** Master of install-style (variable tilt / 出仕舞い) options. */
+export const PANEL_TILT_OPTIONS: readonly PanelTiltOption[] = [
+  { id: 'horizontal', tiltDeg: 0, labelKey: 'tiltMode.horizontal' },
+  { id: 'optimal_tilt', tiltDeg: 30, labelKey: 'tiltMode.optimal_tilt' },
+  { id: 'vertical', tiltDeg: 90, labelKey: 'tiltMode.vertical' },
+  { id: 'retracted', tiltDeg: 0, labelKey: 'tiltMode.retracted' },
+] as const
+
+export function getPanelTiltOption(mode: PanelTiltMode): PanelTiltOption {
+  return PANEL_TILT_OPTIONS.find((o) => o.id === mode) ?? PANEL_TILT_OPTIONS[0]
+}
+
+/** Efficiency / safety trade-offs for each install-style (demo heuristic). */
+export interface TiltMetric {
+  annualEfficiencyPct: number
+  /** Season / irradiance fit (display copy). */
+  winterAdvantage: string
+  /** Wind-load character (display copy). */
+  windRisk: string
+  /** One-line living / install trade-off hint. */
+  summary: string
+  /** Optional progress caption (e.g. winter relative note). */
+  efficiencyNote?: string
+}
+
+/**
+ * Angle-wise generation & safety metrics keyed by PanelTiltMode.
+ * Relative annual efficiency vs optimal_tilt = 100%.
+ */
+export const TILT_METRICS: Record<PanelTiltMode, TiltMetric> = {
+  optimal_tilt: {
+    annualEfficiencyPct: 100,
+    winterAdvantage: '年間ピーク',
+    windRisk: '中',
+    summary:
+      '緯度相当の傾斜で年間発電のピークを狙う。生活動線と風圧のバランスが取りやすい基準姿勢。',
+    efficiencyNote: '年間基準',
+  },
+  horizontal: {
+    annualEfficiencyPct: 84,
+    winterAdvantage: '散乱光・平置き',
+    windRisk: '注意（下からの風圧大）',
+    summary:
+      '床置き・家具型に向く平置き。曇天の散乱光は拾いやすいが、下からの風圧と避難動線の占有に注意。',
+    efficiencyNote: '散乱光向き',
+  },
+  vertical: {
+    annualEfficiencyPct: 72,
+    winterAdvantage: '冬季・朝夕に強い',
+    windRisk: '安全（風を受け流す）',
+    summary:
+      '垂直設置は風を壁面で受け流し、冬の低い太陽光を効率的に捉えます。',
+    efficiencyNote: '冬期は90%超',
+  },
+  retracted: {
+    annualEfficiencyPct: 0,
+    winterAdvantage: '外力回避',
+    windRisk: '完全回避',
+    summary:
+      '出仕舞いで発電は止める代わりに、台風・突風時の外力と避難路を完全に優先する退避姿勢。',
+    efficiencyNote: '発電オフ',
+  },
+}
+
+export function getTiltMetric(mode: PanelTiltMode): TiltMetric {
+  return TILT_METRICS[mode]
+}
+
+/** Daily balcony use pattern (locale-independent). Labels: `balconyPv.livingHabit.*`. */
+export type LivingHabit =
+  | 'laundry_drying'
+  | 'view_preservation_terrace'
+  | 'outdoor_unit_service'
+
+/** Weather / season scenario (locale-independent). Labels: `balconyPv.weather.*`. */
+export type WeatherCondition = 'clear' | 'overcast_tsuyu' | 'typhoon_alert'
+
+export type CulturalConstraintKind = 'egress_path_60cm' | 'hatch_no_go'
+
+export interface CulturalConstraint {
+  kind: CulturalConstraintKind
+  /** Demo penalty when PV/furniture occupies the zone (0–1). */
+  occupancyPenalty: number
+}
+
+export interface LivingContext {
+  habit: LivingHabit
+  weather: WeatherCondition
+}
+
+export const DEFAULT_LIVING_CONTEXT: LivingContext = {
+  habit: 'laundry_drying',
+  weather: 'clear',
+}
+
+export interface LivingContextModifiers {
+  directRatioMul: number
+  diffuseRatioMul: number
+  /** 1 = no laundry shade, lower = more panel shading. */
+  laundryShadeFactor: number
+  lifeComplianceBase: number
+}
+
+const WEATHER_MODIFIERS: Record<WeatherCondition, Omit<LivingContextModifiers, 'laundryShadeFactor' | 'lifeComplianceBase'>> = {
+  clear: { directRatioMul: 1, diffuseRatioMul: 1 },
+  overcast_tsuyu: { directRatioMul: 0.72, diffuseRatioMul: 1.18 },
+  typhoon_alert: { directRatioMul: 0, diffuseRatioMul: 0 },
+}
+
+const HABIT_MODIFIERS: Record<
+  LivingHabit,
+  Pick<LivingContextModifiers, 'laundryShadeFactor' | 'lifeComplianceBase'>
+> = {
+  laundry_drying: { laundryShadeFactor: 0.88, lifeComplianceBase: 78 },
+  view_preservation_terrace: { laundryShadeFactor: 1, lifeComplianceBase: 85 },
+  outdoor_unit_service: { laundryShadeFactor: 1, lifeComplianceBase: 72 },
+}
+
+/** Default cultural constraints for egress-heavy typologies (demo). */
+export const TYPOLOGY_CULTURAL_CONSTRAINTS: Partial<
+  Record<SurfaceTypology, CulturalConstraint[]>
+> = {
+  egress_cantilever: [{ kind: 'egress_path_60cm', occupancyPenalty: 0.35 }],
+  access_gallery: [
+    { kind: 'egress_path_60cm', occupancyPenalty: 0.4 },
+    { kind: 'hatch_no_go', occupancyPenalty: 0.5 },
+  ],
+}
+
+export function getLivingContextModifiers(ctx: LivingContext): LivingContextModifiers {
+  const weather = WEATHER_MODIFIERS[ctx.weather]
+  const habit = HABIT_MODIFIERS[ctx.habit]
+  return {
+    directRatioMul: weather.directRatioMul,
+    diffuseRatioMul: weather.diffuseRatioMul,
+    laundryShadeFactor: habit.laundryShadeFactor,
+    lifeComplianceBase: habit.lifeComplianceBase,
+  }
+}
+
+export function applyWeatherToIrradiance(
+  params: SurfaceIrradianceParams,
+  weather: WeatherCondition,
+): SurfaceIrradianceParams {
+  const { directRatioMul, diffuseRatioMul } = WEATHER_MODIFIERS[weather]
+  const direct = Math.min(1, params.directRatio * directRatioMul)
+  const diffuse = Math.min(1, params.diffuseRatio * diffuseRatioMul)
+  const sum = direct + diffuse || 1
+  return {
+    ...params,
+    directRatio: direct / sum,
+    diffuseRatio: diffuse / sum,
+  }
+}
+
+export interface ResolvedLivingMetrics {
+  lifeCompliancePct: number
+  displayEfficiencyPct: number
+}
+
+export function resolveLivingMetrics(
+  ctx: LivingContext,
+  tiltMode: PanelTiltMode,
+  typologyId?: SurfaceTypology,
+): ResolvedLivingMetrics {
+  const tilt = getTiltMetric(tiltMode)
+  const mods = getLivingContextModifiers(ctx)
+
+  if (ctx.weather === 'typhoon_alert' || tiltMode === 'retracted') {
+    return { lifeCompliancePct: 100, displayEfficiencyPct: 0 }
+  }
+
+  let life = mods.lifeComplianceBase
+
+  if (ctx.habit === 'laundry_drying') {
+    const laundryPenalty =
+      tiltMode === 'horizontal' ? 8 : tiltMode === 'optimal_tilt' ? 5 : 2
+    life -= laundryPenalty
+  }
+  if (ctx.habit === 'outdoor_unit_service') {
+    life -= tiltMode === 'vertical' ? 4 : 10
+  }
+  if (ctx.habit === 'view_preservation_terrace' && tiltMode === 'optimal_tilt') {
+    life -= 6
+  }
+
+  if (typologyId) {
+    const constraints = TYPOLOGY_CULTURAL_CONSTRAINTS[typologyId]
+    if (constraints?.length) {
+      const penalty =
+        constraints.reduce((s, c) => s + c.occupancyPenalty, 0) * 12
+      life -= tiltMode === 'horizontal' ? penalty : penalty * 0.55
+    }
+  }
+
+  let displayEfficiencyPct = tilt.annualEfficiencyPct
+  if (ctx.weather === 'overcast_tsuyu') {
+    const diffuseBoost =
+      tiltMode === 'horizontal' ? 1.06 : tiltMode === 'vertical' ? 0.98 : 1
+    displayEfficiencyPct = Math.min(
+      100,
+      Math.round(tilt.annualEfficiencyPct * diffuseBoost * mods.laundryShadeFactor),
+    )
+  } else {
+    displayEfficiencyPct = Math.round(
+      tilt.annualEfficiencyPct * mods.laundryShadeFactor,
+    )
+  }
+
+  return {
+    lifeCompliancePct: Math.round(Math.min(100, Math.max(0, life))),
+    displayEfficiencyPct,
+  }
+}
+
+export function getTypologyCulturalConstraints(
+  id: SurfaceTypology,
+): CulturalConstraint[] {
+  return TYPOLOGY_CULTURAL_CONSTRAINTS[id] ?? []
+}
+
 export interface SurfaceTypologyDetail {
   id: SurfaceTypology
   category: 'balcony' | 'roof'
@@ -212,6 +447,32 @@ export interface SurfaceTypologyDetail {
     deShimaiRequired: boolean
     descriptionKey: string
   }
+  /** Install-style modes the form can physically support. */
+  supportedTiltModes?: PanelTiltMode[]
+  /** Initial install-style when the typology is selected. */
+  defaultTiltMode?: PanelTiltMode
+}
+
+/** Resolve supported tilt modes with geometry-aware fallback. */
+export function resolveSupportedTiltModes(
+  detail: SurfaceTypologyDetail,
+): PanelTiltMode[] {
+  if (detail.supportedTiltModes && detail.supportedTiltModes.length > 0) {
+    return [...detail.supportedTiltModes]
+  }
+  if (detail.defaultTiltDeg >= 80) return ['vertical', 'horizontal', 'retracted']
+  if (detail.defaultTiltDeg >= 20) return ['optimal_tilt', 'horizontal', 'retracted']
+  return ['horizontal', 'optimal_tilt', 'retracted']
+}
+
+/** Resolve default tilt mode with geometry-aware fallback. */
+export function resolveDefaultTiltMode(
+  detail: SurfaceTypologyDetail,
+): PanelTiltMode {
+  if (detail.defaultTiltMode) return detail.defaultTiltMode
+  if (detail.defaultTiltDeg >= 80) return 'vertical'
+  if (detail.defaultTiltDeg >= 20) return 'optimal_tilt'
+  return 'horizontal'
 }
 
 /**
@@ -220,67 +481,37 @@ export interface SurfaceTypologyDetail {
  */
 export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
   {
-    id: 'haussmann_balconet',
+    id: 'egress_cantilever',
     category: 'balcony',
-    nameKey: 'haussmann_balconet.name',
-    defaultTiltDeg: 90,
+    nameKey: 'egress_cantilever.name',
+    defaultTiltDeg: 0,
     irradiance: {
-      receivingAreaM2: 1.8,
-      tiltDeg: 90,
-      directRatio: 0.4,
-      diffuseRatio: 0.6,
+      receivingAreaM2: 4.5,
+      tiltDeg: 0,
+      directRatio: 0.45,
+      diffuseRatio: 0.55,
     },
-    opticalProfile: 'diffuse_dominant',
-    typicalRegions: ['urban_europe', 'historic_district'],
-    prevalentCountries: [
-      { code: 'FR', nameKey: 'countries.fr' },
-      { code: 'BE', nameKey: 'countries.be' },
-    ],
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['multifamily_egress', 'multifamily_general'],
+    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
     mountOptions: [
-      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
-      { mountMethod: 'vertical_rail_hook', labelKey: 'mount.vertical_rail_hook' },
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
     ],
-    requiresDeShimai: false,
-    constraintsKey: 'haussmann_balconet.constraints',
+    requiresDeShimai: true,
+    constraintsKey: 'egress_cantilever.constraints',
     biomimeticSuitability: {
-      mechanism: 'flexible_perovskite',
-      deShimaiRequired: false,
-      descriptionKey: 'haussmann_balconet.mechanism',
+      mechanism: 'nastic_origami',
+      deShimaiRequired: true,
+      descriptionKey: 'egress_cantilever.mechanism',
     },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
   },
   {
-    id: 'mansard_dormer',
-    category: 'roof',
-    nameKey: 'mansard_dormer.name',
-    defaultTiltDeg: 45,
-    irradiance: {
-      receivingAreaM2: 10,
-      tiltDeg: 45,
-      directRatio: 0.38,
-      diffuseRatio: 0.62,
-    },
-    opticalProfile: 'diffuse_dominant',
-    typicalRegions: ['urban_europe', 'historic_district'],
-    prevalentCountries: [
-      { code: 'FR', nameKey: 'countries.fr' },
-      { code: 'BE', nameKey: 'countries.be' },
-    ],
-    mountOptions: [
-      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
-      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
-    ],
-    requiresDeShimai: false,
-    constraintsKey: 'mansard_dormer.constraints',
-    biomimeticSuitability: {
-      mechanism: 'flexible_perovskite',
-      deShimaiRequired: false,
-      descriptionKey: 'mansard_dormer.mechanism',
-    },
-  },
-  {
-    id: 'exposed_concrete_parapet',
+    id: 'precast_parapet',
     category: 'balcony',
-    nameKey: 'exposed_concrete_parapet.name',
+    nameKey: 'precast_parapet.name',
     defaultTiltDeg: 90,
     irradiance: {
       receivingAreaM2: 3.2,
@@ -298,122 +529,14 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
       { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
     ],
     requiresDeShimai: false,
-    constraintsKey: 'exposed_concrete_parapet.constraints',
+    constraintsKey: 'precast_parapet.constraints',
     biomimeticSuitability: {
       mechanism: 'clamp_mount',
       deShimaiRequired: false,
-      descriptionKey: 'exposed_concrete_parapet.mechanism',
+      descriptionKey: 'precast_parapet.mechanism',
     },
-  },
-  {
-    id: 'japan_egress_balcony',
-    category: 'balcony',
-    nameKey: 'japan_egress_balcony.name',
-    defaultTiltDeg: 0,
-    irradiance: {
-      receivingAreaM2: 4.5,
-      tiltDeg: 0,
-      directRatio: 0.45,
-      diffuseRatio: 0.55,
-    },
-    opticalProfile: 'direct_beam',
-    typicalRegions: ['multifamily_egress', 'multifamily_general'],
-    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
-    mountOptions: [
-      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
-      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
-    ],
-    requiresDeShimai: true,
-    constraintsKey: 'japan_egress_balcony.constraints',
-    biomimeticSuitability: {
-      mechanism: 'nastic_origami',
-      deShimaiRequired: true,
-      descriptionKey: 'japan_egress_balcony.mechanism',
-    },
-  },
-  {
-    id: 'japanese_tiled_roof',
-    category: 'roof',
-    nameKey: 'japanese_tiled_roof.name',
-    defaultTiltDeg: 30,
-    irradiance: {
-      receivingAreaM2: 12,
-      tiltDeg: 30,
-      directRatio: 0.48,
-      diffuseRatio: 0.52,
-    },
-    opticalProfile: 'direct_beam',
-    typicalRegions: ['tiled_pitch_roofs'],
-    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
-    mountOptions: [
-      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
-    ],
-    requiresDeShimai: false,
-    constraintsKey: 'japanese_tiled_roof.constraints',
-    biomimeticSuitability: {
-      mechanism: 'catenary_hook',
-      deShimaiRequired: false,
-      descriptionKey: 'japanese_tiled_roof.mechanism',
-    },
-  },
-  {
-    id: 'flat_roof_terrace',
-    category: 'roof',
-    nameKey: 'flat_roof_terrace.name',
-    defaultTiltDeg: 0,
-    irradiance: {
-      receivingAreaM2: 18,
-      tiltDeg: 5,
-      directRatio: 0.5,
-      diffuseRatio: 0.5,
-    },
-    opticalProfile: 'high_altitude',
-    typicalRegions: ['flat_deck_roofs', 'multifamily_general'],
-    prevalentCountries: [
-      { code: 'DE', nameKey: 'countries.de' },
-      { code: 'JP', nameKey: 'countries.jp' },
-      { code: 'FR', nameKey: 'countries.fr' },
-    ],
-    mountOptions: [
-      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
-    ],
-    requiresDeShimai: true,
-    constraintsKey: 'flat_roof_terrace.constraints',
-    biomimeticSuitability: {
-      mechanism: 'nastic_origami',
-      deShimaiRequired: true,
-      descriptionKey: 'flat_roof_terrace.mechanism',
-    },
-  },
-  {
-    id: 'juliet_balcony',
-    category: 'balcony',
-    nameKey: 'juliet_balcony.name',
-    defaultTiltDeg: 90,
-    irradiance: {
-      receivingAreaM2: 2.2,
-      tiltDeg: 90,
-      directRatio: 0.35,
-      diffuseRatio: 0.65,
-    },
-    opticalProfile: 'diffuse_dominant',
-    typicalRegions: ['rental_facades', 'urban_europe'],
-    prevalentCountries: [
-      { code: 'GB', nameKey: 'countries.gb' },
-      { code: 'FR', nameKey: 'countries.fr' },
-    ],
-    mountOptions: [
-      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
-      { mountMethod: 'vertical_rail_hook', labelKey: 'mount.vertical_rail_hook' },
-      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
-    ],
-    requiresDeShimai: false,
-    constraintsKey: 'juliet_balcony.constraints',
-    biomimeticSuitability: {
-      mechanism: 'flexible_perovskite',
-      deShimaiRequired: false,
-      descriptionKey: 'juliet_balcony.mechanism',
-    },
+    supportedTiltModes: ['vertical', 'horizontal', 'retracted'],
+    defaultTiltMode: 'vertical',
   },
   {
     id: 'recessed_loggia',
@@ -444,6 +567,162 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
       deShimaiRequired: false,
       descriptionKey: 'recessed_loggia.mechanism',
     },
+    supportedTiltModes: ['horizontal', 'optimal_tilt', 'retracted'],
+    defaultTiltMode: 'horizontal',
+  },
+  {
+    id: 'glass_railing',
+    category: 'balcony',
+    nameKey: 'glass_railing.name',
+    defaultTiltDeg: 90,
+    irradiance: {
+      receivingAreaM2: 2.4,
+      tiltDeg: 90,
+      directRatio: 0.36,
+      diffuseRatio: 0.64,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['rental_facades', 'multifamily_general', 'urban_europe'],
+    prevalentCountries: [
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'GB', nameKey: 'countries.gb' },
+      { code: 'FR', nameKey: 'countries.fr' },
+      { code: 'JP', nameKey: 'countries.jp' },
+    ],
+    mountOptions: [
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+      { mountMethod: 'vertical_rail_hook', labelKey: 'mount.vertical_rail_hook' },
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'glass_railing.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'glass_railing.mechanism',
+    },
+    supportedTiltModes: ['vertical', 'horizontal', 'retracted'],
+    defaultTiltMode: 'vertical',
+  },
+  {
+    id: 'access_gallery',
+    category: 'balcony',
+    nameKey: 'access_gallery.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 10,
+      tiltDeg: 0,
+      directRatio: 0.4,
+      diffuseRatio: 0.6,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['multifamily_egress', 'multifamily_general'],
+    prevalentCountries: [
+      { code: 'JP', nameKey: 'countries.jp' },
+      { code: 'DE', nameKey: 'countries.de' },
+    ],
+    mountOptions: [
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+      { mountMethod: 'clamp_no_drill', labelKey: 'mount.clamp_no_drill' },
+    ],
+    requiresDeShimai: true,
+    constraintsKey: 'access_gallery.constraints',
+    biomimeticSuitability: {
+      mechanism: 'nastic_origami',
+      deShimaiRequired: true,
+      descriptionKey: 'access_gallery.mechanism',
+    },
+    supportedTiltModes: ['horizontal', 'optimal_tilt', 'retracted'],
+    defaultTiltMode: 'horizontal',
+  },
+  {
+    id: 'mansard_dormer',
+    category: 'roof',
+    nameKey: 'mansard_dormer.name',
+    defaultTiltDeg: 45,
+    irradiance: {
+      receivingAreaM2: 10,
+      tiltDeg: 45,
+      directRatio: 0.38,
+      diffuseRatio: 0.62,
+    },
+    opticalProfile: 'diffuse_dominant',
+    typicalRegions: ['urban_europe', 'historic_district'],
+    prevalentCountries: [
+      { code: 'FR', nameKey: 'countries.fr' },
+      { code: 'BE', nameKey: 'countries.be' },
+    ],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+      { mountMethod: 'louver_hanger', labelKey: 'mount.louver_hanger' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'mansard_dormer.constraints',
+    biomimeticSuitability: {
+      mechanism: 'flexible_perovskite',
+      deShimaiRequired: false,
+      descriptionKey: 'mansard_dormer.mechanism',
+    },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
+  },
+  {
+    id: 'japanese_tiled_roof',
+    category: 'roof',
+    nameKey: 'japanese_tiled_roof.name',
+    defaultTiltDeg: 30,
+    irradiance: {
+      receivingAreaM2: 12,
+      tiltDeg: 30,
+      directRatio: 0.48,
+      diffuseRatio: 0.52,
+    },
+    opticalProfile: 'direct_beam',
+    typicalRegions: ['tiled_pitch_roofs'],
+    prevalentCountries: [{ code: 'JP', nameKey: 'countries.jp' }],
+    mountOptions: [
+      { mountMethod: 'tile_hook', labelKey: 'mount.tile_hook' },
+    ],
+    requiresDeShimai: false,
+    constraintsKey: 'japanese_tiled_roof.constraints',
+    biomimeticSuitability: {
+      mechanism: 'catenary_hook',
+      deShimaiRequired: false,
+      descriptionKey: 'japanese_tiled_roof.mechanism',
+    },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
+  },
+  {
+    id: 'flat_roof_terrace',
+    category: 'roof',
+    nameKey: 'flat_roof_terrace.name',
+    defaultTiltDeg: 0,
+    irradiance: {
+      receivingAreaM2: 18,
+      tiltDeg: 5,
+      directRatio: 0.5,
+      diffuseRatio: 0.5,
+    },
+    opticalProfile: 'high_altitude',
+    typicalRegions: ['flat_deck_roofs', 'multifamily_general'],
+    prevalentCountries: [
+      { code: 'DE', nameKey: 'countries.de' },
+      { code: 'JP', nameKey: 'countries.jp' },
+      { code: 'FR', nameKey: 'countries.fr' },
+    ],
+    mountOptions: [
+      { mountMethod: 'freestanding_furniture', labelKey: 'mount.freestanding_furniture' },
+    ],
+    requiresDeShimai: true,
+    constraintsKey: 'flat_roof_terrace.constraints',
+    biomimeticSuitability: {
+      mechanism: 'nastic_origami',
+      deShimaiRequired: true,
+      descriptionKey: 'flat_roof_terrace.mechanism',
+    },
+    supportedTiltModes: ['horizontal', 'optimal_tilt', 'retracted'],
+    defaultTiltMode: 'horizontal',
   },
   {
     id: 'pitched_gable_terrace',
@@ -473,6 +752,8 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
       deShimaiRequired: false,
       descriptionKey: 'pitched_gable_terrace.mechanism',
     },
+    supportedTiltModes: ['optimal_tilt', 'horizontal', 'retracted'],
+    defaultTiltMode: 'optimal_tilt',
   },
 ] as const
 
@@ -484,12 +765,12 @@ export function getSurfaceTypologyDetail(
 
 /** Typology → legacy balcony selector (undefined when roof-primary). */
 const TYPOLOGY_TO_BALCONY: Partial<Record<SurfaceTypology, BalconyType>> = {
-  haussmann_balconet: 'juliet',
-  exposed_concrete_parapet: 'standard',
-  japan_egress_balcony: 'standard',
-  flat_roof_terrace: 'roof_terrace',
-  juliet_balcony: 'juliet',
+  egress_cantilever: 'standard',
+  precast_parapet: 'standard',
+  access_gallery: 'standard',
+  glass_railing: 'juliet',
   recessed_loggia: 'recessed',
+  flat_roof_terrace: 'roof_terrace',
 }
 
 /** Typology → legacy roof selector (undefined when balcony-primary). */
@@ -501,8 +782,8 @@ const TYPOLOGY_TO_ROOF: Partial<Record<SurfaceTypology, RoofType>> = {
 }
 
 const BALCONY_TO_TYPOLOGY: Record<BalconyType, SurfaceTypology> = {
-  standard: 'japan_egress_balcony',
-  juliet: 'juliet_balcony',
+  standard: 'egress_cantilever',
+  juliet: 'glass_railing',
   recessed: 'recessed_loggia',
   roof_terrace: 'flat_roof_terrace',
 }
@@ -561,8 +842,14 @@ export function getTypologyIrradiance(id: SurfaceTypology): SurfaceIrradiancePar
 }
 
 // Returns a suitability score (0-100) for the balcony simulator based on
-// direction, railing type, and time of day.
-export function computeBalconyScore(direction: Direction, railing: RailingType, hour: number): number {
+// direction, railing type, time of day, and optional living / weather context.
+export function computeBalconyScore(
+  direction: Direction,
+  railing: RailingType,
+  hour: number,
+  ctx: LivingContext = DEFAULT_LIVING_CONTEXT,
+  tiltMode: PanelTiltMode = 'optimal_tilt',
+): number {
   const directionScore: Record<Direction, number> = {
     south: 100,
     southeast: 88,
@@ -580,7 +867,22 @@ export function computeBalconyScore(direction: Direction, railing: RailingType, 
   const timeScore = Math.max(30, 100 - distanceFromNoon * 12)
 
   const raw = directionScore[direction] * 0.45 + railingScore[railing] * 0.25 + timeScore * 0.3
-  return Math.round(Math.min(100, Math.max(0, raw)))
+  const living = resolveLivingMetrics(ctx, tiltMode, 'egress_cantilever')
+  const weatherMul =
+    ctx.weather === 'typhoon_alert' ? 0 : ctx.weather === 'overcast_tsuyu' ? 0.92 : 1
+  const blended =
+    raw * 0.62 +
+    living.displayEfficiencyPct * 0.23 +
+    living.lifeCompliancePct * 0.15
+  return Math.round(Math.min(100, Math.max(0, blended * weatherMul)))
+}
+
+/** Life / safety fit for the balcony simulator card (0–100). */
+export function computeBalconyLifeCompliance(
+  ctx: LivingContext,
+  tiltMode: PanelTiltMode = 'optimal_tilt',
+): number {
+  return resolveLivingMetrics(ctx, tiltMode, 'egress_cantilever').lifeCompliancePct
 }
 
 export function scoreLabel(score: number): string {
@@ -682,6 +984,7 @@ export type AdoptedVendorId =
   | 'hoymiles'
   | 'anker-solix'
   | 'ecoflow'
+  | 'jackery'
   | 'tesla-energy'
   | 'mkopa'
   | 'sun-king'
@@ -691,6 +994,129 @@ export type AdoptedVendorId =
   | 'solaredge'
   | 'sunrun'
   | 'goodleap'
+
+/** Country-level history milestone (balcony / rooftop / plug-in PV). */
+export interface CountryTimelineMilestone {
+  date: string // e.g. "2014-12", "2020-03", "2024-05"
+  category: 'policy' | 'civil-movement' | 'grid-rule' | 'urban-housing'
+  titleJa: string
+  titleEn: string
+  descriptionJa: string
+  descriptionEn: string
+  orgName?: string
+  orgUrl?: string
+  breakthrough?: string // barrier overcome / contested issue
+  outcome?: string // win / adoption result
+}
+
+/** Phase grouping for a country's renewable / balcony-PV history. */
+export interface CountryTimelinePhase {
+  period: string // e.g. "2010年代半ば〜2020", "2024〜2026"
+  phaseTitleJa: string
+  phaseTitleEn: string
+  milestones: CountryTimelineMilestone[]
+}
+
+/** Local-first / OSS tools for autonomous energy control (EMS, firmware, automation). */
+export interface OssProject {
+  id: string
+  name: string
+  category: 'ems' | 'firmware' | 'automation' | 'protocol' | 'community'
+  descriptionJa: string
+  descriptionEn: string
+  repoUrl?: string
+  siteUrl?: string
+  starsOrBadge?: string
+  /** Job hired (e.g. cloud-off, fully local control). */
+  keyJobJa: string
+  keyJobEn: string
+  compatibleHardwareJa?: string
+  compatibleHardwareEn?: string
+}
+
+/**
+ * Globally useful OSS / software for living-scale energy autonomy
+ * (no central grid SCADA / vendor cloud dependency).
+ */
+export const COMMON_OSS_PROJECTS: OssProject[] = [
+  {
+    id: 'home-assistant',
+    name: 'Home Assistant',
+    category: 'ems',
+    descriptionJa:
+      'ローカル完結のホームオートメーション基盤。発電・蓄電・家電をMQTT等で束ね、クラウドなしで需給と生活動線を可視化・制御できる。',
+    descriptionEn:
+      'Local-first home automation that ties generation, storage, and appliances via MQTT—visualize and control supply/demand without a vendor cloud.',
+    siteUrl: 'https://www.home-assistant.io/',
+    repoUrl: 'https://github.com/home-assistant/core',
+    starsOrBadge: 'EMS',
+    keyJobJa: 'クラウド不要・ローカル完結のエネルギー需給・家電連動ダッシュボード',
+    keyJobEn: 'Cloud-free local energy dashboard with appliance automation',
+    compatibleHardwareJa: 'ESP32, MQTT機器, スマートプラグ, ポータブル電源',
+    compatibleHardwareEn: 'ESP32, MQTT devices, smart plugs, portable power stations',
+  },
+  {
+    id: 'opendtu',
+    name: 'OpenDTU',
+    category: 'firmware',
+    descriptionJa:
+      'Hoymilesマイクロインバータ向けオープンファームウェア。メーカークラウドを介さずESP32で発電データを取得しMQTT公開する。',
+    descriptionEn:
+      'Open firmware for Hoymiles microinverters—read production on ESP32 and publish MQTT without the vendor cloud.',
+    repoUrl: 'https://github.com/tbnobody/OpenDTU',
+    starsOrBadge: 'Firmware',
+    keyJobJa: 'Hoymiles製マイクロインバータの独自クラウドを解雇し、ESP32で完全ローカルMQTT制御',
+    keyJobEn: 'Fire Hoymiles vendor cloud; full local MQTT control via ESP32',
+    compatibleHardwareJa: 'Hoymiles, ESP32',
+    compatibleHardwareEn: 'Hoymiles, ESP32',
+  },
+  {
+    id: 'ahoydtu',
+    name: 'AhoyDTU',
+    category: 'firmware',
+    descriptionJa:
+      'NRF24L01+とESP8266/ESP32でHoymilesインバータと直接通信するDIYプロトコル実装。ベランダ発電のローカル監視に使う。',
+    descriptionEn:
+      'DIY protocol stack using NRF24L01+ and ESP8266/ESP32 to talk directly to Hoymiles inverters for local balcony monitoring.',
+    repoUrl: 'https://github.com/lumapu/ahoy',
+    starsOrBadge: 'Firmware',
+    keyJobJa: 'NRF24L01+ / ESP8266/ESP32によるHoymilesインバータDIY通信プロトコル',
+    keyJobEn: 'DIY Hoymiles inverter protocol via NRF24L01+ / ESP8266/ESP32',
+    compatibleHardwareJa: 'Hoymiles, NRF24L01+, ESP8266, ESP32',
+    compatibleHardwareEn: 'Hoymiles, NRF24L01+, ESP8266, ESP32',
+  },
+  {
+    id: 'solar-assistant',
+    name: 'Solar-Assistant',
+    category: 'ems',
+    descriptionJa:
+      'オフグリッドインバータ・蓄電池向けのスタンドアロン監視OS。Deye等を常時ローカルで見える化し、クラウド依存を避けられる。',
+    descriptionEn:
+      'Standalone monitoring OS for off-grid inverters and batteries (e.g. Deye)—always-on local visibility without cloud lock-in.',
+    siteUrl: 'https://solar-assistant.io/',
+    starsOrBadge: 'EMS',
+    keyJobJa: 'オフグリッドインバータ・蓄電池（Deye等）の常時スタンドアロン監視OS',
+    keyJobEn: 'Always-on standalone monitoring OS for off-grid inverters & batteries (Deye etc.)',
+    compatibleHardwareJa: 'Deye, オフグリッドインバータ, 蓄電池',
+    compatibleHardwareEn: 'Deye, off-grid inverters, battery storage',
+  },
+  {
+    id: 'node-red',
+    name: 'Node-RED',
+    category: 'automation',
+    descriptionJa:
+      'フローベースの自動化ランタイム。天候・日射予測と連動し、パネル退避や充電閾値など生活者ルールを手元で組める。',
+    descriptionEn:
+      'Flow-based automation runtime—wire weather/irradiance forecasts to stow rules and charge thresholds on your own hardware.',
+    siteUrl: 'https://nodered.org/',
+    repoUrl: 'https://github.com/node-red/node-red',
+    starsOrBadge: 'Automation',
+    keyJobJa: '天候API・日射量予測と連動した自律退避・バッテリー充電閾値のフロー制御',
+    keyJobEn: 'Flow control for autonomous stow & battery charge thresholds tied to weather/irradiance APIs',
+    compatibleHardwareJa: 'Raspberry Pi, MQTT, Home Assistant連携',
+    compatibleHardwareEn: 'Raspberry Pi, MQTT, Home Assistant integrations',
+  },
+]
 
 export interface CountryPvDetail {
   id: string
@@ -749,6 +1175,10 @@ export interface CountryPvDetail {
    * (resolved via `PV_VENDORS`). Not shown in related-orgs.
    */
   adoptedVendors?: AdoptedVendorId[]
+  /** Historical phases for the country detail Timeline tab. */
+  timeline?: CountryTimelinePhase[]
+  /** Country-specific OSS / community tools (merged with COMMON_OSS_PROJECTS in the OSS tab). */
+  localTools?: OssProject[]
 }
 
 /** Map legend rows (labels: `worldPv.map.*` or `label` fallback). */
@@ -807,6 +1237,170 @@ export function matchesModelFilter(country: CountryPvDetail, filter: string): bo
   if (filter === 'all') return true
   if (isGridCategoryFilter(filter)) return resolveGridCategory(country) === filter
   return resolveSystemModel(country) === filter
+}
+
+// ---------------------------------------------------------------------------
+// Market ecosystem / power-flow topology (① plug-in · ② no-export · ③ off-grid)
+// ---------------------------------------------------------------------------
+
+/** Locale-independent market-ecosystem model id (maps from GridCategory). */
+export type MarketEcosystemModelId =
+  | 'grid_plugin_allowed'
+  | 'grid_plugin_prohibited'
+  | 'offgrid_leapfrog'
+
+/** Power-wiring topology for a market model (detail-drawer Ecosystem tab). */
+export interface MarketEcosystemTopology {
+  modelId: string // e.g. 'grid_plugin_allowed' | 'grid_plugin_prohibited' | 'offgrid_leapfrog'
+  titleJa: string
+  titleEn: string
+  badgeJa: string // e.g. "① 系統連系・プラグイン公認"
+  badgeEn: string
+  summaryJa: string
+  summaryEn: string
+  wiringFlow: {
+    generation: string // e.g. "AC/DC太陽光モジュール (600/800W)"
+    conversion: string // e.g. "マイクロインバータ + 蓄電池 (Batteriespeicher)"
+    connection: string // e.g. "230V壁コンセント (Schuko/Wieland) 直挿し"
+    metering: string // e.g. "スマートメーター (Smart Meter Light) 逆潮流抑制/動的単価"
+    consumption: string // e.g. "家庭内ベースロード自家消費 + 余剰は系統/バッテリー"
+  }
+  keyFeaturesJa: string[]
+  keyFeaturesEn: string[]
+}
+
+/** GridCategory → MarketEcosystemModelId */
+const GRID_CATEGORY_TO_ECOSYSTEM: Record<GridCategory, MarketEcosystemModelId> = {
+  grid_plug_in: 'grid_plugin_allowed',
+  grid_no_plug: 'grid_plugin_prohibited',
+  no_grid_leapfrog: 'offgrid_leapfrog',
+}
+
+/** Three market-model power topologies for the Ecosystem diagram. */
+export const MARKET_ECOSYSTEM_TOPOLOGIES: MarketEcosystemTopology[] = [
+  {
+    modelId: 'grid_plugin_allowed',
+    titleJa: 'プラグイン公認・系統連系',
+    titleEn: 'Certified plug-in · grid-tied',
+    badgeJa: '① 系統連系・プラグイン公認',
+    badgeEn: '① Grid-tied · plug-in certified',
+    summaryJa:
+      'ベランダの太陽光を壁コンセントへ直挿しし、家のベースロードを自家消費。余剰はスマートメーター経由で系統へ還流できる公認トポロジー。',
+    summaryEn:
+      'Balcony PV plugs straight into a wall outlet for baseload self-consumption; surplus can export via a smart meter under certified rules.',
+    wiringFlow: {
+      generation: 'AC/DC太陽光モジュール (600/800W)',
+      conversion: 'マイクロインバータ (+ 任意の Batteriespeicher)',
+      connection: '230V壁コンセント (Schuko/Wieland) 直挿し',
+      metering: 'スマートメーター (Smart Meter Light) · 動的単価/逆潮流計測',
+      consumption: '家庭内ベースロード自家消費 + 余剰は系統/バッテリー',
+    },
+    keyFeaturesJa: [
+      '電気工事士不要・自己責任プラグイン',
+      'スマートメーターと連動した動的価格・自動制御',
+      '800W/1,200W などの公認上限内で即日導入',
+      '余剰電力の系統還流（ネットメータリング/フィードイン）',
+    ],
+    keyFeaturesEn: [
+      'No licensed electrician — self-responsibility plug-in',
+      'Dynamic tariffs & automation tied to the smart meter',
+      'Same-day install within certified 800W / 1,200W caps',
+      'Surplus export via net metering / feed-in',
+    ],
+  },
+  {
+    modelId: 'grid_plugin_prohibited',
+    titleJa: '系統あり・逆潮流禁止 / 蓄電自衛',
+    titleEn: 'Grid present · no export / storage self-supply',
+    badgeJa: '② 系統あり・逆潮流禁止/蓄電自衛',
+    badgeEn: '② Grid present · no export / storage self-supply',
+    summaryJa:
+      'コンセント連系は禁止または厳格。太陽光→充放電→家電の閉ループで自家消費し、逆潮流ゼロを守る蓄電自衛トポロジー。',
+    summaryEn:
+      'Outlet tie-in is banned or tightly restricted. A closed PV→battery→loads loop keeps self-supply with zero reverse power flow.',
+    wiringFlow: {
+      generation: 'DC太陽光モジュール (ポータブル/ベランダキット)',
+      conversion: 'ハイブリッド/オフグリッドインバータ + 蓄電池',
+      connection: '分電盤分岐 or 専用電路 (コンセント直挿し不可)',
+      metering: '逆潮流防止リレー / CTクランプ消費追従 (ゼロエクスポート)',
+      consumption: '家電・PC・空調の自己消費のみ · 余剰は蓄電池へ',
+    },
+    keyFeaturesJa: [
+      '逆潮流ゼロ・系統保護を最優先',
+      '蓄電池で昼間発電を夜間ベースロードへシフト',
+      'コンセント直挿し禁止地域でも生活実感の自家消費を確保',
+      'EMS/スマートプラグで負荷を発電曲線に追従',
+    ],
+    keyFeaturesEn: [
+      'Zero export & grid protection first',
+      'Battery shifts daytime PV to night baseload',
+      'Self-consumption without illegal outlet tie-in',
+      'EMS / smart plugs follow the generation curve',
+    ],
+  },
+  {
+    modelId: 'offgrid_leapfrog',
+    titleJa: '系統なし / オフグリッド跳躍',
+    titleEn: 'No/weak grid · off-grid leapfrog',
+    badgeJa: '③ 系統なし/オフグリッド跳躍',
+    badgeEn: '③ No/weak grid · off-grid leapfrog',
+    summaryJa:
+      '中央系統に頼らず、太陽光＋蓄電池＋ローカル制御で照明・灌漑・保冷・通信を賄う自律マイクロ給電トポロジー。',
+    summaryEn:
+      'Skip the central grid: PV + storage + local control power lighting, irrigation, cold-chain, and connectivity as an autonomous micro-supply.',
+    wiringFlow: {
+      generation: 'DC太陽光モジュール / ピコ・キット (PayGo対応可)',
+      conversion: 'オフグリッドインバータ + 鉛/Li蓄電池',
+      connection: 'DCバス or 小規模AC分電 (島嶼・村落マイクログリッド)',
+      metering: 'PayGo/ローカル計測 · クラウド非依存の自律制御',
+      consumption: '照明・灌漑・保冷・通信など生産・生活負荷',
+    },
+    keyFeaturesJa: [
+      '系統延伸を待たず生活・生産インフラを先に電化',
+      'PayGo / マイクロファイナンスと親和',
+      'ローカルEMSで需給を自律制御（クラウド不要）',
+      '灌漑・保冷など収入直結のプロダクティブユース',
+    ],
+    keyFeaturesEn: [
+      'Electrify livelihoods before grid extension arrives',
+      'Fits PayGo / microfinance models',
+      'Local EMS for cloud-free autonomous balancing',
+      'Productive uses: irrigation, cold-chain, income loads',
+    ],
+  },
+]
+
+/** Resolve ecosystem model id from a country's grid category. */
+export function resolveMarketEcosystemModelId(
+  country: CountryPvDetail,
+): MarketEcosystemModelId {
+  return GRID_CATEGORY_TO_ECOSYSTEM[resolveGridCategory(country)]
+}
+
+/** Look up ecosystem topology by model id (or GridCategory alias). */
+export function getMarketEcosystemTopology(
+  modelId: string,
+): MarketEcosystemTopology | undefined {
+  const aliases: Record<string, MarketEcosystemModelId> = {
+    grid_plug_in: 'grid_plugin_allowed',
+    grid_no_plug: 'grid_plugin_prohibited',
+    no_grid_leapfrog: 'offgrid_leapfrog',
+    grid_plugin_allowed: 'grid_plugin_allowed',
+    grid_plugin_prohibited: 'grid_plugin_prohibited',
+    offgrid_leapfrog: 'offgrid_leapfrog',
+  }
+  const resolved = aliases[modelId] ?? modelId
+  return MARKET_ECOSYSTEM_TOPOLOGIES.find((t) => t.modelId === resolved)
+}
+
+/** Ecosystem topology for a country (defaults to ① plug-in if unknown). */
+export function getMarketEcosystemForCountry(
+  country: CountryPvDetail,
+): MarketEcosystemTopology {
+  return (
+    getMarketEcosystemTopology(resolveMarketEcosystemModelId(country)) ??
+    MARKET_ECOSYSTEM_TOPOLOGIES[0]
+  )
 }
 
 export function resolveRegionCategory(country: CountryPvDetail): RegionCategory {
@@ -918,6 +1512,13 @@ export const PV_VENDORS: Record<AdoptedVendorId, PvVendor> = {
     role: 'ポータブル電源・ベランダ向け蓄電キット',
     roleEn: 'Portable power stations & balcony storage kits',
     url: 'https://www.ecoflow.com/',
+  },
+  jackery: {
+    id: 'jackery',
+    name: 'Jackery',
+    role: 'ポータブル電源・ソーラーパネル',
+    roleEn: 'Portable power stations & solar panels',
+    url: 'https://www.jackery.com/',
   },
   'tesla-energy': {
     id: 'tesla-energy',
@@ -1176,6 +1777,37 @@ export const GLOBAL_PV_VENDORS: GlobalPvVendor[] = [
     ],
     targetRegions: ['asia-oceania', 'americas', 'africa'],
     url: 'https://www.ecoflow.com/',
+  },
+  {
+    id: 'jackery',
+    name: 'Jackery / 华宝新能',
+    nameJa: 'ジャッカリー',
+    hqCountry: '中国（深圳）',
+    hqCountryEn: 'China (Shenzhen)',
+    headquartersRegion: 'asia-oceania',
+    category: 'ポータブル電源',
+    description:
+      '元Appleのバッテリーエンジニアである孫中偉氏が2012年に米国シリコンバレーで設立しましたが、親会社は深セン上場企業の「深圳市华宝新能源（Hello Tech Energy）」であり、実質的な開発・製造・資本の中核は中国です。',
+    descriptionEn:
+      'Founded in Silicon Valley in 2012 by Zhongwei “Jack” Sun (ex-Apple battery engineer); the parent is Shenzhen-listed Hello Tech Energy (华宝新能), so R&D, manufacturing, and capital are centered in China.',
+    keyProducts: ['Explorer series', 'SolarSaga panels', 'Portable power stations'],
+    targetRegionIds: [
+      'japan',
+      'usa',
+      'us-ca',
+      'us-tx',
+      'us-fl',
+      'us-ny',
+      'germany',
+      'uk',
+      'france',
+      'au',
+      'china',
+      'tw',
+      'sg',
+    ],
+    targetRegions: ['asia-oceania', 'americas', 'europe'],
+    url: 'https://www.jackery.com/',
   },
   {
     id: 'tesla-energy',
@@ -2064,6 +2696,17 @@ export const ECOSYSTEM_ACTORS: EcosystemActor[] = [
     roleEn: 'R&D and standards for vertical irradiance & BIPV in dense tropical cities',
     url: 'https://www.seris.nus.edu.sg/',
   },
+  {
+    id: 'seas-singapore',
+    name: 'シンガポール持続可能エネルギー協会 (SEAS)',
+    nameEn: 'Sustainable Energy Association of Singapore (SEAS)',
+    type: 'npo',
+    countryId: 'sg',
+    role: 'SolarNova入札における官民連携の推進、高層公営住宅向け再エネ施工者の安全認証・技術標準化の支援',
+    roleEn:
+      'Facilitating public-private partnerships under the SolarNova programme and leading safety accreditations and technical standards for high-rise residential installations.',
+    url: 'https://www.seas.org.sg/',
+  },
   // Taiwan (tw)
   {
     id: 'moeaea-tw',
@@ -2272,6 +2915,81 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     coordinates: [10.4, 51.1],
     lastUpdated: '2026-09-30',
     adoptedVendors: ['hoymiles', 'anker-solix'],
+    timeline: [
+      {
+        period: '2019〜2021',
+        phaseTitleJa: '市民DIY・ゲリラ連系の胎動',
+        phaseTitleEn: 'Citizen DIY & guerrilla interconnection',
+        milestones: [
+          {
+            date: '2019-06',
+            category: 'civil-movement',
+            titleJa: '市民DIY・Stecker-Solarゲリラ連系運動とDGS安全基準（DGS 0001）',
+            titleEn: 'Stecker-Solar guerrilla DIY movement & DGS 0001 safety standard',
+            descriptionJa:
+              '賃貸住宅の住人らが「コンセントに挿すだけ」の小型PVを自主連系。ドイツ太陽エネルギー協会（DGS）が安全基準DGS 0001を提示し、グレーゾーン運用に技術的裏付けを与えた。',
+            descriptionEn:
+              'Renters began DIY plug-in PV. The German Solar Energy Society (DGS) published DGS 0001, giving guerrilla interconnection a safety baseline.',
+            orgName: 'DGS (Deutsche Gesellschaft für Sonnenenergie)',
+            orgUrl: 'https://www.dgs.de/',
+            breakthrough: '「無届は違法」への怯え・電気工事士独占の壁',
+            outcome: '市民運動としての差込式PVの社会的認知と安全規範の共有',
+          },
+          {
+            date: '2021-03',
+            category: 'civil-movement',
+            titleJa: 'Yuma / Priwatt等のD2Cキット登場・バルコニー蓄電池のEC量販化',
+            titleEn: 'Yuma / Priwatt D2C kits & balcony storage e-commerce boom',
+            descriptionJa:
+              'D2Cブランドがベランダ設置キットと小型蓄電池をECで量販。ゲリラ連系のノウハウが商品化され、DIYハードルが一気に下がった。',
+            descriptionEn:
+              'D2C brands brought balcony kits and compact storage to e-commerce, productizing guerrilla know-how and collapsing DIY friction.',
+            orgName: 'Priwatt / Yuma',
+            breakthrough: '部品調達の複雑さ・設置の属人ノウハウ',
+            outcome: 'キット一式の通販普及と100万台級市場の芽生え',
+          },
+        ],
+      },
+      {
+        period: '2024〜2026',
+        phaseTitleJa: 'Solarpaket I — 差込式の法制化',
+        phaseTitleEn: 'Solarpaket I — plug-in legalization',
+        milestones: [
+          {
+            date: '2024-05',
+            category: 'policy',
+            titleJa: 'Solarpaket I可決（800W公認・賃貸権約款での拒絶禁止・Schukoプラグ合法化）',
+            titleEn:
+              'Solarpaket I passed (800W certified, landlord refusal banned, Schuko plug legalized)',
+            descriptionJa:
+              '連邦議会がSolarpaket Iを可決。800Wまで家電扱い、賃貸契約での不当拒絶禁止、Schukoプラグ連系の合法化により、ゲリラ時代の要求が制度へ昇華した。',
+            descriptionEn:
+              'Parliament passed Solarpaket I: 800W as an appliance, ban on unfair landlord refusal, and legal Schuko plug-in — converting guerrilla demands into statute.',
+            orgName: 'Bundesnetzagentur (MaStR)',
+            orgUrl: 'https://www.bundesnetzagentur.de/',
+            breakthrough: '賃貸拒否・届出負荷・プラグ連系の法的曖昧さ',
+            outcome: '100万世帯超への急速普及と欧州ドミノの震源地化',
+          },
+        ],
+      },
+    ],
+    localTools: [
+      {
+        id: 'balkon-solar',
+        name: 'balkon.solar',
+        category: 'community',
+        descriptionJa:
+          'ドイツ発のバルコニーPV普及コミュニティ。設置ガイド・キット情報・市民向け資料をオープンに共有する。',
+        descriptionEn:
+          'German balcony-PV community sharing install guides, kit info, and citizen resources openly.',
+        siteUrl: 'https://balkon.solar/',
+        starsOrBadge: 'Community',
+        keyJobJa: '賃貸ベランダでの差込式PV導入ノウハウを市民同士で共有する',
+        keyJobEn: 'Peer-shared know-how for renters installing plug-in balcony PV',
+        compatibleHardwareJa: 'Hoymiles, Schukoプラグキット, ベランダ手すりクランプ',
+        compatibleHardwareEn: 'Hoymiles, Schuko plug kits, balcony rail clamps',
+      },
+    ],
   },
   {
     id: 'austria',
@@ -2301,6 +3019,29 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     coordinates: [14.5, 47.5],
     lastUpdated: '2026-09-30',
     adoptedVendors: ['hoymiles', 'anker-solix'],
+    timeline: [
+      {
+        period: '2022〜2024',
+        phaseTitleJa: '差込式PVの公認と簡易届出',
+        phaseTitleEn: 'Plug-in PV recognition & simplified notice',
+        milestones: [
+          {
+            date: '2023-01',
+            category: 'grid-rule',
+            titleJa: 'TOR Erzeuger Typ A — 800W差込式の登録のみ運用',
+            titleEn: 'TOR Erzeuger Typ A — 800W plug-in via registration only',
+            descriptionJa:
+              'E-Control / TOR枠組みで小型発電を家電相当として扱い、オンライン簡易届出で即日運用可能に。ドイツ勢キットの流入と合わせ普及が加速。',
+            descriptionEn:
+              'Under E-Control / TOR, small generators are treated like appliances; online notice enables same-day operation, accelerated by German kit imports.',
+            orgName: 'PV Austria',
+            orgUrl: 'https://pvaustria.at/',
+            breakthrough: '系統事業者ごとの煩雑な接続協議',
+            outcome: '登録のみで差込式800Wが日常化する制度定着',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'italy',
@@ -2446,6 +3187,29 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     coordinates: [8.2, 46.8],
     lastUpdated: '2026-09-30',
     adoptedVendors: ['hoymiles', 'anker-solix'],
+    timeline: [
+      {
+        period: '2021〜2025',
+        phaseTitleJa: 'ESTI指針と600W家電区分',
+        phaseTitleEn: 'ESTI guidance & 600W appliance class',
+        milestones: [
+          {
+            date: '2022-06',
+            category: 'grid-rule',
+            titleJa: 'NIV Art.16 / ESTI — 600Wまでの差込プラグ容認',
+            titleEn: 'NIV Art.16 / ESTI — plug-in allowed up to 600W',
+            descriptionJa:
+              '連邦レベルの低圧規程とESTI指針により、定格600Wまでプラグ接続を容認。PRCD（漏電遮断）要件と電力会社事前届出が条件。',
+            descriptionEn:
+              'Federal low-voltage rules and ESTI guidance allow plug-in up to 600W, with PRCD protection and utility pre-notification required.',
+            orgName: 'ESTI',
+            orgUrl: 'https://www.esti.admin.ch/',
+            breakthrough: '州ごと運用差と「工事士必須」前提',
+            outcome: '600W家電区分としての差込式ルートの確立',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'china',
@@ -2509,6 +3273,71 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     coordinates: [138.2, 36.2],
     lastUpdated: '2026-09-30',
     adoptedVendors: ['ecoflow', 'anker-solix'],
+    timeline: [
+      {
+        period: '2012〜2019',
+        phaseTitleJa: 'FITと山林メガソーラー時代',
+        phaseTitleEn: 'FIT era & hillside mega-solar boom',
+        milestones: [
+          {
+            date: '2012-07',
+            category: 'policy',
+            titleJa: 'FIT制度開始と山林メガソーラー・三面張り土木バブル',
+            titleEn: 'FIT launch & hillside mega-solar / cut-and-fill civil-works bubble',
+            descriptionJa:
+              '固定価格買取制度が大規模地上設置を爆発的に誘発。山林造成・三面張り擁壁の土木案件が急増し、「再エネ＝遠隔メガソーラー」のイメージが定着した。',
+            descriptionEn:
+              'Feed-in tariffs triggered a boom in large ground-mount projects—hillside cut-and-fill and retaining walls—cementing “renewables = remote mega-solar” in the public mind.',
+            orgName: '資源エネルギー庁',
+            orgUrl: 'https://www.enecho.meti.go.jp/',
+            breakthrough: '分散・需要地近接型への政策関心の欠如',
+            outcome: 'メガソーラー偏重と地域トラブルの蓄積',
+          },
+        ],
+      },
+      {
+        period: '2020〜2024',
+        phaseTitleJa: '住宅屋根の構造的限界の露呈',
+        phaseTitleEn: 'Structural limits of residential rooftops exposed',
+        milestones: [
+          {
+            date: '2022-01',
+            category: 'urban-housing',
+            titleJa: '建売・片流れ屋根の雨漏り問題・斜線制限による屋根複雑骨折の露呈',
+            titleEn:
+              'Leak issues on speculative / mono-pitch roofs & fractured geometry from setback planes',
+            descriptionJa:
+              '建売住宅の片流れ・複雑な屋根形状で雨漏り・架台施工トラブルが表面化。斜線制限による「屋根複雑骨折」が、屋根置き一択モデルの限界を可視化した。',
+            descriptionEn:
+              'Leaks and racking failures on speculative mono-pitch and complex roofs, plus setback-driven “fractured” geometry, exposed the limits of rooftop-only models.',
+            breakthrough: '持ち家屋根置き前提の制度・施工文化',
+            outcome: '賃貸・ベランダ型への関心転換議論の端緒',
+          },
+        ],
+      },
+      {
+        period: '2025〜',
+        phaseTitleJa: '団地ベランダ家具型と出仕舞い',
+        phaseTitleEn: 'Danchi balcony furniture PV & De-Shimai',
+        milestones: [
+          {
+            date: '2025-04',
+            category: 'urban-housing',
+            titleJa:
+              '団地（UR）ベランダ生活家具型ソーラー・出仕舞い（De-Shimai）とオフグリッド蓄電の台頭',
+            titleEn:
+              'UR danchi balcony living-furniture PV, De-Shimai stowage & off-grid storage rise',
+            descriptionJa:
+              'コンセント直結が内線規程で封じられる中、UR団地などのベランダで「生活家具型」パネル＋ポータブル蓄電が台頭。台風時の出仕舞い（室内退避）を前提にした運用文化が広がりつつある。',
+            descriptionEn:
+              'With outlet plug-in blocked by indoor wiring rules, living-furniture panels plus portable storage rise on UR danchi balconies—paired with typhoon De-Shimai (full indoor stowage) practice.',
+            orgName: 'UR都市機構 / ISEP',
+            breakthrough: '工事レス需要と系統直結禁止の両立',
+            outcome: 'オフグリッド蓄電型が賃貸の主流ルートとして認知',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'usa',
@@ -3354,6 +4183,64 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     coordinates: [103.8, 1.3],
     lastUpdated: '2026-10-04',
     adoptedVendors: ['hoymiles', 'enphase'],
+    timeline: [
+      {
+        period: '2014〜2020',
+        phaseTitleJa: 'SolarNova — HDB団地の平屋根バルク調達',
+        phaseTitleEn: 'SolarNova — HDB flat-roof bulk procurement',
+        milestones: [
+          {
+            date: '2014-12',
+            category: 'policy',
+            titleJa: 'SolarNova計画発足（HDB×EDB主導）',
+            titleEn: 'SolarNova programme launched (HDB × EDB)',
+            descriptionJa:
+              'HDB公営団地の平屋根を一括バルク入札するSolarNovaが発足。個別世帯ではなく団地屋上を「都市インフラ」として調達するモデルが始まった。',
+            descriptionEn:
+              'SolarNova launched bulk tenders for HDB flat roofs—procuring estate rooftops as urban infrastructure rather than household DIY installs.',
+            orgName: 'HDB / EDB',
+            orgUrl: 'https://www.hdb.gov.sg/',
+            breakthrough: '狭小国土での個別屋根設置の非効率',
+            outcome: '公営団地屋上の大規模一括導入フレーム確立',
+          },
+          {
+            date: '2019-09',
+            category: 'urban-housing',
+            titleJa: '第4次入札・共用電力100%ネットゼロ達成棟の拡大',
+            titleEn: '4th tender — expanding blocks with 100% net-zero common services',
+            descriptionJa:
+              '第4次SolarNova入札で、廊下・エレベーター等の共用部電力を太陽光で相殺するネットゼロ棟が拡大。住民の生活導線に近い「団地再エネ」体験が広がった。',
+            descriptionEn:
+              'The 4th SolarNova tender scaled blocks where solar offsets common-services loads (corridors, lifts)—bringing estate-level renewables into daily resident experience.',
+            orgName: 'HDB',
+            orgUrl: 'https://www.hdb.gov.sg/',
+            breakthrough: '共用部負荷の化石依存',
+            outcome: 'ネットゼロ共用電力棟の横展開',
+          },
+        ],
+      },
+      {
+        period: '2023〜2026',
+        phaseTitleJa: '高層垂直ベランダBIPV実証',
+        phaseTitleEn: 'High-rise vertical balcony BIPV pilots',
+        milestones: [
+          {
+            date: '2023-05',
+            category: 'urban-housing',
+            titleJa: '高層HDB向け垂直ベランダBIPV実証（SERIS連携）',
+            titleEn: 'Vertical balcony BIPV pilots for high-rise HDB (with SERIS)',
+            descriptionJa:
+              'SERIS連携のもと、高層HDBの垂直ベランダ・壁面BIPVを実証。強風圧・防火基準と垂直受光の標準化が焦点となり、平屋根以外の都市面が発電面へと拡張された。',
+            descriptionEn:
+              'With SERIS, HDB piloted vertical balcony/facade BIPV—standardizing wind-load, fire codes, and vertical irradiance so urban façades join rooftops as generation surfaces.',
+            orgName: 'SERIS',
+            orgUrl: 'https://www.seris.nus.edu.sg/',
+            breakthrough: '強風・防火基準と垂直受光の未標準化',
+            outcome: '高層ベランダBIPVの技術・審査フレームの芽生え',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'indonesia',
@@ -3489,6 +4376,28 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     coordinates: [121.5, 25.0],
     lastUpdated: '2026-10-04',
     adoptedVendors: ['ecoflow', 'anker-solix'],
+    timeline: [
+      {
+        period: '2020〜2025',
+        phaseTitleJa: '防災オフグリッドとコミュニティDIY',
+        phaseTitleEn: 'Disaster off-grid & community DIY',
+        milestones: [
+          {
+            date: '2021-08',
+            category: 'policy',
+            titleJa: '台電の逆潮流規制下でのベランダ可搬蓄電の浸透',
+            titleEn: 'Portable balcony storage under Taipower reverse-flow rules',
+            descriptionJa:
+              '系統直結が厳しいなか、台風・地震BCPを目的に出窓・ベランダの可搬蓄電ハイブリッドが集合住宅コミュニティ主導で広がった。',
+            descriptionEn:
+              'With strict grid-tie rules, community-led portable balcony storage hybrids spread for typhoon and quake BCP in multifamily housing.',
+            orgName: '経済部能源署 (MOEAEA)',
+            breakthrough: '台電の系統直結規制と管理規約の合意形成',
+            outcome: '防災・自給ハイブリッドが賃貸の現実的ルートに',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'nz',
@@ -4940,17 +5849,18 @@ export type SolarFurnitureId =
 
 /** Legacy 3D profile id → typology-first SurfaceTypology. */
 export const PROFILE_TO_TYPOLOGY: Record<string, SurfaceTypology> = {
-  'haussmann-balconet': 'haussmann_balconet',
+  'haussmann-balconet': 'glass_railing',
   'french-mansard-roof': 'mansard_dormer',
-  'concrete-parapet': 'exposed_concrete_parapet',
-  'japanese-evacuation-balcony': 'japan_egress_balcony',
+  'concrete-parapet': 'precast_parapet',
+  'japanese-evacuation-balcony': 'egress_cantilever',
   'japanese-kawara-roof': 'japanese_tiled_roof',
   'flat-concrete-roof': 'flat_roof_terrace',
-  'uk-juliet-balcony': 'juliet_balcony',
+  'uk-juliet-balcony': 'glass_railing',
   'uk-recessed-balcony': 'recessed_loggia',
   'uk-roof-terrace': 'flat_roof_terrace',
   'uk-pitched-gable': 'pitched_gable_terrace',
   'uk-pitched-mansard-dormer': 'mansard_dormer',
+  'access-gallery': 'access_gallery',
 }
 
 export interface ArchitectureProfile {
@@ -4973,7 +5883,7 @@ export function resolveProfileTypology(profile: ArchitectureProfile): SurfaceTyp
     profile.typologyId ??
     PROFILE_TO_TYPOLOGY[profile.id] ??
     PROFILE_TO_TYPOLOGY[profile.model3dId] ??
-    'japan_egress_balcony'
+    'egress_cantilever'
   )
 }
 
@@ -5052,12 +5962,25 @@ export const COUNTRY_ARCHITECTURE_CONFIGS: readonly CountryArchitectureConfig[] 
       {
         id: 'japanese-evacuation-balcony',
         type: 'balcony',
+        typologyId: 'egress_cantilever',
         model3dId: 'japanese-evacuation-balcony',
         tiltAngle: '0°',
         nameKey: 'profiles.japanese-evacuation-balcony.name',
         descriptionKey: 'profiles.japanese-evacuation-balcony.description',
         constraintsKey: 'profiles.japanese-evacuation-balcony.constraints',
         adaptedFurnitureIds: ['solar-endai-bench', 'solar-sudare-screen'],
+      },
+      {
+        // 共用開放廊下 — 既存 3D を流用し typology のみ access_gallery を代表
+        id: 'access-gallery',
+        type: 'balcony',
+        typologyId: 'access_gallery',
+        model3dId: 'japanese-evacuation-balcony',
+        tiltAngle: '0°',
+        nameKey: 'profiles.access-gallery.name',
+        descriptionKey: 'profiles.access-gallery.description',
+        constraintsKey: 'profiles.access-gallery.constraints',
+        adaptedFurnitureIds: ['solar-endai-bench', 'solar-table'],
       },
       {
         id: 'japanese-kawara-roof',

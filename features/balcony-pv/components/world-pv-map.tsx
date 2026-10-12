@@ -2,7 +2,9 @@
 
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { ExternalLink, Minus, Plus, RotateCcw } from 'lucide-react';
+import { ExternalLink, FolderGit2, Minus, Plus, RotateCcw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ComposableMap,
   Geographies,
@@ -14,13 +16,17 @@ import {
   CountryPvDetail,
   AFRICA_LEAPFROG_TIMELINE,
   ASIA_OCEANIA_TRANSITION_TIMELINE,
+  COMMON_OSS_PROJECTS,
   INDIA_LIVELIHOOD_TIMELINE,
+  MARKET_ECOSYSTEM_TOPOLOGIES,
   MOVEMENT_HISTORY_PHASES,
   SOUTHEAST_ASIA_ISLAND_TIMELINE,
   WORLD_BALCONY_PV_COUNTRIES,
   getAfricaLeapfrogPhaseById,
   getAsiaOceaniaPhaseById,
   getIndiaLivelihoodPhaseById,
+  getMarketEcosystemForCountry,
+  getMarketEcosystemTopology,
   getMaturityScore,
   getMovementPhaseById,
   getSoutheastAsiaIslandPhaseById,
@@ -28,10 +34,14 @@ import {
   resolveRegionCategory,
   type AfricaLeapfrogPhaseId,
   type AsiaOceaniaPhaseId,
+  type CountryTimelineMilestone,
+  type CountryTimelinePhase,
   type IndiaLivelihoodPhaseId,
+  type MarketEcosystemTopology,
   type MilestoneKeyActor,
   type MovementHistoryPhaseId,
   type MovementMilestone,
+  type OssProject,
   type RegionCategory,
   type SoutheastAsiaIslandPhaseId,
 } from '../data';
@@ -397,6 +407,536 @@ function TimelineSidebar({
         })}
       </div>
     </aside>
+  );
+}
+
+export interface CountryPvTimelineProps {
+  country: CountryPvDetail;
+  isEn: boolean;
+  barrierLabel: string;
+  milestoneLabel: string;
+}
+
+/** 国別詳細ドロワー「タイムライン」タブ用（フェーズ折りたたみ＋縦軸） */
+export function CountryPvTimeline({
+  country,
+  isEn,
+  barrierLabel,
+  milestoneLabel,
+}: CountryPvTimelineProps) {
+  const phases = country.timeline;
+  const [openPhases, setOpenPhases] = useState<Set<number>>(() => new Set([0]));
+
+  if (!phases?.length) {
+    return (
+      <p className="rounded-lg border border-dashed border-slate-600/60 bg-slate-900/40 px-3 py-6 text-center text-sm text-slate-400">
+        {isEn
+          ? 'Timeline information is being prepared.'
+          : 'タイムライン情報は順次整備中です'}
+      </p>
+    );
+  }
+
+  const countryLabel = isEn && country.nameEn ? country.nameEn : country.name;
+
+  const togglePhase = (idx: number) => {
+    setOpenPhases((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-2">
+      {phases.map((phase: CountryTimelinePhase, phaseIdx: number) => {
+        const isOpen = openPhases.has(phaseIdx);
+        const phaseTitle = isEn ? phase.phaseTitleEn : phase.phaseTitleJa;
+        return (
+          <div
+            key={`${phase.period}-${phaseIdx}`}
+            className="rounded-lg border border-cyan-500/30 bg-slate-900/60"
+          >
+            <button
+              type="button"
+              onClick={() => togglePhase(phaseIdx)}
+              className="flex w-full items-start gap-2 px-3 py-2.5 text-left"
+            >
+              <span className="mt-0.5 text-sm text-cyan-300">{isOpen ? '▾' : '▸'}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs font-medium tracking-wide text-cyan-300/90 uppercase">
+                  {phase.period}
+                </span>
+                <span className="block text-sm font-semibold leading-snug text-slate-100">
+                  {phaseTitle}
+                </span>
+              </span>
+            </button>
+            {isOpen ? (
+              <ul className="relative space-y-2 border-t border-cyan-500/20 px-3 py-2.5 before:absolute before:top-3 before:bottom-3 before:left-[calc(0.75rem+5px)] before:w-px before:bg-gradient-to-b before:from-cyan-400/70 before:to-emerald-400/50">
+                {phase.milestones.map((ms: CountryTimelineMilestone, msIdx: number) => {
+                  const title = isEn ? ms.titleEn : ms.titleJa;
+                  const description = isEn ? ms.descriptionEn : ms.descriptionJa;
+                  return (
+                    <li key={`${ms.date}-${msIdx}`} className="relative pl-5">
+                      <span
+                        aria-hidden
+                        className="absolute top-2.5 left-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900"
+                      />
+                      <div className="rounded-md border border-slate-700/60 bg-slate-950/50 px-2.5 py-2">
+                        <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                          <span className="font-mono text-xs font-medium text-slate-400">
+                            {ms.date}
+                          </span>
+                          <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                            {countryLabel}
+                          </span>
+                        </div>
+                        <p className="text-sm font-medium leading-snug text-slate-100">{title}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-400">{description}</p>
+                        {ms.orgName ? (
+                          ms.orgUrl ? (
+                            <a
+                              href={ms.orgUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-xs text-cyan-300 transition-colors hover:text-emerald-300"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {ms.orgName}
+                              <ExternalLink className="size-3" />
+                            </a>
+                          ) : (
+                            <p className="mt-1.5 text-xs text-slate-400">{ms.orgName}</p>
+                          )
+                        ) : null}
+                        {ms.breakthrough ? (
+                          <p className="mt-1.5 text-xs leading-relaxed text-orange-300/95">
+                            ⚡ <span className="font-medium">{barrierLabel}</span>: {ms.breakthrough}
+                          </p>
+                        ) : null}
+                        {ms.outcome ? (
+                          <p className="mt-1 text-xs leading-relaxed text-emerald-300/95">
+                            🎯 <span className="font-medium">{milestoneLabel}</span>: {ms.outcome}
+                          </p>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const OSS_CATEGORY_LABEL: Record<OssProject['category'], { ja: string; en: string }> = {
+  ems: { ja: 'EMS・監視', en: 'EMS' },
+  firmware: { ja: 'ファームウェア', en: 'Firmware' },
+  automation: { ja: '自動化', en: 'Automation' },
+  protocol: { ja: 'プロトコル', en: 'Protocol' },
+  community: { ja: 'コミュニティ', en: 'Community' },
+};
+
+type OssCategoryFilter = 'all' | OssProject['category'];
+
+const OSS_FILTER_TABS: readonly { id: OssCategoryFilter; ja: string; en: string }[] = [
+  { id: 'all', ja: 'すべて', en: 'All' },
+  { id: 'ems', ja: 'EMS・監視', en: 'EMS' },
+  { id: 'firmware', ja: 'ファームウェア', en: 'Firmware' },
+  { id: 'automation', ja: '自動化', en: 'Automation' },
+  { id: 'community', ja: 'コミュニティ', en: 'Community' },
+];
+
+export interface CountryPvOssToolsProps {
+  /** 省略時は共通 OSS + 各国 localTools を一覧表示（トップレベルタブ用） */
+  country?: CountryPvDetail | null;
+  isEn: boolean;
+}
+
+function collectOssProjects(country?: CountryPvDetail | null): OssProject[] {
+  if (country) {
+    const local = country.localTools ?? [];
+    const localIds = new Set(local.map((p) => p.id));
+    return [...local, ...COMMON_OSS_PROJECTS.filter((p) => !localIds.has(p.id))];
+  }
+  const seen = new Set<string>();
+  const projects: OssProject[] = [];
+  for (const p of COMMON_OSS_PROJECTS) {
+    if (seen.has(p.id)) continue;
+    seen.add(p.id);
+    projects.push(p);
+  }
+  for (const c of WORLD_BALCONY_PV_COUNTRIES) {
+    for (const p of c.localTools ?? []) {
+      if (seen.has(p.id)) continue;
+      seen.add(p.id);
+      projects.push(p);
+    }
+  }
+  return projects;
+}
+
+/** OSS / ツール一覧（トップレベルタブ。非営利一覧と同型のカードグリッド） */
+export function CountryPvOssTools({ country, isEn }: CountryPvOssToolsProps) {
+  const [selectedOssCategory, setSelectedOssCategory] = useState<OssCategoryFilter>('all');
+  const projects = collectOssProjects(country);
+  const filteredProjects =
+    selectedOssCategory === 'all'
+      ? projects
+      : projects.filter((item) => item.category === selectedOssCategory);
+
+  if (projects.length === 0) {
+    return (
+      <p className="rounded-xl border border-border/40 bg-black/40 px-4 py-8 text-center text-sm text-muted-foreground">
+        {isEn ? 'OSS / tool listings are being prepared.' : 'OSS・ツール情報は順次整備中です'}
+      </p>
+    );
+  }
+
+  const purposeLabel = isEn ? 'Key Job / Purpose' : 'できること';
+  const overviewLabel = isEn ? 'Overview' : '概要';
+  const hardwareLabel = isEn ? 'Hardware' : '対応ハード';
+  const linkBtnClass =
+    'inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/50 bg-black/40 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary';
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {OSS_FILTER_TABS.map((tab) => {
+          const active = selectedOssCategory === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSelectedOssCategory(tab.id)}
+              className={
+                active
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs px-3 py-1.5 rounded-full font-medium'
+                  : 'bg-slate-900/60 hover:bg-slate-800 text-slate-400 border border-slate-800 text-xs px-3 py-1.5 rounded-full transition-colors'
+              }
+            >
+              {isEn ? tab.en : tab.ja}
+            </button>
+          );
+        })}
+      </div>
+      {filteredProjects.length === 0 ? (
+        <p className="rounded-xl border border-border/40 bg-black/40 px-4 py-8 text-center text-sm text-muted-foreground">
+          {isEn ? 'No projects in this category.' : 'このカテゴリのプロジェクトはありません'}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredProjects.map((project) => {
+            const categoryLabel = isEn
+              ? OSS_CATEGORY_LABEL[project.category].en
+              : OSS_CATEGORY_LABEL[project.category].ja;
+            const keyJob = isEn ? project.keyJobEn : project.keyJobJa;
+            const description = isEn ? project.descriptionEn : project.descriptionJa;
+            const hardware = isEn
+              ? project.compatibleHardwareEn
+              : project.compatibleHardwareJa;
+            return (
+              <Card
+                key={project.id}
+                className="flex flex-col border-border/50 bg-slate-900/90 shadow-none"
+              >
+                <CardHeader className="gap-2 space-y-0 pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <CardTitle className="text-sm font-semibold text-foreground">
+                        {project.name}
+                      </CardTitle>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {project.repoUrl ? (
+                        <a
+                          href={project.repoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={linkBtnClass}
+                          aria-label="GitHub Repository"
+                          title="GitHub Repository"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <FolderGit2 className="size-3.5" />
+                        </a>
+                      ) : null}
+                      {project.siteUrl ? (
+                        <a
+                          href={project.siteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={linkBtnClass}
+                          aria-label={`${project.name} website`}
+                          title={isEn ? 'Official website' : '公式サイト'}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="size-3.5" />
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Badge className="border-primary/30 bg-primary/15 text-[10px] text-primary">
+                      {categoryLabel}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-3 pt-0 text-xs">
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                      {overviewLabel}
+                    </p>
+                    <p className="leading-relaxed text-slate-200">{description}</p>
+                  </div>
+                  {hardware ? (
+                    <div>
+                      <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                        {hardwareLabel}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {hardware.split(',').map((chip) => {
+                          const label = chip.trim();
+                          if (!label) return null;
+                          return (
+                            <Badge
+                              key={label}
+                              variant="outline"
+                              className="border-border/60 bg-slate-800 font-normal text-slate-300"
+                            >
+                              {label}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="mt-auto">
+                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                      🎯 {purposeLabel}
+                    </p>
+                    <p className="rounded-md bg-black/50 px-2.5 py-1.5 leading-relaxed text-slate-200">
+                      {keyJob}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const WIRING_FLOW_STEPS: readonly {
+  key: keyof MarketEcosystemTopology['wiringFlow'];
+  ja: string;
+  en: string;
+}[] = [
+  { key: 'generation', ja: '発電', en: 'Generation' },
+  { key: 'conversion', ja: '変換・蓄電', en: 'Conversion' },
+  { key: 'connection', ja: '接続', en: 'Connection' },
+  { key: 'metering', ja: '計量・制御', en: 'Metering' },
+  { key: 'consumption', ja: '消費', en: 'Consumption' },
+];
+
+const ECOSYSTEM_ACCENT: Record<
+  string,
+  { ring: string; fill: string; text: string; line: string; badge: string }
+> = {
+  grid_plugin_allowed: {
+    ring: 'stroke-emerald-400',
+    fill: 'fill-emerald-500/25',
+    text: 'text-emerald-300',
+    line: 'stroke-emerald-400/70',
+    badge: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
+  },
+  grid_plugin_prohibited: {
+    ring: 'stroke-amber-400',
+    fill: 'fill-amber-500/25',
+    text: 'text-amber-300',
+    line: 'stroke-amber-400/70',
+    badge: 'border-amber-500/40 bg-amber-500/15 text-amber-300',
+  },
+  offgrid_leapfrog: {
+    ring: 'stroke-violet-400',
+    fill: 'fill-violet-500/25',
+    text: 'text-violet-300',
+    line: 'stroke-violet-400/70',
+    badge: 'border-violet-500/40 bg-violet-500/15 text-violet-300',
+  },
+};
+
+export interface CountryPvEcosystemProps {
+  /** When set, initial model follows the country; omit for top-level market-model browser. */
+  country?: CountryPvDetail | null;
+  isEn: boolean;
+  /** Optional override (map model filter / GridCategory / ecosystem modelId). */
+  modelId?: string | null;
+}
+
+/** 市場モデル別の給電トポロジー（トップレベル「エコシステム・給電図」タブ） */
+export function CountryPvEcosystem({ country, isEn, modelId }: CountryPvEcosystemProps) {
+  const initialId =
+    (modelId && getMarketEcosystemTopology(modelId)?.modelId) ||
+    (country ? getMarketEcosystemForCountry(country).modelId : MARKET_ECOSYSTEM_TOPOLOGIES[0].modelId);
+  const [selectedModelId, setSelectedModelId] = useState(initialId);
+
+  useLayoutEffect(() => {
+    const next =
+      (modelId && getMarketEcosystemTopology(modelId)?.modelId) ||
+      (country ? getMarketEcosystemForCountry(country).modelId : undefined);
+    if (next) setSelectedModelId(next);
+  }, [country, modelId]);
+
+  const topology =
+    getMarketEcosystemTopology(selectedModelId) ?? MARKET_ECOSYSTEM_TOPOLOGIES[0];
+  const accent = ECOSYSTEM_ACCENT[topology.modelId] ?? ECOSYSTEM_ACCENT.grid_plugin_allowed;
+  const title = isEn ? topology.titleEn : topology.titleJa;
+  const badge = isEn ? topology.badgeEn : topology.badgeJa;
+  const summary = isEn ? topology.summaryEn : topology.summaryJa;
+  const features = isEn ? topology.keyFeaturesEn : topology.keyFeaturesJa;
+  const nodeW = 120;
+  const nodeH = 44;
+  const gap = 28;
+  const startX = 16;
+  const cy = 40;
+  const nodes = WIRING_FLOW_STEPS.map((step, i) => ({
+    ...step,
+    x: startX + i * (nodeW + gap),
+    label: topology.wiringFlow[step.key],
+  }));
+  const svgW = startX * 2 + nodes.length * nodeW + (nodes.length - 1) * gap;
+  const svgH = 88;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {MARKET_ECOSYSTEM_TOPOLOGIES.map((t) => {
+          const active = t.modelId === topology.modelId;
+          const a = ECOSYSTEM_ACCENT[t.modelId] ?? ECOSYSTEM_ACCENT.grid_plugin_allowed;
+          return (
+            <button
+              key={t.modelId}
+              type="button"
+              onClick={() => setSelectedModelId(t.modelId)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                active
+                  ? a.badge
+                  : 'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+              }`}
+            >
+              {isEn ? t.badgeEn : t.badgeJa}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="rounded-xl border border-border/50 bg-slate-900/80 p-3 sm:p-4">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <Badge className={`border text-[10px] font-medium ${accent.badge}`}>{badge}</Badge>
+          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        </div>
+        <p className="text-xs leading-relaxed text-slate-300">{summary}</p>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border/40 bg-black/40 p-3">
+        <svg
+          viewBox={`0 0 ${svgW} ${svgH}`}
+          className="mx-auto h-auto min-w-[640px] w-full max-w-none"
+          role="img"
+          aria-label={isEn ? 'Power wiring topology' : '給電トポロジー図'}
+        >
+          {nodes.slice(0, -1).map((n, i) => {
+            const x1 = n.x + nodeW;
+            const x2 = nodes[i + 1].x;
+            const mid = (x1 + x2) / 2;
+            return (
+              <g key={`edge-${n.key}`}>
+                <line
+                  x1={x1}
+                  y1={cy}
+                  x2={x2}
+                  y2={cy}
+                  className={accent.line}
+                  strokeWidth={2}
+                  strokeDasharray="4 3"
+                />
+                <polygon
+                  points={`${mid + 5},${cy} ${mid - 3},${cy - 4} ${mid - 3},${cy + 4}`}
+                  className={accent.fill}
+                  stroke="none"
+                />
+              </g>
+            );
+          })}
+          {nodes.map((n, i) => (
+            <g key={n.key} transform={`translate(${n.x}, ${cy - nodeH / 2})`}>
+              <rect
+                width={nodeW}
+                height={nodeH}
+                rx={8}
+                className={`${accent.fill} ${accent.ring}`}
+                strokeWidth={1.5}
+              />
+              <text
+                x={nodeW / 2}
+                y={14}
+                textAnchor="middle"
+                className="fill-slate-400"
+                fontSize={9}
+                fontWeight={600}
+              >
+                {i + 1}. {isEn ? n.en : n.ja}
+              </text>
+              <foreignObject x={4} y={18} width={nodeW - 8} height={24}>
+                <p className={`m-0 text-center text-[9px] leading-tight ${accent.text}`}>
+                  {n.label}
+                </p>
+              </foreignObject>
+            </g>
+          ))}
+        </svg>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {WIRING_FLOW_STEPS.map((step) => (
+          <div
+            key={step.key}
+            className="rounded-lg border border-border/40 bg-slate-950/50 px-3 py-2"
+          >
+            <p className="mb-0.5 text-[10px] font-medium text-muted-foreground">
+              {isEn ? step.en : step.ja}
+            </p>
+            <p className="text-xs leading-relaxed text-slate-200">
+              {topology.wiringFlow[step.key]}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-xl border border-border/50 bg-slate-900/70 p-3 sm:p-4">
+        <p className="mb-2 text-[10px] font-medium text-muted-foreground">
+          {isEn ? 'Key features' : '特徴'}
+        </p>
+        <ul className="space-y-1.5">
+          {features.map((f) => (
+            <li
+              key={f}
+              className="flex gap-2 text-xs leading-relaxed text-slate-200 before:mt-1.5 before:size-1.5 before:shrink-0 before:rounded-full before:bg-current before:opacity-60"
+            >
+              {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 

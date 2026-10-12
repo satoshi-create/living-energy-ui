@@ -1,8 +1,9 @@
 'use client'
 
-import { Suspense, useEffect, useMemo } from 'react'
+import { createContext, Suspense, useContext, useEffect, useMemo } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import { MathUtils } from 'three'
 import { useTranslations } from 'next-intl'
 import type { Surface3dModelId } from '../data'
 import { cn } from '@/lib/utils'
@@ -16,7 +17,21 @@ export type Surface3DViewerProps = {
   variant?: 'preview' | 'full'
   /** Orbit camera azimuth preset for the full viewer. */
   cameraPreset?: Surface3DCameraPreset
+  /** Panel tilt from horizontal (degrees). */
+  tiltDeg?: number
+  /** Stow / 出仕舞い pose. */
+  isRetracted?: boolean
 }
+
+type PanelTiltContextValue = {
+  tiltDeg: number
+  isRetracted: boolean
+}
+
+const PanelTiltContext = createContext<PanelTiltContextValue>({
+  tiltDeg: 30,
+  isRetracted: false,
+})
 
 function Panel({
   position,
@@ -27,10 +42,28 @@ function Panel({
   rotation?: [number, number, number]
   args?: [number, number, number]
 }) {
+  const { tiltDeg, isRetracted } = useContext(PanelTiltContext)
+  const base = rotation ?? [0, 0, 0]
+  const tiltRad = MathUtils.degToRad(isRetracted ? 0 : tiltDeg)
+  // Deployed: X-axis tilt; retracted: flatten and tuck inside the rail/deck.
+  const rotX = isRetracted ? 0 : -tiltRad
+  const pos: [number, number, number] = isRetracted
+    ? [position[0], Math.min(position[1], 0.22), position[2] * 0.45]
+    : position
+  const size: [number, number, number] = isRetracted
+    ? [args[0], args[1] * 0.6, args[2] * 0.35]
+    : args
+
   return (
-    <mesh position={position} rotation={rotation} castShadow>
-      <boxGeometry args={args} />
-      <meshStandardMaterial color="#1a6b4a" metalness={0.35} roughness={0.45} />
+    <mesh position={pos} rotation={[rotX, base[1], base[2]]} castShadow>
+      <boxGeometry args={size} />
+      <meshStandardMaterial
+        color="#1a6b4a"
+        metalness={0.35}
+        roughness={0.45}
+        opacity={isRetracted ? 0.55 : 1}
+        transparent={isRetracted}
+      />
     </mesh>
   )
 }
@@ -548,10 +581,14 @@ function SurfaceScene({
   profileId,
   cameraPreset,
   full,
+  tiltDeg,
+  isRetracted,
 }: {
   profileId: Surface3dModelId
   cameraPreset: Surface3DCameraPreset
   full: boolean
+  tiltDeg: number
+  isRetracted: boolean
 }) {
   const Model = useMemo(() => {
     switch (profileId) {
@@ -582,8 +619,13 @@ function SurfaceScene({
     }
   }, [profileId])
 
+  const tiltValue = useMemo(
+    () => ({ tiltDeg, isRetracted }),
+    [tiltDeg, isRetracted],
+  )
+
   return (
-    <>
+    <PanelTiltContext.Provider value={tiltValue}>
       <color attach="background" args={['#0f1419']} />
       <ambientLight intensity={0.55} />
       <directionalLight position={[4, 6, 3]} intensity={1.15} castShadow />
@@ -603,7 +645,7 @@ function SurfaceScene({
           target={[0, 0.6, 0]}
         />
       )}
-    </>
+    </PanelTiltContext.Provider>
   )
 }
 
@@ -612,6 +654,8 @@ export function Surface3DViewer({
   className,
   variant = 'preview',
   cameraPreset = '30°',
+  tiltDeg = 30,
+  isRetracted = false,
 }: Surface3DViewerProps) {
   const t = useTranslations('worldPv.architecture.surface3d')
   const full = variant === 'full'
@@ -636,7 +680,7 @@ export function Surface3DViewer({
           }
         >
           <Canvas
-            key={`${profileId}-${full ? cameraPreset : 'preview'}`}
+            key={`${profileId}-${full ? cameraPreset : 'preview'}-${tiltDeg}-${isRetracted}`}
             dpr={[1, full ? 2 : 1.5]}
             camera={{
               position: cam.position,
@@ -654,6 +698,8 @@ export function Surface3DViewer({
               profileId={profileId}
               cameraPreset={cameraPreset}
               full={full}
+              tiltDeg={tiltDeg}
+              isRetracted={isRetracted}
             />
           </Canvas>
         </Suspense>
