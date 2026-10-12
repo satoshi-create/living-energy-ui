@@ -1039,7 +1039,7 @@ function BifurcationTopology({
   return (
     <svg
       viewBox={viewBox}
-      className="mx-auto h-auto w-full max-w-full"
+      className="mx-auto block h-auto w-full"
       role="group"
       aria-label={isEn ? 'Bifurcation plug-in topology' : 'プラグイン公認・二股分岐トポロジー'}
     >
@@ -1186,7 +1186,7 @@ function ClosedLoopTopology({
   return (
     <svg
       viewBox={viewBox}
-      className="mx-auto h-auto w-full max-w-full"
+      className="mx-auto block h-auto w-full"
       role="group"
       aria-label={isEn ? 'Closed-loop zero-export topology' : '逆潮流禁止・閉ループトポロジー'}
     >
@@ -1309,7 +1309,7 @@ function StandaloneTopology({
   return (
     <svg
       viewBox={viewBox}
-      className="mx-auto h-auto w-full max-w-full"
+      className="mx-auto block h-auto w-full"
       role="group"
       aria-label={isEn ? 'Off-grid standalone topology' : 'オフグリッド跳躍トポロジー'}
     >
@@ -1518,16 +1518,18 @@ export function CountryPvEcosystem({
         </div>
       </div>
 
-      <div className="overflow-x-auto overflow-y-visible rounded-xl border border-border/40 bg-black/40 p-3">
-        <EcosystemTopologyDiagram
-          topology={topology}
-          accent={accent}
-          isEn={isEn}
-          viewMode={viewMode}
-          overlayTitle={tWorld('ecosystem.softwareOverlay.title')}
-          openOssLabel={tWorld('ecosystem.softwareOverlay.openOss')}
-          onSelectOssTab={onSelectOssTab}
-        />
+      <div className="overflow-x-auto overflow-y-visible rounded-xl border border-border/40 bg-black/40 p-3 sm:p-4">
+        <div className="mx-auto w-full max-w-6xl">
+          <EcosystemTopologyDiagram
+            topology={topology}
+            accent={accent}
+            isEn={isEn}
+            viewMode={viewMode}
+            overlayTitle={tWorld('ecosystem.softwareOverlay.title')}
+            openOssLabel={tWorld('ecosystem.softwareOverlay.openOss')}
+            onSelectOssTab={onSelectOssTab}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
