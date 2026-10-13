@@ -22,6 +22,7 @@ import {
 } from '../history-data'
 import type { CellViewAngle } from './cell-3d-model'
 import { PvHistoryTimeline } from './pv-history-timeline'
+import { WebGLMountGate } from './webgl-mount-gate'
 
 const Cell3DModel = dynamic(
   () => import('./cell-3d-model').then((mod) => mod.Cell3DModel),
@@ -336,12 +337,17 @@ export function SolarCellTypesView({
                       : selectedMeta.cell3d.lightBadgeJa}
                   </span>
                 </div>
-                <Cell3DModel
-                  type={selectedCellType}
-                  interactive
-                  viewAngle={viewAngle}
+                <WebGLMountGate
+                  priority
                   className="absolute inset-0 h-full w-full"
-                />
+                >
+                  <Cell3DModel
+                    type={selectedCellType}
+                    interactive
+                    viewAngle={viewAngle}
+                    className="h-full w-full"
+                  />
+                </WebGLMountGate>
               </div>
 
               {/* Right sidebar — fixed width matching 3D surface detail */}
@@ -787,9 +793,29 @@ export function SolarCellTypesView({
                       </span>
                     </div>
 
-                    {/* 3D viewport */}
+                    {/* 3D viewport — at most one live Canvas across list cards */}
                     <div className="relative my-3 h-[220px] w-full overflow-hidden rounded-xl bg-slate-950/80">
-                      <Cell3DModel type={id} className="h-full w-full" />
+                      <WebGLMountGate
+                        activateOnPointer
+                        className="h-full w-full"
+                        placeholder={
+                          <div className="flex h-full flex-col items-center justify-center gap-1.5 bg-gradient-to-b from-slate-900 to-slate-950 px-3 text-center">
+                            <div
+                              className={cn(
+                                'size-10 rounded-lg border opacity-80',
+                                STREAM_ACCENT[id].badge,
+                              )}
+                            />
+                            <span className="text-[10px] text-muted-foreground">
+                              {isEn
+                                ? 'Hover to load 3D preview'
+                                : 'ホバーで3Dプレビュー'}
+                            </span>
+                          </div>
+                        }
+                      >
+                        <Cell3DModel type={id} className="h-full w-full" />
+                      </WebGLMountGate>
                       <p className="pointer-events-none absolute bottom-2 left-0 right-0 text-center text-[10px] text-muted-foreground/70">
                         {isEn
                           ? 'Drag to rotate · scroll to zoom'
