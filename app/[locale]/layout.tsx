@@ -9,7 +9,7 @@ import '../globals.css'
 
 const _notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '700'],
   variable: '--font-sans',
 })
 

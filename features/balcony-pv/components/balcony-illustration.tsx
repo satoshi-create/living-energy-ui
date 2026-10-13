@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, type CSSProperties } from "react"
-import { MathUtils } from "three"
 import { useTranslations } from "next-intl"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -20,7 +19,7 @@ import {
   type SurfaceTypology,
   type SurfaceTypologyDetail,
   type WeatherCondition,
-} from "../data"
+} from "../simulator-data"
 
 type SurfaceCategoryFilter = "all" | "balcony" | "roof"
 
@@ -167,10 +166,8 @@ function weatherSunOpacity(weather: WeatherCondition): number {
   return 0.9
 }
 
-/** Panel group style: X-axis tilt via THREE.MathUtils.degToRad (+ stow pose). */
+/** Panel group style: X-axis CSS rotate (+ stow pose). */
 function panelTiltStyle(tiltDeg: number, isRetracted: boolean): CSSProperties {
-  const rad = MathUtils.degToRad(isRetracted ? 0 : tiltDeg)
-  const deg = (rad * 180) / Math.PI
   if (isRetracted) {
     return {
       transform: "rotateX(0deg) translateY(6px) scaleY(0.2)",
@@ -180,7 +177,7 @@ function panelTiltStyle(tiltDeg: number, isRetracted: boolean): CSSProperties {
     }
   }
   return {
-    transform: `rotateX(${deg}deg)`,
+    transform: `rotateX(${tiltDeg}deg)`,
     transformOrigin: "center bottom",
     transformBox: "fill-box",
   }

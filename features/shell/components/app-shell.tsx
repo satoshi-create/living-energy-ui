@@ -1,13 +1,41 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Sun, Network, Globe2, Leaf, PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { RegionHeader } from "./region-header"
-import { BalconyView, WorldImplementationView } from "@/features/balcony-pv/components/balcony-view"
-import { NetworkView } from "@/features/network"
 import { REGIONS } from "@/lib/regions"
+
+function ViewChunkLoading() {
+  return (
+    <div className="flex min-h-[40vh] w-full items-center justify-center">
+      <div className="size-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+    </div>
+  )
+}
+
+const BalconyView = dynamic(
+  () =>
+    import("@/features/balcony-pv/components/balcony-view").then(
+      (m) => m.BalconyView,
+    ),
+  { ssr: false, loading: () => <ViewChunkLoading /> },
+)
+
+const WorldImplementationView = dynamic(
+  () =>
+    import("@/features/balcony-pv/components/world-implementation-view").then(
+      (m) => m.WorldImplementationView,
+    ),
+  { ssr: false, loading: () => <ViewChunkLoading /> },
+)
+
+const NetworkView = dynamic(
+  () => import("@/features/network").then((m) => m.NetworkView),
+  { ssr: false, loading: () => <ViewChunkLoading /> },
+)
 
 const NAV_ITEMS = [
   { id: "balcony-simulation", icon: Sun },

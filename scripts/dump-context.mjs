@@ -38,6 +38,19 @@ const IGNORE_DIR_NAMES = new Set([
   ".pnpm",
   "__pycache__",
   ".cursor",
+  "vendor",
+  "tiles-test",
+  "tippecanoe",
+]);
+
+/** Major path listing (find . -maxdepth 4 equivalent). */
+const MAJOR_FILE_MAX_DEPTH = 4;
+const MAJOR_FILE_EXTENSIONS = new Set([
+  ".js",
+  ".mjs",
+  ".html",
+  ".css",
+  ".json",
 ]);
 
 const LOGIC_KEYWORDS = [
@@ -155,6 +168,50 @@ async function readDependenciesBlock() {
       2,
     );
   }
+}
+
+/**
+ * List existing major file paths (project-root relative), matching:
+ * find . -maxdepth 4 -type f \( -name "*.js" -o ... \) excluding bulky/hidden dirs.
+ */
+async function collectMajorFilePaths() {
+  const found = [];
+
+  async function walk(current, depth) {
+    if (depth > MAJOR_FILE_MAX_DEPTH) return;
+
+    let entries;
+    try {
+      entries = await readdir(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    for (const entry of entries) {
+      if (entry.name.startsWith(".")) continue;
+      if (IGNORE_DIR_NAMES.has(entry.name)) continue;
+
+      const full = join(current, entry.name);
+      const rel = `./${relative(ROOT, full).replaceAll("\\", "/")}`;
+
+      if (entry.isDirectory()) {
+        await walk(full, depth + 1);
+        continue;
+      }
+
+      if (!entry.isFile()) continue;
+
+      const dot = entry.name.lastIndexOf(".");
+      if (dot < 0) continue;
+      const ext = entry.name.slice(dot).toLowerCase();
+      if (!MAJOR_FILE_EXTENSIONS.has(ext)) continue;
+
+      found.push(rel);
+    }
+  }
+
+  await walk(ROOT, 1);
+  return found.sort((a, b) => a.localeCompare(b, "en"));
 }
 
 async function collectFilesRecursive(dir, predicate) {
@@ -314,6 +371,10 @@ async function buildMarkdown() {
 
   const depsJson = await readDependenciesBlock();
 
+  const majorPaths = await collectMajorFilePaths();
+  const majorPathsBody =
+    majorPaths.length > 0 ? majorPaths.join("\n") : "(該当ファイルなし)";
+
   const typePaths = await collectTypeDefinitions();
   let typesSection = "_（該当する型定義ファイルがありません）_\n";
   if (typePaths.length > 0) {
@@ -351,6 +412,12 @@ async function buildMarkdown() {
 
 \`\`\`text
 ${treeBody}
+\`\`\`
+
+## 存在する主要ファイル一覧（プロジェクトルート基準）
+
+\`\`\`text
+${majorPathsBody}
 \`\`\`
 
 ## 主要依存ライブラリ
