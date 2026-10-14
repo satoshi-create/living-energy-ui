@@ -305,49 +305,44 @@
     "collapse": "折りたたむ",
     "regionsHeading": "地域別の実装動向",
     "map": {
-      "legendTitle": "世界の3大カテゴリー（系統インフラ×プラグイン可否）",
-      "legendLegalPlug": "800Wプラグ公認（独・英・欧州各州） - 230V高電圧を活かしたコンセント直結",
-      "legendPlugExemption": "1,200W免除（米ユタ・CA等） - 高負荷住宅向けの系統協議免除",
-      "legendAppliance": "600W届出・都市BIPV（墺・シンガポール等） - 家電区分・建材一体型",
-      "legendStorage": "逆潮流禁止・蓄電自給（日・中・台湾・越等） - 系統防衛により蓄電自衛のみ",
-      "legendStrictCode": "直結不可・電気工事必須（米保守州等） - NEC準拠・有資格工事",
-      "legendProductiveOffgrid": "農業・保冷インフラ（東アフリカ等） - 太陽光揚水・低温保冷",
-      "legendMicroSolarKit": "生活キット / PayGo（ルワンダ・ウガンダ等） - 従量課金小型照明・再生バッテリー",
+      "legendTitle": "世界の3大利用形態（暮らし方で見るベランダソーラー）",
+      "legendLegalPlug": "800W標準（挿すだけ・独/英など） - コンセント直結で家中へ給電",
+      "legendPlugExemption": "1,200Wまで挿すだけ（米ユタ・CA等） - 高負荷住宅向けの簡易導入",
+      "legendAppliance": "600W届出・建物一体型（墺・シンガポール等） - 家電区分・建材一体",
+      "legendStorage": "逆潮流禁止・蓄電池で自給（日/台等） - ためて使う自給スタイル",
+      "legendStrictCode": "工事必須・直結不可（米保守州等） - 有資格工事が必要",
+      "legendProductiveOffgrid": "農業・保冷の自給電源（東アフリカ等） - 揚水・低温保冷",
+      "legendMicroSolarKit": "生活照明・PayGoキット（ルワンダ・ウガンダ等） - 従量課金の小型照明",
       "legendGroup": {
-        "grid_plug_in": "① 系統あり・プラグイン可（送電網連系・公認）",
-        "grid_no_plug": "② 系統あり・プラグイン不可（送電網防衛・蓄電自衛）",
-        "no_grid_leapfrog": "③ 系統なし（未発達）・ソーラー勃興（リープフロッグ）",
-        "grid_tied": "① 系統あり・プラグイン可（送電網連系・公認）",
-        "offgrid_bop": "③ 系統なし（未発達）・ソーラー勃興（リープフロッグ）",
-        "grid_plug": "コンセント直結OK（届出のみ・工事不要）",
-        "storage_regulated": "蓄電・自給のみ（コンセント直結・売電は不可）",
-        "emerging_offgrid": "発展途上国・自律型（生活・農業自給）"
+        "grid_plug_in": "① コンセント直結型（挿すだけ給電）",
+        "grid_hybrid_storage": "② 蓄電ハイブリッド型（規制対応・ポータブル自給）",
+        "grid_blackout_defense": "③ 停電対策・蓄電自衛型（都市グリッド防衛）",
+        "no_grid_leapfrog": "④ 自立オフグリッド型（無電化・独立電源）",
+        "grid_no_plug": "② 蓄電ハイブリッド型（規制対応・ポータブル自給）",
+        "grid_tied": "① コンセント直結型（挿すだけ給電）",
+        "offgrid_bop": "④ 自立オフグリッド型（無電化・独立電源）",
+        "grid_plug": "コンセント直結OK（挿すだけ給電）",
+        "storage_regulated": "蓄電ハイブリッドで自給（規制対応）",
+        "emerging_offgrid": "自立オフグリッド（無電化・独立電源）"
       },
       "legendGroupDesc": {
-        "grid_plug_in": "送電網連系を前提にプラグイン公認・売電相殺が進む市場",
-        "grid_no_plug": "送電網はあるが逆潮流防衛・工事必須で蓄電自衛が主流",
-        "no_grid_leapfrog": "系統未発達地域で農業揚水・PayGo生活キットが先行",
-        "grid_tied": "送電網連系を前提にプラグイン公認・売電相殺が進む市場",
-        "offgrid_bop": "系統未発達地域で農業揚水・PayGo生活キットが先行"
+        "grid_plug_in": "送電網あり・プラグイン公認でコンセント直結できる利用形態",
+        "grid_hybrid_storage": "逆潮流規制下で蓄電ハイブリッドにより自給する利用形態（日本・東アジア等）",
+        "grid_blackout_defense": "系統不安定・頻繁な停電に対し蓄電で自衛する都市グリッド防衛の形態（アフリカ都市部等）",
+        "no_grid_leapfrog": "送電網がなく未整備地域で生活自給する独立電源の形態",
+        "grid_no_plug": "送電網はあるが直結禁止のため、蓄電で自給する利用形態",
+        "grid_tied": "送電網あり・プラグイン公認でコンセント直結できる利用形態",
+        "offgrid_bop": "送電網がなく未整備地域で生活自給する独立電源の形態"
       },
       "modelFilter": {
-        "all": "⚡ 市場モデル",
-        "allModels": "すべての市場モデルを表示",
-        "ariaLabel": "ソーラー普及モデルフィルター",
-        "groupGridPlugIn": "① 系統あり・プラグイン可（送電網連系・公認）",
-        "groupGridNoPlug": "② 系統あり・プラグイン不可（送電網防衛・蓄電自衛）",
-        "groupNoGridLeapfrog": "③ 系統なし（未発達）・ソーラー勃興（リープフロッグ）",
-        "grid_plug_in": "① 系統あり・プラグイン可（すべて）",
-        "grid_no_plug": "② 系統あり・プラグイン不可（すべて）",
-        "no_grid_leapfrog": "③ 系統なし・ソーラー勃興（すべて）",
-        "plug_800w": "🟢 800Wプラグ公認（独・英・欧州各州）",
-        "plug_1200w": "🔵 1,200W免除（米ユタ・CA等）",
-        "plug_600w": "🔷 600W届出・都市BIPV（墺・シンガポール等）",
-        "net_metering": "🌐 余剰売電・ネット相殺（豪・伯・ケープタウン等）",
-        "offgrid_storage": "🟠 逆潮流禁止・蓄電自給（日・中・台湾・越等）",
-        "nec_strict": "🔴 直結不可・電気工事必須（米保守州等）",
-        "productive_offgrid": "🟣 農業・保冷インフラ（太陽光揚水・保冷 / 東アフリカ等）",
-        "micro_solar_kit": "🌸 生活キット / PayGo（ルワンダ・ウガンダ等）"
+        "all": "⚡ すべての利用形態",
+        "allModels": "すべての利用形態を表示",
+        "ariaLabel": "利用形態（市場モデル）フィルター",
+        "grid_plug_in": "① コンセント直結型（挿すだけ給電）",
+        "grid_hybrid_storage": "② 蓄電ハイブリッド型（規制対応・ポータブル自給）",
+        "grid_blackout_defense": "③ 停電対策・蓄電自衛型（都市グリッド防衛）",
+        "no_grid_leapfrog": "④ 自立オフグリッド型（無電化・独立電源）",
+        "grid_no_plug": "②／③ 蓄電ハイブリッド・停電対策（レガシー）"
       },
       "storageShort": "蓄電",
       "focusAll": "全域",
@@ -388,7 +383,7 @@
     },
     "ecosystem": {
       "title": "エコシステム・給電図",
-      "lead": "市場モデル（①プラグイン公認・②逆潮流禁止/蓄電自衛・③オフグリッド）ごとの給電トポロジーを図解します。",
+      "lead": "利用形態（①コンセント直結型・②蓄電ハイブリッド型・③無電化・独立電源型）ごとの給電の流れを図解します。",
       "viewMode": {
         "label": "表示モード",
         "hardware": "ハードウェアのみ",
@@ -404,6 +399,11 @@
       "softwareOverlay": {
         "title": "自律制御でできること",
         "openOss": "OSS・ツールを見る"
+      },
+      "models": {
+        "grid_plugin_allowed": "① コンセント直結型（送電網あり・プラグイン公認）",
+        "grid_plugin_prohibited": "② 蓄電ハイブリッド型（送電網あり・直結禁止のため蓄電自給）",
+        "offgrid_leapfrog": "③ 無電化・独立電源型（送電網なし・未整備地域の生活自給）"
       }
     },
     "vendors": {
@@ -563,10 +563,19 @@
         "portableOnly": "蓄電自給のみ",
         "licensedWork": "有資格工事必須",
         "noneStandalone": "手続なし（自立）"
+      },
+      "marketModel": {
+        "gridPlugIn": "① コンセント直結",
+        "gridHybridStorage": "② 蓄電ハイブリッド",
+        "gridBlackoutDefense": "③ 停電対策・蓄電自衛",
+        "noGridLeapfrog": "④ 自立オフグリッド",
+        "gridRecognized": "① コンセント直結",
+        "storageSelfDefense": "② 蓄電ハイブリッド",
+        "offgridLiving": "④ 自立オフグリッド"
       }
     },
     "architecture": {
-      "sectionTitle": "建築形態と生活家具型ソーラー",
+      "sectionTitle": "建築形態",
       "constraintsLabel": "構造制約",
       "adaptedFurnitureLabel": "適応する生活家具解法",
       "types": {

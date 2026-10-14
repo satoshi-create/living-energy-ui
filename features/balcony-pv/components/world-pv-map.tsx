@@ -29,7 +29,6 @@ import {
   getMarketEcosystemTopology,
   getMaturityScore,
   getMovementPhaseById,
-  getSolarCellTypesForCountryCode,
   getSoutheastAsiaIslandPhaseById,
   matchesModelFilter,
   resolveEcosystemNodeTools,
@@ -47,7 +46,6 @@ import {
   type MovementMilestone,
   type OssProject,
   type RegionCategory,
-  type SolarCellTypeId,
   type SoutheastAsiaIslandPhaseId,
 } from '../data';
 
@@ -93,8 +91,6 @@ interface WorldPvMapProps {
   historyFocusRegionId?: string | null;
   /** ISO country codes to pulse/highlight (from panel → map linking). */
   highlightCountryCodes?: readonly string[];
-  /** Reverse link: open a panel typology card from the map context. */
-  onNavigateToSolarCell?: (cellId: SolarCellTypeId) => void;
 }
 
 type RegionFocus = 'all' | RegionCategory;
@@ -1643,7 +1639,6 @@ export function WorldPvMap({
   onHistoryPhaseChange,
   historyFocusRegionId = null,
   highlightCountryCodes = [],
-  onNavigateToSolarCell,
 }: WorldPvMapProps) {
   const t = useTranslations('worldPv');
   const locale = useLocale();
@@ -2298,9 +2293,42 @@ export function WorldPvMap({
     milestones: phase.milestones,
   }));
 
-  const modelFilterLabel = (key: string, fallback: string) => {
+  const MODEL_FILTER_FALLBACK: Record<string, { ja: string; en: string }> = {
+    all: { ja: '⚡ すべての利用形態', en: '⚡ All use patterns' },
+    allModels: { ja: 'すべての利用形態を表示', en: 'Show all use patterns' },
+    ariaLabel: {
+      ja: '利用形態（市場モデル）フィルター',
+      en: 'Use pattern (market model) filter',
+    },
+    grid_plug_in: {
+      ja: '① コンセント直結型（挿すだけ給電）',
+      en: '① Outlet plug-in (plug & play)',
+    },
+    grid_hybrid_storage: {
+      ja: '② 蓄電ハイブリッド型（規制対応・ポータブル自給）',
+      en: '② Storage hybrid (regulation · portable self-supply)',
+    },
+    grid_blackout_defense: {
+      ja: '③ 停電対策・蓄電自衛型（都市グリッド防衛）',
+      en: '③ Blackout defense storage (urban grid resilience)',
+    },
+    no_grid_leapfrog: {
+      ja: '④ 自立オフグリッド型（無電化・独立電源）',
+      en: '④ Off-grid leapfrog (unelectrified / independent)',
+    },
+  };
+
+  /** Locale-first labels so JA never falls back to EN hardcodes if messages lag HMR. */
+  const modelFilterLabel = (key: string) => {
+    const pair = MODEL_FILTER_FALLBACK[key];
+    if (pair) return isEn ? pair.en : pair.ja;
     const full = `map.modelFilter.${key}` as Parameters<typeof t>[0];
-    return t.has(full) ? t(full) : fallback;
+    try {
+      if (typeof t.has === 'function' && t.has(full)) return t(full);
+    } catch {
+      /* ignore */
+    }
+    return key;
   };
 
   const isDetailZoom = zoom >= 2.6;
@@ -2328,30 +2356,8 @@ export function WorldPvMap({
     return aTop - bTop;
   });
 
-  const selectedPin = MAP_PIN_COUNTRIES.find((c) => c.id === selectedCountryId);
-  const selectedPanelLinks = selectedPin
-    ? getSolarCellTypesForCountryCode(String(selectedPin.code))
-    : [];
-
   return (
     <div className="relative h-full w-full overflow-hidden bg-background/50 select-none">
-      {onNavigateToSolarCell && selectedPanelLinks.length > 0 ? (
-        <div className="absolute bottom-3 left-2 z-20 flex max-w-[min(100%-1rem,28rem)] flex-wrap items-center gap-1.5 rounded-xl border border-slate-800/80 bg-slate-900/90 px-3 py-2 shadow-lg backdrop-blur-sm">
-          <span className="text-xs font-medium text-slate-400">
-            {isEn ? 'Panels' : '推奨パネル'}
-          </span>
-          {selectedPanelLinks.map((cell) => (
-            <button
-              key={cell.id}
-              type="button"
-              onClick={() => onNavigateToSolarCell(cell.id)}
-              className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
-            >
-              {isEn ? cell.categoryBadgeEn : cell.categoryBadgeJa}
-            </button>
-          ))}
-        </div>
-      ) : null}
       {/* SP/PC共通: 市場モデル → 地域 → 実装度ランキング → 関連資料（左寄せ・折り返し対応） */}
       <div
         className={`absolute top-2 left-2 z-20 flex flex-wrap items-center justify-start gap-2 rounded-md border border-border/50 bg-card/90 p-0.5 shadow-sm backdrop-blur ${
@@ -2368,30 +2374,14 @@ export function WorldPvMap({
           <select
             value={selectedModelType}
             onChange={(e) => setSelectedModelType(e.target.value)}
-            aria-label={modelFilterLabel('ariaLabel', 'Solar adoption model filter')}
+            aria-label={modelFilterLabel('ariaLabel')}
             className="cursor-pointer rounded-md border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs font-medium text-slate-100 shadow-sm backdrop-blur hover:border-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
           >
-            <option value="all">{modelFilterLabel('all', '⚡ Market Models')}</option>
-
-            <optgroup label={modelFilterLabel('groupGridPlugIn', '① Grid present · plug-in allowed')} className="bg-slate-900 text-slate-200 font-semibold">
-              <option value="grid_plug_in">{modelFilterLabel('grid_plug_in', '① Grid present · plug-in allowed (all)')}</option>
-              <option value="plug_800w">{modelFilterLabel('plug_800w', '🟢 800W plug certified')}</option>
-              <option value="plug_1200w">{modelFilterLabel('plug_1200w', '🔵 1,200W waiver')}</option>
-              <option value="plug_600w">{modelFilterLabel('plug_600w', '🔷 600W notice / urban BIPV')}</option>
-              <option value="net_metering">{modelFilterLabel('net_metering', '🌐 Export / net metering')}</option>
-            </optgroup>
-
-            <optgroup label={modelFilterLabel('groupGridNoPlug', '② Grid present · plug-in banned')} className="bg-slate-900 text-slate-200 font-semibold">
-              <option value="grid_no_plug">{modelFilterLabel('grid_no_plug', '② Grid present · plug-in banned (all)')}</option>
-              <option value="offgrid_storage">{modelFilterLabel('offgrid_storage', '🟠 No export · storage self-supply')}</option>
-              <option value="nec_strict">{modelFilterLabel('nec_strict', '🔴 No outlet tie · licensed work')}</option>
-            </optgroup>
-
-            <optgroup label={modelFilterLabel('groupNoGridLeapfrog', '③ No/weak grid · solar leapfrog')} className="bg-slate-900 text-slate-200 font-semibold">
-              <option value="no_grid_leapfrog">{modelFilterLabel('no_grid_leapfrog', '③ No/weak grid · solar leapfrog (all)')}</option>
-              <option value="productive_offgrid">{modelFilterLabel('productive_offgrid', '🟣 Agri & cold-chain infra')}</option>
-              <option value="micro_solar_kit">{modelFilterLabel('micro_solar_kit', '🌸 Life kits / PayGo')}</option>
-            </optgroup>
+            <option value="all">{modelFilterLabel('all')}</option>
+            <option value="grid_plug_in">{modelFilterLabel('grid_plug_in')}</option>
+            <option value="grid_hybrid_storage">{modelFilterLabel('grid_hybrid_storage')}</option>
+            <option value="grid_blackout_defense">{modelFilterLabel('grid_blackout_defense')}</option>
+            <option value="no_grid_leapfrog">{modelFilterLabel('no_grid_leapfrog')}</option>
           </select>
         </div>
         <div className="relative inline-block shrink-0">

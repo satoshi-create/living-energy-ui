@@ -305,49 +305,44 @@
     "collapse": "Collapse",
     "regionsHeading": "Regional rollout trends",
     "map": {
-      "legendTitle": "Three global categories (grid × plug-in access)",
-      "legendLegalPlug": "800W plug certified (DE, UK, EU states) — outlet-direct on 230V grids",
-      "legendPlugExemption": "1,200W waiver (UT, CA, etc.) — interconnect study waived for high-load homes",
-      "legendAppliance": "600W notice / urban BIPV (AT, SG, etc.) — appliance class & building-integrated",
-      "legendStorage": "No export / storage self-supply (JP, CN, TW, VN, etc.) — grid-defense storage only",
-      "legendStrictCode": "No outlet tie / licensed work (US conservative states) — NEC-compliant electrical work",
-      "legendProductiveOffgrid": "Agri & cold-chain infra (East Africa, etc.) — solar pumping & cold storage",
-      "legendMicroSolarKit": "Life kits / PayGo (Rwanda, Uganda, etc.) — pay-as-you-go lighting & recycled batteries",
+      "legendTitle": "Three global use patterns (balcony solar by how you live)",
+      "legendLegalPlug": "800W standard (plug & play · DE/UK etc.) — outlet-direct whole-home feed",
+      "legendPlugExemption": "Up to 1,200W plug & play (UT, CA, etc.) — simplified install for high-load homes",
+      "legendAppliance": "600W notice / building-integrated (AT, SG, etc.) — appliance class & BIPV",
+      "legendStorage": "No export · battery self-supply (JP/TW etc.) — store and use at home",
+      "legendStrictCode": "Licensed work required · no outlet tie (US conservative states)",
+      "legendProductiveOffgrid": "Agri & cold-chain self-supply (East Africa, etc.) — pumps & cold storage",
+      "legendMicroSolarKit": "Home lighting · PayGo kits (Rwanda, Uganda, etc.) — pay-as-you-go small lighting",
       "legendGroup": {
-        "grid_plug_in": "① Grid present · plug-in allowed (interconnect & authorized)",
-        "grid_no_plug": "② Grid present · plug-in banned (grid defense · storage self-supply)",
-        "no_grid_leapfrog": "③ No/weak grid · solar leapfrog",
-        "grid_tied": "① Grid present · plug-in allowed (interconnect & authorized)",
-        "offgrid_bop": "③ No/weak grid · solar leapfrog",
-        "grid_plug": "Outlet plug-in OK (notice only · no construction)",
-        "storage_regulated": "Storage / self-use only (no outlet export)",
-        "emerging_offgrid": "Developing / autonomous (life & farm self-supply)"
+        "grid_plug_in": "① Outlet plug-in (plug & play)",
+        "grid_hybrid_storage": "② Storage hybrid (regulation · portable self-supply)",
+        "grid_blackout_defense": "③ Blackout defense storage (urban grid resilience)",
+        "no_grid_leapfrog": "④ Off-grid leapfrog (unelectrified / independent)",
+        "grid_no_plug": "② Storage hybrid (regulation · portable self-supply)",
+        "grid_tied": "① Outlet plug-in (plug & play)",
+        "offgrid_bop": "④ Off-grid leapfrog (unelectrified / independent)",
+        "grid_plug": "Outlet plug-in OK (plug & play)",
+        "storage_regulated": "Storage hybrid self-supply (regulation)",
+        "emerging_offgrid": "Off-grid leapfrog (unelectrified / independent)"
       },
       "legendGroupDesc": {
-        "grid_plug_in": "Markets with authorized plug-in and export/netting on the grid",
-        "grid_no_plug": "Grid exists but reverse-flow defense and licensed work force storage self-supply",
-        "no_grid_leapfrog": "Weak/absent grids where agri pumps and PayGo life kits lead",
-        "grid_tied": "Markets with authorized plug-in and export/netting on the grid",
-        "offgrid_bop": "Weak/absent grids where agri pumps and PayGo life kits lead"
+        "grid_plug_in": "Grid present and plug-in certified — outlet-direct home power",
+        "grid_hybrid_storage": "Export-restricted storage hybrid self-supply (Japan / East Asia, etc.)",
+        "grid_blackout_defense": "Unstable-grid / frequent-outage defense with storage (African urban grids, etc.)",
+        "no_grid_leapfrog": "No utility grid — independent power for life self-supply in underserved areas",
+        "grid_no_plug": "Grid present but outlet tie banned — battery hybrid self-supply",
+        "grid_tied": "Grid present and plug-in certified — outlet-direct home power",
+        "offgrid_bop": "No utility grid — independent power for life self-supply in underserved areas"
       },
       "modelFilter": {
-        "all": "⚡ Market Models",
-        "allModels": "All Models",
-        "ariaLabel": "Solar adoption model filter",
-        "groupGridPlugIn": "① Grid present · plug-in allowed (interconnect & authorized)",
-        "groupGridNoPlug": "② Grid present · plug-in banned (grid defense · storage self-supply)",
-        "groupNoGridLeapfrog": "③ No/weak grid · solar leapfrog",
-        "grid_plug_in": "① Grid present · plug-in allowed (all)",
-        "grid_no_plug": "② Grid present · plug-in banned (all)",
-        "no_grid_leapfrog": "③ No/weak grid · solar leapfrog (all)",
-        "plug_800w": "🟢 800W plug certified (DE, UK, EU states)",
-        "plug_1200w": "🔵 1,200W waiver (UT, CA, etc.)",
-        "plug_600w": "🔷 600W notice / urban BIPV (AT, SG, etc.)",
-        "net_metering": "🌐 Export / net metering (AU, BR, Cape Town, etc.)",
-        "offgrid_storage": "🟠 No export · storage self-supply (JP, CN, TW, VN, etc.)",
-        "nec_strict": "🔴 No outlet tie · licensed work (US conservative states)",
-        "productive_offgrid": "🟣 Agri & cold-chain infra (solar pumps / cold storage · East Africa)",
-        "micro_solar_kit": "🌸 Life kits / PayGo (Rwanda, Uganda, etc.)"
+        "all": "⚡ All use patterns",
+        "allModels": "Show all use patterns",
+        "ariaLabel": "Use pattern (market model) filter",
+        "grid_plug_in": "① Outlet plug-in (plug & play)",
+        "grid_hybrid_storage": "② Storage hybrid (regulation · portable self-supply)",
+        "grid_blackout_defense": "③ Blackout defense storage (urban grid resilience)",
+        "no_grid_leapfrog": "④ Off-grid leapfrog (unelectrified / independent)",
+        "grid_no_plug": "② Storage hybrid (regulation · portable self-supply)"
       },
       "storageShort": "Storage",
       "focusAll": "Global",
@@ -388,7 +383,7 @@
     },
     "ecosystem": {
       "title": "Ecosystem / Power Flow",
-      "lead": "Wiring topologies for each market model: ① certified plug-in, ② no-export / storage self-supply, ③ off-grid leapfrog.",
+      "lead": "How power flows for each use pattern: ① outlet plug-in, ② storage hybrid, ③ unelectrified / independent power.",
       "viewMode": {
         "label": "View mode",
         "hardware": "Hardware only",
@@ -404,6 +399,11 @@
       "softwareOverlay": {
         "title": "What autonomous control enables",
         "openOss": "View OSS / tools"
+      },
+      "models": {
+        "grid_plugin_allowed": "① Outlet plug-in (grid present · plug-in certified)",
+        "grid_plugin_prohibited": "② Storage hybrid (grid present · no outlet tie · battery self-supply)",
+        "offgrid_leapfrog": "③ Unelectrified / independent power (no grid · life self-supply in underserved areas)"
       }
     },
     "vendors": {
@@ -563,10 +563,19 @@
         "portableOnly": "Storage self-supply only",
         "licensedWork": "Licensed work required",
         "noneStandalone": "No filing (standalone)"
+      },
+      "marketModel": {
+        "gridPlugIn": "① Outlet plug-in",
+        "gridHybridStorage": "② Storage hybrid",
+        "gridBlackoutDefense": "③ Blackout defense storage",
+        "noGridLeapfrog": "④ Off-grid leapfrog",
+        "gridRecognized": "① Outlet plug-in",
+        "storageSelfDefense": "② Storage hybrid",
+        "offgridLiving": "④ Off-grid leapfrog"
       }
     },
     "architecture": {
-      "sectionTitle": "Architectural forms & living-furniture solar",
+      "sectionTitle": "Architectural forms",
       "constraintsLabel": "Constraints",
       "adaptedFurnitureLabel": "Adapted living-furniture solutions",
       "types": {

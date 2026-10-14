@@ -32,22 +32,60 @@ export type SystemModelType =
 
 /**
  * Parent infrastructure category (locale-independent).
- * ① grid_plug_in — grid present, plug-in authorized
- * ② grid_no_plug — grid present, plug-in banned (storage / licensed work)
- * ③ no_grid_leapfrog — weak/absent grid, solar leapfrog
+ * ① grid_plug_in — outlet plug-in (EU, CA/UT, AU, SG, Cape Town, …)
+ * ② grid_hybrid_storage — export-restricted storage hybrid (JP/TW/CN/VN/ID/PH, US-TX/FL/NY, …)
+ * ③ grid_blackout_defense — unstable-grid / blackout self-defense (ZA, NG, KE, RW)
+ * ④ no_grid_leapfrog — unelectrified / independent power (ET, SN, TZ, UG, IN, …)
  */
-export type GridCategory = 'grid_plug_in' | 'grid_no_plug' | 'no_grid_leapfrog'
+export type GridCategory =
+  | 'grid_plug_in'
+  | 'grid_hybrid_storage'
+  | 'grid_blackout_defense'
+  | 'no_grid_leapfrog'
 
-/** systemModel → parent gridCategory */
+/** Flat map-header filter ids (all + 4 market models). */
+export const WORLD_PV_MODEL_FILTER_OPTIONS = [
+  'all',
+  'grid_plug_in',
+  'grid_hybrid_storage',
+  'grid_blackout_defense',
+  'no_grid_leapfrog',
+] as const
+
+export type WorldPvModelFilterOption = (typeof WORLD_PV_MODEL_FILTER_OPTIONS)[number]
+
+/** systemModel → parent gridCategory (code-level overrides in resolveGridCategory). */
 export const SYSTEM_MODEL_GRID_CATEGORY: Record<SystemModelType, GridCategory> = {
   plug_800w: 'grid_plug_in',
   plug_1200w: 'grid_plug_in',
   plug_600w: 'grid_plug_in',
   net_metering: 'grid_plug_in',
-  offgrid_storage: 'grid_no_plug',
-  nec_strict: 'grid_no_plug',
+  offgrid_storage: 'grid_hybrid_storage',
+  nec_strict: 'grid_hybrid_storage',
   productive_offgrid: 'no_grid_leapfrog',
   micro_solar_kit: 'no_grid_leapfrog',
+}
+
+/** ISO / subnational code → GridCategory (splits Africa urban blackout vs Asia hybrid). */
+const GRID_CATEGORY_BY_CODE: Partial<Record<string, GridCategory>> = {
+  ZA: 'grid_blackout_defense',
+  NG: 'grid_blackout_defense',
+  KE: 'grid_blackout_defense',
+  RW: 'grid_blackout_defense',
+  JP: 'grid_hybrid_storage',
+  TW: 'grid_hybrid_storage',
+  CN: 'grid_hybrid_storage',
+  VN: 'grid_hybrid_storage',
+  ID: 'grid_hybrid_storage',
+  PH: 'grid_hybrid_storage',
+  'US-TX': 'grid_hybrid_storage',
+  'US-FL': 'grid_hybrid_storage',
+  'US-NY': 'grid_hybrid_storage',
+  ET: 'no_grid_leapfrog',
+  SN: 'no_grid_leapfrog',
+  TZ: 'no_grid_leapfrog',
+  UG: 'no_grid_leapfrog',
+  IN: 'no_grid_leapfrog',
 }
 
 /** Authorization / deployment status shown on the world map. */
@@ -245,8 +283,8 @@ export interface CountryPvDetail {
   /** Optional system-model tag (defaults inferred from status when omitted). */
   systemModel?: SystemModelType
   /**
-   * Parent infrastructure category (defaults inferred from systemModel).
-   * ① grid_plug_in / ② grid_no_plug / ③ no_grid_leapfrog
+   * Parent infrastructure category (defaults inferred from code / systemModel).
+   * ① grid_plug_in / ② grid_hybrid_storage / ③ grid_blackout_defense / ④ no_grid_leapfrog
    */
   gridCategory?: GridCategory
   /** Macro region for focus tabs (defaults inferred from id when omitted). */
@@ -328,15 +366,24 @@ export function resolveSystemModel(country: CountryPvDetail): SystemModelType {
   }
 }
 
-/** Resolve parent ①/②/③ category from explicit field or systemModel. */
+/** Resolve parent ①–④ category from code override, explicit field, or systemModel. */
 export function resolveGridCategory(country: CountryPvDetail): GridCategory {
-  if (country.gridCategory) return country.gridCategory
+  const byCode = GRID_CATEGORY_BY_CODE[String(country.code).toUpperCase()]
+  if (byCode) return byCode
+  if (country.gridCategory) {
+    // Legacy field value from before the ②/③ split.
+    if ((country.gridCategory as string) === 'grid_no_plug') {
+      return 'grid_hybrid_storage'
+    }
+    return country.gridCategory
+  }
   return SYSTEM_MODEL_GRID_CATEGORY[resolveSystemModel(country)]
 }
 
 const GRID_CATEGORY_SET = new Set<string>([
   'grid_plug_in',
-  'grid_no_plug',
+  'grid_hybrid_storage',
+  'grid_blackout_defense',
   'no_grid_leapfrog',
 ])
 
@@ -347,9 +394,14 @@ export function isGridCategoryFilter(filter: string): filter is GridCategory {
 
 /**
  * Model-dropdown match: `all` | parent GridCategory | leaf SystemModelType.
+ * Legacy `grid_no_plug` matches both ② hybrid and ③ blackout defense.
  */
 export function matchesModelFilter(country: CountryPvDetail, filter: string): boolean {
   if (filter === 'all') return true
+  if (filter === 'grid_no_plug') {
+    const cat = resolveGridCategory(country)
+    return cat === 'grid_hybrid_storage' || cat === 'grid_blackout_defense'
+  }
   if (isGridCategoryFilter(filter)) return resolveGridCategory(country) === filter
   return resolveSystemModel(country) === filter
 }
@@ -452,10 +504,11 @@ export interface MarketEcosystemTopology {
   integratedTools: EcosystemToolBinding[]
 }
 
-/** GridCategory → MarketEcosystemModelId */
+/** GridCategory → MarketEcosystemModelId (②/③ share storage closed-loop topology). */
 const GRID_CATEGORY_TO_ECOSYSTEM: Record<GridCategory, MarketEcosystemModelId> = {
   grid_plug_in: 'grid_plugin_allowed',
-  grid_no_plug: 'grid_plugin_prohibited',
+  grid_hybrid_storage: 'grid_plugin_prohibited',
+  grid_blackout_defense: 'grid_plugin_prohibited',
   no_grid_leapfrog: 'offgrid_leapfrog',
 }
 
@@ -782,6 +835,8 @@ export function getMarketEcosystemTopology(
 ): MarketEcosystemTopology | undefined {
   const aliases: Record<string, MarketEcosystemModelId> = {
     grid_plug_in: 'grid_plugin_allowed',
+    grid_hybrid_storage: 'grid_plugin_prohibited',
+    grid_blackout_defense: 'grid_plugin_prohibited',
     grid_no_plug: 'grid_plugin_prohibited',
     no_grid_leapfrog: 'offgrid_leapfrog',
     grid_plugin_allowed: 'grid_plugin_allowed',
@@ -2858,7 +2913,7 @@ export const WORLD_BALCONY_PV_COUNTRIES: CountryPvDetail[] = [
     status: 'strict_code',
     statusLabel: '州別制度（連邦NEC＋州法）',
     systemModel: 'nec_strict',
-    gridCategory: 'grid_no_plug',
+    gridCategory: 'grid_hybrid_storage',
     regionCategory: 'americas',
     keyDrivers: ['州ごとの規制改革', '電気代高騰', '停電・レジリエンス'],
     keyDriversEn: ['State-by-state regulatory reform', 'Rising electricity prices', 'Outage resilience'],

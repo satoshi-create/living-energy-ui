@@ -15,9 +15,7 @@ import {
   Landmark,
   Refrigerator,
   Smartphone,
-  Sofa,
   type LucideIcon,
-  Users,
   Wifi,
   X,
 } from "lucide-react"
@@ -114,10 +112,9 @@ import {
   getMarketEcosystemForCountry,
   getMaturityScore,
   getPvRegionsByMaturityDesc,
-  getSurfaceTypologyDetail,
   listArchitectureCatalog,
+  resolveGridCategory,
   resolveMarketEcosystemWiringFlow,
-  resolveProfileTypology,
   resolveSystemModel,
   setMarketEcosystemUiLocale,
   solarCellTypeFromHistoryStream,
@@ -126,10 +123,10 @@ import {
   type CountryPvDetail,
   type EcosystemActorFilter,
   type EcosystemWiringStepKey,
+  type GridCategory,
   type MarketEcosystemModelId,
   type PoweredAppliance,
   type SolarCellTypeId,
-  type SolarFurnitureId,
   type SurfaceTypology,
   type SystemModelType,
 } from "../data"
@@ -295,30 +292,71 @@ function legalProcFromModel(model: SystemModelType): LegalProcMsgKey {
 }
 
 function SidebarJumpButton({
-  label,
   onClick,
-  icon: Icon = ExternalLink,
   "aria-label": ariaLabel,
 }: {
-  label: string
   onClick: () => void
-  icon?: LucideIcon
-  "aria-label"?: string
+  "aria-label": string
 }) {
   return (
     <Button
       type="button"
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={onClick}
-      aria-label={ariaLabel ?? label}
-      className="h-auto shrink-0 gap-1 px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+      aria-label={ariaLabel}
+      className="size-7 shrink-0 p-1 text-muted-foreground/60 transition-colors hover:bg-muted/40 hover:text-foreground"
     >
-      <Icon className="size-3" aria-hidden />
-      {label}
-      <span aria-hidden>↗</span>
+      <ExternalLink className="size-3.5" aria-hidden />
     </Button>
   )
+}
+
+const MARKET_MODEL_BADGE_FALLBACK: Record<
+  GridCategory,
+  { ja: string; en: string; msgKey: string }
+> = {
+  grid_plug_in: {
+    ja: "① コンセント直結",
+    en: "① Outlet plug-in",
+    msgKey: "marketModel.gridPlugIn",
+  },
+  grid_hybrid_storage: {
+    ja: "② 蓄電ハイブリッド",
+    en: "② Storage hybrid",
+    msgKey: "marketModel.gridHybridStorage",
+  },
+  grid_blackout_defense: {
+    ja: "③ 停電対策・蓄電自衛",
+    en: "③ Blackout defense storage",
+    msgKey: "marketModel.gridBlackoutDefense",
+  },
+  no_grid_leapfrog: {
+    ja: "④ 自立オフグリッド",
+    en: "④ Off-grid leapfrog",
+    msgKey: "marketModel.noGridLeapfrog",
+  },
+}
+
+function marketModelBadgeLabel(
+  category: GridCategory,
+  tSidebar: ReturnType<typeof useTranslations>,
+  isEn: boolean,
+): string {
+  const spec = MARKET_MODEL_BADGE_FALLBACK[category]
+  try {
+    const key = spec.msgKey as Parameters<typeof tSidebar>[0]
+    if (
+      typeof (tSidebar as { has?: (k: string) => boolean }).has === "function" &&
+      (tSidebar as { has: (k: string) => boolean }).has(key)
+    ) {
+      const val = tSidebar(key)
+      if (val && !String(val).includes("marketModel.")) return val
+    }
+  } catch {
+    /* fall through */
+  }
+  return isEn ? spec.en : spec.ja
 }
 
 const ARCH_TYPE_ICON: Record<ArchitectureSurfaceType, typeof Building2> = {
@@ -329,22 +367,12 @@ const ARCH_TYPE_ICON: Record<ArchitectureSurfaceType, typeof Building2> = {
 
 type ArchitectureSidebarProps = {
   profiles: ArchitectureProfile[]
-  countryId: string
-  highlightedFurnitureId: SolarFurnitureId | null
-  onHighlightFurniture: (id: SolarFurnitureId) => void
-  onOpenSurfaceDetail: (focus: Surface3DFocus) => void
   onJumpToSurfacesTab: () => void
-  jumpToSurfacesLabel: string
 }
 
 function ArchitectureSidebar({
   profiles,
-  countryId,
-  highlightedFurnitureId,
-  onHighlightFurniture,
-  onOpenSurfaceDetail,
   onJumpToSurfacesTab,
-  jumpToSurfacesLabel,
 }: ArchitectureSidebarProps) {
   const tArch = useTranslations("worldPv.architecture")
   const tSidebarJump = useTranslations("worldPv.sidebar")
@@ -373,7 +401,6 @@ function ArchitectureSidebar({
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-slate-100">{tArch("sectionTitle")}</h3>
         <SidebarJumpButton
-          label={jumpToSurfacesLabel}
           aria-label={tSidebarJump("jump.surfaces")}
           onClick={onJumpToSurfacesTab}
         />
@@ -404,82 +431,19 @@ function ArchitectureSidebar({
         </div>
       )}
       <ul className="flex flex-col gap-2">
-        {visibleProfiles.slice(0, 1).map((profile) => {
-          const TypeIcon = ARCH_TYPE_ICON[profile.type]
-          const typology = getSurfaceTypologyDetail(resolveProfileTypology(profile))
-          return (
-            <li
-              key={profile.id}
-              className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-muted/30 px-2.5 py-2"
-            >
-              <div className="flex flex-wrap items-center gap-1">
-                <Badge
-                  variant="secondary"
-                  className="inline-flex items-center gap-1 text-xs font-semibold"
-                >
-                  <TypeIcon className="size-3" />
-                  {tArch(`types.${profile.type}`)}
-                </Badge>
-                <span className="text-sm font-medium text-foreground">
-                  {tArch(profile.nameKey)}
-                </span>
-                <Badge variant="outline" className="font-mono text-xs font-bold text-foreground">
-                  {tArch("surface3d.tiltLabel")}: {profile.tiltAngle}
-                </Badge>
-                <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-                  {tArch(`opticalProfile.${typology.opticalProfile}`)}
-                </Badge>
-              </div>
-              <div className="relative max-h-[140px] overflow-hidden rounded-md [&_>div]:min-h-[120px] [&_>div]:h-[140px]">
-                <Surface3DViewer profileId={profile.model3dId} />
-                <button
-                  type="button"
-                  onClick={() =>
-                    onOpenSurfaceDetail({
-                      countryId,
-                      profileId: profile.id,
-                    })
-                  }
-                  className="absolute top-1.5 right-1.5 z-10 inline-flex items-center gap-1 rounded-md border border-border/60 bg-black/70 px-2 py-1 text-xs font-semibold text-primary backdrop-blur transition-colors hover:bg-black/85 hover:text-emerald-300"
-                >
-                  {tArch("surface3d.expandFull")}
-                  <ExternalLink className="size-3" />
-                </button>
-              </div>
-              <div className="rounded-md bg-rose-500/10 px-2 py-1">
-                <p className="line-clamp-1 text-xs font-medium leading-snug text-rose-200">
-                  ⚠️ {tArch(profile.constraintsKey)}
-                </p>
-              </div>
-              <div className="flex flex-col gap-1">
-                <p className="flex items-center gap-1 text-xs font-semibold text-slate-100">
-                  <Sofa className="size-3 text-emerald-400" />
-                  {tArch("adaptedFurnitureLabel")}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {profile.adaptedFurnitureIds.map((fid) => {
-                    const active = highlightedFurnitureId === fid
-                    return (
-                      <button
-                        key={fid}
-                        type="button"
-                        onClick={() => onHighlightFurniture(fid)}
-                        className={cn(
-                          "rounded-md border px-2 py-1 text-xs font-medium transition-colors",
-                          active
-                            ? "border-primary/60 bg-primary/20 text-primary ring-1 ring-primary/40"
-                            : "border-border/50 bg-muted/40 text-slate-200 hover:border-primary/40 hover:bg-muted/60",
-                        )}
-                      >
-                        {tArch(`furniture.${fid}.name`)}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            </li>
-          )
-        })}
+        {visibleProfiles.slice(0, 1).map((profile) => (
+          <li
+            key={profile.id}
+            className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-muted/30 px-2.5 py-2"
+          >
+            <p className="min-w-0 truncate text-sm font-medium text-foreground">
+              {tArch(profile.nameKey)}
+            </p>
+            <div className="max-h-[140px] overflow-hidden rounded-md [&_>div]:min-h-[120px] [&_>div]:h-[140px]">
+              <Surface3DViewer profileId={profile.model3dId} />
+            </div>
+          </li>
+        ))}
       </ul>
     </div>
   )
@@ -541,8 +505,6 @@ export function WorldImplementationView() {
   const [historyPhase, setHistoryPhase] = useState<MovementHistoryPhaseId | null>(null)
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT_WIDTH)
   const [actorFilter, setActorFilter] = useState<EcosystemActorFilter>("all")
-  const [highlightedFurnitureId, setHighlightedFurnitureId] =
-    useState<SolarFurnitureId | null>(null)
   const [selectedCellStream, setSelectedCellStream] = useState<
     PvHistoryStream | SolarCellTypeId | null
   >(null)
@@ -564,7 +526,6 @@ export function WorldImplementationView() {
   const jumpToMapCountry = useCallback((countryId: string) => {
     setSelectedId(countryId)
     setActorFilter("all")
-    setHighlightedFurnitureId(null)
     setIsRankingOpen(false)
     setIsMovementHistoryOpen(false)
     setHistoryPhase(null)
@@ -605,17 +566,8 @@ export function WorldImplementationView() {
     [preserveSelectedCountryCode],
   )
 
-  const jumpToRelatedOrgsTab = useCallback(
-    (tab: "vendors" | "nonprofits", country: CountryPvDetail) => {
-      preserveSelectedCountryCode(country)
-      setViewTab(tab)
-    },
-    [preserveSelectedCountryCode],
-  )
-
   const jumpToOssTools = useCallback((_toolId?: string) => {
     setSelectedId(null)
-    setHighlightedFurnitureId(null)
     setIsRankingOpen(false)
     setIsMovementHistoryOpen(false)
     setHistoryPhase(null)
@@ -651,11 +603,6 @@ export function WorldImplementationView() {
     )
   }, [architectureCatalog, surfaceCategoryFilter])
 
-  const openSurfaceDetailFromMap = useCallback((focus: Surface3DFocus) => {
-    setSurfacesPanel({ mode: "detail", focus, returnTo: "map" })
-    setViewTab("surfaces")
-  }, [])
-
   const openSurfaceDetailFromList = useCallback((focus: Surface3DFocus) => {
     setSurfacesPanel({ mode: "detail", focus, returnTo: "list" })
   }, [])
@@ -673,7 +620,6 @@ export function WorldImplementationView() {
         setSurfacesPanel({ mode: "list" })
       }
       setSelectedId(null)
-      setHighlightedFurnitureId(null)
       setIsRankingOpen(false)
       setIsMovementHistoryOpen(false)
       setHistoryPhase(null)
@@ -688,18 +634,6 @@ export function WorldImplementationView() {
     setViewTab("cell-types")
   }, [])
 
-  const handleNavigateToCellType = useCallback(
-    (cellId: SolarCellTypeId, country?: CountryPvDetail | null) => {
-      if (country) {
-        setHighlightCountryCodes([String(country.code).toUpperCase()])
-      }
-      setSelectedCellStream(cellId)
-      setHighlightCellId(cellId)
-      setViewTab("cell-types")
-    },
-    [],
-  )
-
   const handleNavigateToCountryCode = useCallback((countryCode: string) => {
     const code = countryCode.trim().toUpperCase()
     const match =
@@ -710,7 +644,6 @@ export function WorldImplementationView() {
         (c) => String(c.code).toUpperCase() === code,
       )
     setHighlightCountryCodes([code])
-    setHighlightedFurnitureId(null)
     setIsRankingOpen(false)
     setIsMovementHistoryOpen(false)
     setHistoryPhase(null)
@@ -756,19 +689,13 @@ export function WorldImplementationView() {
   const handleSelectCountry = useCallback((region: CountryPvDetail) => {
     setSelectedId(region.id)
     setActorFilter("all")
-    setHighlightedFurnitureId(null)
     setIsRankingOpen(false)
     setIsMovementHistoryOpen(false)
     setHistoryPhase(null)
   }, [])
 
-  const handleHighlightFurniture = useCallback((id: SolarFurnitureId) => {
-    setHighlightedFurnitureId((prev) => (prev === id ? null : id))
-  }, [])
-
   const handleCloseSidebar = useCallback(() => {
     setSelectedId(null)
-    setHighlightedFurnitureId(null)
     setIsRankingOpen(false)
     setIsMovementHistoryOpen(false)
     setHistoryPhase(null)
@@ -806,6 +733,9 @@ export function WorldImplementationView() {
     : null
   const selectedEcosystemModelId = selectedEcosystem
     ? (selectedEcosystem.modelId as MarketEcosystemModelId)
+    : null
+  const selectedGridCategory = selectedCountry
+    ? resolveGridCategory(selectedCountry)
     : null
 
   const sidebarLegalProc = () => {
@@ -862,7 +792,6 @@ export function WorldImplementationView() {
             v === "cell-types"
           ) {
             setSelectedId(null)
-            setHighlightedFurnitureId(null)
             setIsRankingOpen(false)
             setIsMovementHistoryOpen(false)
             setHistoryPhase(null)
@@ -922,7 +851,6 @@ export function WorldImplementationView() {
           <WorldPvMap
             selectedCountryId={selectedId ?? ""}
             highlightCountryCodes={highlightCountryCodes}
-            onNavigateToSolarCell={handleNavigateToCellType}
             isRankingOpen={isRankingOpen}
             onRankingOpenChange={(open) => {
               setIsRankingOpen(open)
@@ -950,14 +878,12 @@ export function WorldImplementationView() {
               if (country) {
                 setSelectedId(country.id)
                 setActorFilter("all")
-                setHighlightedFurnitureId(null)
                 setHighlightCountryCodes([String(country.code).toUpperCase()])
                 setIsRankingOpen(false)
                 setIsMovementHistoryOpen(false)
                 setHistoryPhase(null)
               } else {
                 setSelectedId(null)
-                setHighlightedFurnitureId(null)
                 setHighlightCountryCodes([])
               }
             }}
@@ -1083,17 +1009,32 @@ export function WorldImplementationView() {
           <>
             <CardHeader className="flex shrink-0 flex-row items-start justify-between gap-2 space-y-0 pl-5">
               <div className="flex min-w-0 flex-col gap-1">
-                <CardTitle className="text-xl font-bold text-white">
-                  {countryMsg(
-                    "name",
-                    isEn && (selectedCountry as { nameEn?: string }).nameEn
-                      ? (selectedCountry as { nameEn?: string }).nameEn!
-                      : selectedCountry.name,
-                  )}
-                  <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
-                    {selectedCountry.code}
-                  </span>
-                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="min-w-0 truncate text-xl font-bold text-white">
+                    {countryMsg(
+                      "name",
+                      isEn && (selectedCountry as { nameEn?: string }).nameEn
+                        ? (selectedCountry as { nameEn?: string }).nameEn!
+                        : selectedCountry.name,
+                    )}
+                    <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
+                      {selectedCountry.code}
+                    </span>
+                  </CardTitle>
+                  {selectedGridCategory ? (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border/40 bg-muted/20 px-2 py-0.5 text-[11px] font-normal text-muted-foreground">
+                      <span
+                        className="size-1 rounded-full bg-muted-foreground/40"
+                        aria-hidden
+                      />
+                      {marketModelBadgeLabel(
+                        selectedGridCategory,
+                        tSidebar,
+                        isEn,
+                      )}
+                    </span>
+                  ) : null}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden pl-5 text-sm">
@@ -1117,7 +1058,6 @@ export function WorldImplementationView() {
                       </h3>
                       {selectedEcosystemModelId && (
                         <SidebarJumpButton
-                          label={tSidebar("jumpOpen")}
                           aria-label={tSidebar("jump.ecosystem")}
                           onClick={() =>
                             jumpToEcosystemModel(selectedEcosystemModelId, selectedCountry)
@@ -1178,76 +1118,16 @@ export function WorldImplementationView() {
                     <ArchitectureSidebar
                       key={selectedCountry.id}
                       profiles={architectureConfig.profiles}
-                      countryId={selectedCountry.id}
-                      highlightedFurnitureId={highlightedFurnitureId}
-                      onHighlightFurniture={handleHighlightFurniture}
-                      onOpenSurfaceDetail={openSurfaceDetailFromMap}
                       onJumpToSurfacesTab={() =>
                         jumpToSurfacesTabForCountry(selectedCountry)
                       }
-                      jumpToSurfacesLabel={tSidebar("jumpOpen")}
                     />
                   )}
 
-                  {selectedCountry.keyDrivers && selectedCountry.keyDrivers.length > 0 && (
-                    <div className="space-y-1.5 border-t border-slate-800 pt-2">
-                      <h3 className="text-sm font-semibold text-emerald-400">
-                        {tSidebar("drivers")}
-                      </h3>
-                      <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
-                        {selectedCountry.keyDrivers.map((driver, idx) => {
-                          const enList = (selectedCountry as { keyDriversEn?: string[] }).keyDriversEn
-                          const fromMsg = countryMsg(`keyDrivers.${idx}`, "")
-                          const text =
-                            (fromMsg && fromMsg) ||
-                            (isEn && enList?.[idx] ? enList[idx] : driver)
-                          return <li key={idx}>{text}</li>
-                        })}
-                      </ul>
-                    </div>
-                  )}
-                  {selectedCountry.bottlenecks && selectedCountry.bottlenecks.length > 0 && (
-                    <div className="space-y-1.5 border-t border-slate-800 pt-2">
-                      <h3 className="text-sm font-semibold text-rose-400">
-                        {tSidebar("bottlenecks")}
-                      </h3>
-                      <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
-                        {selectedCountry.bottlenecks.map((bottle, idx) => {
-                          const enList = (selectedCountry as { bottlenecksEn?: string[] }).bottlenecksEn
-                          const fromMsg = countryMsg(`bottlenecks.${idx}`, "")
-                          const text =
-                            (fromMsg && fromMsg) ||
-                            (isEn && enList?.[idx] ? enList[idx] : bottle)
-                          return <li key={idx}>{text}</li>
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
                   <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-slate-100">
-                        {tSidebar("relatedOrgs")}
-                      </h3>
-                      <div className="flex shrink-0 flex-wrap justify-end gap-1">
-                        <SidebarJumpButton
-                          label={tSidebar("jumpOpen")}
-                          icon={Building2}
-                          aria-label={tSidebar("jump.vendors")}
-                          onClick={() =>
-                            jumpToRelatedOrgsTab("vendors", selectedCountry)
-                          }
-                        />
-                        <SidebarJumpButton
-                          label={tSidebar("jumpOpen")}
-                          icon={Users}
-                          aria-label={tSidebar("jump.nonprofits")}
-                          onClick={() =>
-                            jumpToRelatedOrgsTab("nonprofits", selectedCountry)
-                          }
-                        />
-                      </div>
-                    </div>
+                    <h3 className="text-sm font-semibold text-slate-100">
+                      {tSidebar("relatedOrgs")}
+                    </h3>
                     <ToggleGroup
                       value={[actorFilter]}
                       onValueChange={(v) => v[0] && setActorFilter(v[0] as EcosystemActorFilter)}
@@ -1388,7 +1268,7 @@ export function WorldImplementationView() {
                     active ? accent.tab : accent.tabIdle,
                   )}
                 >
-                  {isEn ? topo.badgeEn : topo.badgeJa}
+                  {t(`ecosystem.models.${id}`)}
                 </button>
               )
             })}
