@@ -114,8 +114,6 @@ import {
   getMarketEcosystemForCountry,
   getMaturityScore,
   getPvRegionsByMaturityDesc,
-  getSolarCellTypesForCountryCode,
-  getSolarCellTypesForRegionId,
   getSurfaceTypologyDetail,
   listArchitectureCatalog,
   resolveMarketEcosystemWiringFlow,
@@ -127,7 +125,6 @@ import {
   type ArchitectureSurfaceType,
   type CountryPvDetail,
   type EcosystemActorFilter,
-  type EcosystemActorType,
   type EcosystemWiringStepKey,
   type MarketEcosystemModelId,
   type PoweredAppliance,
@@ -272,6 +269,31 @@ function excessPowerFromModel(model: SystemModelType): ExcessPowerMsgKey {
   }
 }
 
+type LegalProcMsgKey =
+  | "legal.webRegister"
+  | "legal.meterApply"
+  | "legal.portableOnly"
+  | "legal.licensedWork"
+  | "legal.noneStandalone"
+
+function legalProcFromModel(model: SystemModelType): LegalProcMsgKey {
+  switch (model) {
+    case "plug_800w":
+    case "plug_1200w":
+    case "plug_600w":
+      return "legal.webRegister"
+    case "net_metering":
+      return "legal.meterApply"
+    case "offgrid_storage":
+      return "legal.portableOnly"
+    case "nec_strict":
+      return "legal.licensedWork"
+    case "productive_offgrid":
+    case "micro_solar_kit":
+      return "legal.noneStandalone"
+  }
+}
+
 function SidebarJumpButton({
   label,
   onClick,
@@ -290,19 +312,13 @@ function SidebarJumpButton({
       size="sm"
       onClick={onClick}
       aria-label={ariaLabel ?? label}
-      className="h-auto shrink-0 gap-1 px-2 py-1 text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+      className="h-auto shrink-0 gap-1 px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground"
     >
       <Icon className="size-3" aria-hidden />
       {label}
       <span aria-hidden>↗</span>
     </Button>
   )
-}
-
-const ACTOR_TYPE_ICON: Record<EcosystemActorType, typeof Building2> = {
-  company: Building2,
-  npo: Users,
-  government: Landmark,
 }
 
 const ARCH_TYPE_ICON: Record<ArchitectureSurfaceType, typeof Building2> = {
@@ -388,7 +404,7 @@ function ArchitectureSidebar({
         </div>
       )}
       <ul className="flex flex-col gap-2">
-        {visibleProfiles.map((profile) => {
+        {visibleProfiles.slice(0, 1).map((profile) => {
           const TypeIcon = ARCH_TYPE_ICON[profile.type]
           const typology = getSurfaceTypologyDetail(resolveProfileTypology(profile))
           return (
@@ -430,15 +446,9 @@ function ArchitectureSidebar({
                   <ExternalLink className="size-3" />
                 </button>
               </div>
-              <p className="line-clamp-2 text-xs leading-relaxed text-slate-200">
-                {tArch(profile.descriptionKey)}
-              </p>
               <div className="rounded-md bg-rose-500/10 px-2 py-1">
-                <p className="text-xs font-semibold text-slate-100">
-                  {tArch("constraintsLabel")}
-                </p>
-                <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-200">
-                  {tArch(profile.constraintsKey)}
+                <p className="line-clamp-1 text-xs font-medium leading-snug text-rose-200">
+                  ⚠️ {tArch(profile.constraintsKey)}
                 </p>
               </div>
               <div className="flex flex-col gap-1">
@@ -455,16 +465,13 @@ function ArchitectureSidebar({
                         type="button"
                         onClick={() => onHighlightFurniture(fid)}
                         className={cn(
-                          "rounded-md border px-2 py-1 text-left text-xs font-medium transition-colors",
+                          "rounded-md border px-2 py-1 text-xs font-medium transition-colors",
                           active
                             ? "border-primary/60 bg-primary/20 text-primary ring-1 ring-primary/40"
                             : "border-border/50 bg-muted/40 text-slate-200 hover:border-primary/40 hover:bg-muted/60",
                         )}
                       >
-                        <span className="font-medium">{tArch(`furniture.${fid}.name`)}</span>
-                        <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">
-                          {tArch(`furniture.${fid}.adaptation`)}
-                        </span>
+                        {tArch(`furniture.${fid}.name`)}
                       </button>
                     )
                   })}
@@ -693,25 +700,6 @@ export function WorldImplementationView() {
     [],
   )
 
-  const jumpToCellTypesTabForCountry = useCallback(
-    (country: CountryPvDetail) => {
-      setHighlightCountryCodes([String(country.code).toUpperCase()])
-      const panelLinks =
-        getSolarCellTypesForCountryCode(String(country.code)).length > 0
-          ? getSolarCellTypesForCountryCode(String(country.code))
-          : getSolarCellTypesForRegionId(country.id)
-      if (panelLinks[0]) {
-        setSelectedCellStream(panelLinks[0].id)
-        setHighlightCellId(panelLinks[0].id)
-      } else {
-        setSelectedCellStream(null)
-        setHighlightCellId(null)
-      }
-      setViewTab("cell-types")
-    },
-    [],
-  )
-
   const handleNavigateToCountryCode = useCallback((countryCode: string) => {
     const code = countryCode.trim().toUpperCase()
     const match =
@@ -812,26 +800,19 @@ export function WorldImplementationView() {
   const systemModel = selectedCountry ? resolveSystemModel(selectedCountry) : null
   const plugInEaseSpec = systemModel ? plugInEaseFromModel(systemModel) : null
   const excessPowerKey = systemModel ? excessPowerFromModel(systemModel) : null
+  const legalProcKey = systemModel ? legalProcFromModel(systemModel) : null
   const selectedEcosystem = selectedCountry
     ? getMarketEcosystemForCountry(selectedCountry)
     : null
   const selectedEcosystemModelId = selectedEcosystem
     ? (selectedEcosystem.modelId as MarketEcosystemModelId)
     : null
-  const selectedEcosystemAccent = selectedEcosystemModelId
-    ? MARKET_ECOSYSTEM_UI_ACCENT[selectedEcosystemModelId]
-    : null
 
-  const sidebarRuleSummary = () => {
+  const sidebarLegalProc = () => {
     if (!selectedCountry) return ""
-    const dataFallback =
-      isEn && selectedCountry.regulationEn
-        ? selectedCountry.regulationEn
-        : selectedCountry.regulation
-    return countryMsg(
-      "ruleSummary",
-      countryMsg("procedure", countryMsg("regulation", dataFallback)),
-    )
+    const fromMsg = countryMsg("procedure", countryMsg("ruleSummary", ""))
+    if (fromMsg) return fromMsg
+    return legalProcKey ? tSidebar(legalProcKey) : ""
   }
 
   const onResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -1113,34 +1094,6 @@ export function WorldImplementationView() {
                     {selectedCountry.code}
                   </span>
                 </CardTitle>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge
-                    className={cn(
-                      "w-fit border px-2 py-0.5 text-xs font-medium",
-                      isOffgridArch
-                        ? "border-violet-500/40 bg-violet-500/20 text-violet-300"
-                        : "border-sky-500/40 bg-sky-500/20 text-sky-300",
-                    )}
-                  >
-                    {isOffgridArch
-                      ? tSidebar("archOffgrid")
-                      : tSidebar("archGrid")}
-                  </Badge>
-                  <Badge
-                    className={cn(
-                      "w-fit border px-2 py-0.5 text-xs font-medium",
-                      isOffgridArch ||
-                        (selectedCountry as { modelType?: string }).modelType === "offgrid_storage"
-                        ? "border-amber-500/40 bg-amber-500/20 text-amber-300"
-                        : "border-transparent bg-primary/90 text-primary-foreground",
-                    )}
-                  >
-                    {countryMsg(
-                      "statusLabel",
-                      selectedCountry.statusLabel || t("analysis.offgridStorageFallback"),
-                    )}
-                  </Badge>
-                </div>
               </div>
             </CardHeader>
             <CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden pl-5 text-sm">
@@ -1177,21 +1130,14 @@ export function WorldImplementationView() {
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                           {tSidebar("statusCard.powerModel")}
                         </span>
-                        <p
-                          className={cn(
-                            "mt-1 break-words text-sm font-medium leading-snug",
-                            selectedEcosystemAccent
-                              ? "text-slate-100"
-                              : "text-slate-200",
+                        <p className="mt-1 line-clamp-1 break-words text-sm font-medium leading-snug text-slate-100">
+                          {countryMsg(
+                            "statusLabel",
+                            selectedCountry.statusLabel ||
+                              (isOffgridArch
+                                ? tSidebar("archOffgrid")
+                                : tSidebar("archGrid")),
                           )}
-                        >
-                          {selectedEcosystem
-                            ? isEn
-                              ? selectedEcosystem.badgeEn
-                              : selectedEcosystem.badgeJa
-                            : isOffgridArch
-                              ? tSidebar("archOffgrid")
-                              : tSidebar("archGrid")}
                         </p>
                       </div>
                       <div className="rounded-lg border border-border/50 bg-slate-900/60 p-2.5">
@@ -1200,7 +1146,7 @@ export function WorldImplementationView() {
                         </span>
                         <p
                           className={cn(
-                            "mt-1 break-words text-sm leading-snug",
+                            "mt-1 line-clamp-1 break-words text-sm leading-snug",
                             plugInEaseSpec
                               ? OUTLET_TONE_CLASS[plugInEaseSpec.tone]
                               : "font-medium text-slate-100",
@@ -1213,7 +1159,7 @@ export function WorldImplementationView() {
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                           {tSidebar("statusCard.excess")}
                         </span>
-                        <p className="mt-1 break-words text-sm font-medium leading-snug text-slate-100">
+                        <p className="mt-1 line-clamp-1 break-words text-sm font-medium leading-snug text-slate-100">
                           {excessPowerKey ? tSidebar(excessPowerKey) : "—"}
                         </p>
                       </div>
@@ -1221,28 +1167,11 @@ export function WorldImplementationView() {
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                           {tSidebar("statusCard.legal")}
                         </span>
-                        <p className="mt-1 line-clamp-3 break-words text-sm font-medium leading-snug text-slate-100">
-                          {sidebarRuleSummary() || "—"}
+                        <p className="mt-1 line-clamp-1 break-words text-sm font-medium leading-snug text-slate-100">
+                          {sidebarLegalProc() || "—"}
                         </p>
                       </div>
                     </div>
-                    <p className="text-sm leading-relaxed text-slate-300">
-                      {countryMsg(
-                        "summary",
-                        isEn && (selectedCountry as { summaryEn?: string }).summaryEn
-                          ? (selectedCountry as { summaryEn?: string }).summaryEn!
-                          : selectedCountry.keyDrivers?.join(" / ") ||
-                            selectedCountry.bottlenecks?.join(" / ") ||
-                            t("analysis.implStatus", {
-                              name: countryMsg(
-                                "name",
-                                isEn && (selectedCountry as { nameEn?: string }).nameEn
-                                  ? (selectedCountry as { nameEn?: string }).nameEn!
-                                  : selectedCountry.name,
-                              ),
-                            }),
-                      )}
-                    </p>
                   </div>
 
                   {architectureConfig && architectureConfig.profiles.length > 0 && (
@@ -1259,49 +1188,6 @@ export function WorldImplementationView() {
                       jumpToSurfacesLabel={tSidebar("jumpOpen")}
                     />
                   )}
-
-                  {(() => {
-                    const panelLinks =
-                      getSolarCellTypesForCountryCode(
-                        String(selectedCountry.code),
-                      ).length > 0
-                        ? getSolarCellTypesForCountryCode(
-                            String(selectedCountry.code),
-                          )
-                        : getSolarCellTypesForRegionId(selectedCountry.id)
-                    if (panelLinks.length === 0) return null
-                    return (
-                      <div className="mt-1 space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="text-sm font-semibold text-slate-100">
-                            {tSidebar("recommendedCells")}
-                          </h3>
-                          <SidebarJumpButton
-                            label={tSidebar("jumpOpen")}
-                            icon={Layers}
-                            aria-label={tSidebar("jump.cellTypes")}
-                            onClick={() =>
-                              jumpToCellTypesTabForCountry(selectedCountry)
-                            }
-                          />
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {panelLinks.map((cell) => (
-                            <button
-                              key={cell.id}
-                              type="button"
-                              onClick={() =>
-                                handleNavigateToCellType(cell.id, selectedCountry)
-                              }
-                              className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
-                            >
-                              {isEn ? cell.categoryBadgeEn : cell.categoryBadgeJa}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })()}
 
                   {selectedCountry.keyDrivers && selectedCountry.keyDrivers.length > 0 && (
                     <div className="space-y-1.5 border-t border-slate-800 pt-2">
@@ -1376,14 +1262,34 @@ export function WorldImplementationView() {
                     </ToggleGroup>
                     <div className="flex flex-col gap-2">
                       {relatedActors.length === 0 ? (
-                        <p className="rounded-lg bg-muted/40 px-3 py-4 text-center text-xs text-muted-foreground">
+                        <p className="w-full rounded-lg bg-muted/40 px-3 py-3 text-center text-xs text-muted-foreground">
                           {tSidebar("relatedOrgsEmpty")}
                         </p>
                       ) : (
                         relatedActors.map((actor) => {
-                          const Icon = ACTOR_TYPE_ICON[actor.type]
                           const displayName = isEn && actor.nameEn ? actor.nameEn : actor.name
-                          const displayRole = isEn && actor.roleEn ? actor.roleEn : actor.role
+                          const subtitle =
+                            isEn && actor.roleEn ? actor.roleEn : actor.role
+                          const cardInner = (
+                            <>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-slate-200">
+                                  {displayName}
+                                </p>
+                                {subtitle ? (
+                                  <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                                    {subtitle}
+                                  </p>
+                                ) : null}
+                              </div>
+                              {actor.url ? (
+                                <ExternalLink
+                                  className="size-3.5 shrink-0 text-muted-foreground"
+                                  aria-hidden
+                                />
+                              ) : null}
+                            </>
+                          )
                           if (actor.url) {
                             return (
                               <a
@@ -1391,35 +1297,18 @@ export function WorldImplementationView() {
                                 href={actor.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="group flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5 transition-all duration-150 hover:border-primary/40 hover:bg-muted/50"
+                                className="flex items-start gap-2 rounded-xl border border-border/50 bg-slate-900/60 p-3 transition-colors hover:border-slate-700 hover:bg-slate-800/60"
                               >
-                                <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <p className="break-words font-medium text-foreground transition-colors group-hover:text-emerald-400">
-                                      {displayName}
-                                    </p>
-                                    <ExternalLink className="mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-emerald-400" />
-                                  </div>
-                                  <p className="mt-0.5 break-words text-xs text-muted-foreground">
-                                    {displayRole}
-                                  </p>
-                                </div>
+                                {cardInner}
                               </a>
                             )
                           }
                           return (
                             <div
                               key={actor.id}
-                              className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5"
+                              className="flex items-start gap-2 rounded-xl border border-border/50 bg-slate-900/60 p-3"
                             >
-                              <Icon className="mt-0.5 size-4 shrink-0 text-primary" />
-                              <div className="min-w-0 flex-1">
-                                <p className="break-words font-medium text-foreground">{displayName}</p>
-                                <p className="mt-0.5 break-words text-xs text-muted-foreground">
-                                  {displayRole}
-                                </p>
-                              </div>
+                              {cardInner}
                             </div>
                           )
                         })

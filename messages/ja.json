@@ -517,17 +517,17 @@
       "drivers": "主な推進要因",
       "bottlenecks": "制度・経済の障壁",
       "outlet": {
-        "plugOk": "🟢 工事不要（コンセントに挿すだけ）",
-        "netMetering": "🌐 メーター申請が必要（電力会社と連系）",
-        "offgridStorage": "🟠 コンセント直結は禁止（蓄電池で自給）",
-        "necStrict": "🔴 専門の電気工事が必須（DIY直結不可）",
-        "standalone": "🟣 系統不要（太陽光とバッテリーで完結）"
+        "plugOk": "工事不要（DIY）",
+        "netMetering": "メーター申請が必要",
+        "offgridStorage": "直結禁止（蓄電自給）",
+        "necStrict": "電気工事必須",
+        "standalone": "系統不要（自立完結）"
       },
       "excess": {
-        "netMetering": "◎ 電気代から自動相殺・買取り（ネット相殺）",
-        "selfConsume": "△ 自宅で使い切るのが基本（売電相殺は少額または対象外）",
-        "noExport": "✕ 送電網へ流すことは不可（自家消費のみ）",
-        "batteryNight": "ー 蓄電池に充電して夜間に利用"
+        "netMetering": "売電／相殺あり",
+        "selfConsume": "売電なし（自家消費）",
+        "noExport": "売電なし（自家消費）",
+        "batteryNight": "蓄電池で夜間利用"
       },
       "plugExport": "コンセント直結（逆潮流）の可否",
       "powerCap": "使える電力の上限",
@@ -556,11 +556,18 @@
         "legal": "法的手続"
       },
       "jumpOpen": "開く",
-      "statusSummary": "導入ステータス"
+      "statusSummary": "導入ステータス",
+      "legal": {
+        "webRegister": "Web簡易登録",
+        "meterApply": "メーター申請",
+        "portableOnly": "蓄電自給のみ",
+        "licensedWork": "有資格工事必須",
+        "noneStandalone": "手続なし（自立）"
+      }
     },
     "architecture": {
       "sectionTitle": "建築形態と生活家具型ソーラー",
-      "constraintsLabel": "構造的制約・受光物理",
+      "constraintsLabel": "構造制約",
       "adaptedFurnitureLabel": "適応する生活家具解法",
       "types": {
         "balcony": "バルコニー",
@@ -627,79 +634,79 @@
         "haussmann-balconet": {
           "name": "装飾鉄柵バルコネット（浅型開口）",
           "description": "奥行き数十cm程度の装飾鉄柵＋極薄石床。生活動線より垂直開口の受光面が主体。",
-          "constraints": "浅い奥行きでは従来型パネル架台が載らない。垂直面に沿わせる無穿孔の可撓マウントが前提。",
+          "constraints": "無穿孔・垂直面マウント必須",
           "regionContext": "※適用地域の例：歴史地区（景観保護）、欧州都市部の浅型開口"
         },
         "concrete-parapet": {
           "name": "打放しコンクリート腰壁（垂直パラペット）",
           "description": "厚みのある打放しコンクリート腰壁・パラペット。垂直マウントの受光面として機能する。",
-          "constraints": "貫通アンカーは構造上むずかしい。落下リスク管理と腰壁挟み込み型の無穿孔クランプが前提。",
+          "constraints": "無穿孔クランプ必須",
           "regionContext": "※適用地域の例：中欧集合ストック、集合住宅全般の厚壁パラペット"
         },
         "japanese-evacuation-balcony": {
           "name": "開放型片持ちベランダ（避難隔板付き）",
           "description": "隔て板・避難ハッチを備えた片持ちスラブ。標準奥行き床＋アルミ柵。物干しと防災動線が同居する。",
-          "constraints": "床面閉塞を避け、強風外力時は出仕舞い（完全退避）できる可搬・折りたたみ設置が必須。",
+          "constraints": "可搬・出仕舞い必須",
           "regionContext": "※適用地域の例：集合住宅（避難路確保）、台風・強風帯"
         },
         "access-gallery": {
           "name": "共用開放廊下・サービスデッキ",
           "description": "住戸前面の共用開放廊下。長い水平スラブと手すりで通行・サービス動線を共有する。",
-          "constraints": "避難・通行動線を塞がない。可搬・自立設置と強風時の出仕舞いが必須。共用部の管理規約に従う。",
+          "constraints": "動線確保・可搬設置",
           "regionContext": "※適用地域の例：集合住宅（避難路確保）、団地型開放廊下"
         },
         "japanese-kawara-roof": {
           "name": "勾配瓦屋根（切妻／寄棟）",
           "description": "勾配約30°の切妻・寄棟瓦屋根。軒先・棟に沿う軽量支持で面板を載せる在来屋根型。",
-          "constraints": "瓦破損・雨漏りリスクのため重量架台は不可。屋根面に沿う軽量フック固定が前提。",
+          "constraints": "軽量フック固定のみ",
           "regionContext": "※適用地域の例：勾配瓦屋根帯"
         },
         "french-mansard-roof": {
           "name": "マンサード屋根（急勾配＋ドーマー）",
           "description": "2段勾配の下部急斜面とドーマー天窓。ドーマー脇・頬面が受光面になる屋根形態。",
-          "constraints": "急勾配面では重量架台が難しく、ドーマー脇や浅い上部面への薄膜適応が必要。穿孔を避ける軽量固定が前提。",
+          "constraints": "軽量・薄膜適応",
           "regionContext": "※適用地域の例：歴史地区（景観保護）、亜鉛板・急勾配ストック"
         },
         "flat-concrete-roof": {
           "name": "フラットルーフ（陸屋根デッキ／パーゴラ）",
           "description": "平坦スラブの屋上テラス。夕涼み・洗濯・生活動線を兼ね、日除けパーゴラ架台に面板を載せる。",
-          "constraints": "強風耐候と屋上生活動線を塞がない可搬・自立設置が前提。床穿孔は避ける。",
+          "constraints": "可搬・無穿孔設置",
           "regionContext": "※適用地域の例：陸屋根デッキ帯、集合住宅全般の屋上テラス"
         },
         "rooftop-terrace": {
           "name": "フラット屋上テラス",
           "description": "平坦屋上の共有／専用テラス。夕涼み・洗濯・生活動線を兼ねる広い床面。",
-          "constraints": "強風耐候と屋上生活動線を塞がない可搬・自立設置が前提。床穿孔は避ける。",
+          "constraints": "可搬・無穿孔設置",
           "regionContext": "※適用地域の例：陸屋根デッキ帯"
         },
         "uk-juliet-balcony": {
           "name": "ジュリエット手すり（デッキなし開口部）",
           "description": "デッキ奥行きのないフレンチドア＋手すり／ガラス。ファサード面そのものが垂直の受光面。",
-          "constraints": "床面がないため従来架台は不可。窓面ルーバーや無穿孔クランプによる垂直面設置が前提。",
+          "constraints": "垂直面・無穿孔のみ",
           "regionContext": "※適用地域の例：賃貸ファサード、歴史地区（景観保護）"
         },
         "uk-recessed-balcony": {
           "name": "インナーバルコニー（ロッジア／凹型空間）",
           "description": "側壁に囲まれた凹型・ロッジア。直達光は少ないが拡散光を取り込む受光幾何。",
-          "constraints": "側壁・天井の影で直達比率が低い。生活動線を塞がず、テーブル型やクランプ型の可搬設置が現実的。",
+          "constraints": "可搬テーブル／クランプ",
           "regionContext": "※適用地域の例：集合住宅全般、欧州都市部の凹型バルコニー"
         },
         "uk-roof-terrace": {
           "name": "陸屋根スラブ（フラットデッキ）",
           "description": "フラット屋上や高層の共用／専用テラス。パーゴラやテーブル型ソーラーを自立配置できる広い床面。",
-          "constraints": "強風荷重と床面荷重制限。床を穿孔せず、退避可能な家具型設置が前提。",
+          "constraints": "家具型・無穿孔設置",
           "regionContext": "※適用地域の例：陸屋根デッキ帯、集合住宅全般"
         },
         "uk-pitched-gable": {
           "name": "切妻勾配屋根（連棟スラブ）",
           "description": "勾配約40〜45°のスレート／粘土瓦切妻。連棟住居に多い在来屋根型。",
-          "constraints": "瓦・スレート破損と雨漏りリスク。重量架台は不可で、軽量クランプや窓面解法への適応が必要。",
+          "constraints": "軽量クランプ適応",
           "regionContext": "※適用地域の例：連棟勾配屋根帯、勾配瓦屋根帯"
         },
         "uk-pitched-mansard-dormer": {
           "name": "マンサード屋根（急勾配＋ドーマー）",
           "description": "急勾配の外側面とドーマー天窓を持つマンサード屋根。頬面・脇面が受光候補。",
-          "constraints": "急勾配面への従来架台は困難。ドーマー脇や窓面ルーバーへの薄膜適応が現実的。",
+          "constraints": "薄膜・ドーマー脇適応",
           "regionContext": "※適用地域の例：歴史地区（景観保護）、急勾配都市住居ストック"
         }
       },
@@ -744,8 +751,8 @@
         "statusLabel": "800Wプラグ公認",
         "powerLimit": "800W（家電扱いで家中へ給電）",
         "powerCapacity": "800W（家電扱いで家中へ給電）",
-        "procedure": "登録のみ（オンライン簡易届出で即日運用）",
-        "ruleSummary": "800Wまで公認。オンライン登録のみで届出完了。",
+        "procedure": "Web簡易登録",
+        "ruleSummary": "Web簡易登録",
         "connectionMethod": "コンセント直結（プラグイン）",
         "tenantRights": "法的に権利保障",
         "paybackYears": "3〜4年",
@@ -795,7 +802,7 @@
         "statusLabel": "800Wプラグ公認",
         "powerLimit": "800W（家電扱いで家中へ給電）",
         "powerCapacity": "800W（家電扱いで家中へ給電）",
-        "procedure": "登録のみ（オンライン簡易届出で即日運用）",
+        "procedure": "Web簡易登録",
         "connectionMethod": "コンセント直結（プラグイン）",
         "tenantRights": "規約・協議要",
         "paybackYears": "5〜7年",
@@ -902,7 +909,7 @@
         "meterRequirement": "売電契約・スマートインバータ要件",
         "windSafety": "沿岸強風・山火事煙害時の点検推奨",
         "mountingRules": "バルコニー設置は都市・HOA条例を確認",
-        "ruleSummary": "1,200Wまで届出免除。ただし売電単価が低いため蓄電併用が主流。",
+        "ruleSummary": "届出免除／蓄電併用",
         "summary": "1,200Wまで届出免除が進む一方、売電単価が低く蓄電自己消費が主流化。"
       },
       "us-co": {
@@ -990,7 +997,7 @@
         "statusLabel": "1,200W許認可免除",
         "powerLimit": "1,200W（大型冷蔵庫・空調の負荷相殺）",
         "powerCapacity": "1,200W（大型冷蔵庫・空調の負荷相殺）",
-        "procedure": "1,200Wまで免除",
+        "procedure": "1,200W免除",
         "legalRights": "1,200Wまで免除",
         "connectionMethod": "コンセント直結（系統協議免除）",
         "tenantRights": "1,200Wまで免除",
@@ -1217,8 +1224,8 @@
         "statusLabel": "オフグリッド蓄電型",
         "powerLimit": "ポータブル蓄電池・自給（300W〜800W目安）",
         "powerCapacity": "ポータブル蓄電池・自給（300W〜800W目安）",
-        "procedure": "内線規程によりコンセント直結は不可。ポータブル電源での自給が合法。",
-        "ruleSummary": "内線規程によりコンセント直結は不可。ポータブル電源での自給が合法。",
+        "procedure": "直結不可（蓄電自給）",
+        "ruleSummary": "直結不可（蓄電自給）",
         "legalRights": "コンセント直結不可（蓄電自給）",
         "connectionMethod": "オフグリッド蓄電",
         "tenantRights": "コンセント直結不可（蓄電自給）",
@@ -1238,7 +1245,7 @@
         "summary": "集合住宅・賃貸テナントの電力自給権を確立し、高騰する系統電気代に対抗する可搬プラグインが拡大。",
         "powerLimit": "約1,000W（配電会社協議）",
         "legalRights": "公認・テナント推奨",
-        "ruleSummary": "集合住宅の余剰相殺権利を保障。系統混雑時の出力制御あり。",
+        "ruleSummary": "余剰相殺＋出力制御",
         "systemStatus": "プラグイン / 蓄電併用"
       },
       "vn": {
@@ -1287,7 +1294,7 @@
         "summary": "台風・震災時のBCP（事業・生活継続）を見据え、集合住宅の出窓やベランダでの防災蓄電ハイブリッドが浸透。",
         "powerLimit": "ポータブル蓄電池・自給（300W〜800W目安）",
         "powerCapacity": "ポータブル蓄電池・自給（300W〜800W目安）",
-        "procedure": "台電の逆潮流規制（蓄電・自家消費限定）",
+        "procedure": "逆潮流規制（自家消費）",
         "legalRights": "自家消費限定（逆潮流不可）",
         "systemStatus": "防災オフグリッド蓄電型"
       },
@@ -1297,7 +1304,7 @@
         "summary": "スマートメーターの普及率がほぼ100%に達し、小規模余剰が日常的に相殺されている。",
         "powerLimit": "約1,000W（小規模連系枠）",
         "legalRights": "公認・メーター自動相殺",
-        "ruleSummary": "スマートメーターによる余剰相殺が定着。配電会社ごとの申請手続に差あり。",
+        "ruleSummary": "スマートメーター相殺",
         "systemStatus": "系統連系（ネットメータリング）"
       },
       "za-cpt": {
@@ -1306,7 +1313,7 @@
         "summary": "深刻な計画停電を克服するため、ケープタウン市が市民からの逆潮流を公式に買い取る「Cash for Power」を推進。",
         "powerLimit": "1,200W級（SSEG規程）",
         "legalRights": "市公認売電（Cash for Power）",
-        "procedure": "市公認売電（Cash for Power）",
+        "procedure": "市公認売電",
         "systemStatus": "市連系（Cash for Power公認）"
       },
       "br": {
@@ -1315,7 +1322,7 @@
         "summary": "高い電気代を背景に、小規模分散法で家庭用ソーラーの余剰相殺を保障し市場が急拡大。",
         "powerLimit": "1,200W級（分散発電枠）",
         "legalRights": "連邦法で権利保障",
-        "ruleSummary": "小規模分散法により、余剰電力を翌月の電気代から相殺可能。",
+        "ruleSummary": "余剰相殺（翌月）",
         "systemStatus": "系統連系（ネット相殺型）"
       }
     },
