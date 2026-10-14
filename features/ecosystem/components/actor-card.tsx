@@ -26,8 +26,8 @@ export function ActorCard({ actor }: ActorCardProps) {
   const t = useTranslations('ecosystem')
 
   return (
-    <Card className="border-border/60">
-      <CardHeader className="gap-3">
+    <Card className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 transition-all duration-200 hover:border-slate-700/80 md:p-6">
+      <CardHeader className="space-y-4 p-0">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <Badge
             variant="outline"
@@ -36,25 +36,25 @@ export function ActorCard({ actor }: ActorCardProps) {
             {t(`categoryLabels.${actor.categoryLabel}` as Parameters<typeof t>[0])}
           </Badge>
           <div className="flex flex-wrap gap-1.5">
-            <Badge variant="secondary" className="border border-border/60 bg-muted/60 text-foreground">
+            <Badge variant="secondary" className="border border-slate-700/60 bg-slate-900/80 text-slate-300">
               {t(`regionBadge.${actor.region}`)}
             </Badge>
-            <Badge variant="secondary" className="border border-border/60 bg-muted/60 text-foreground">
+            <Badge variant="secondary" className="border border-slate-700/60 bg-slate-900/80 text-slate-300">
               {t(
                 `formFactorBadge.${actor.formFactor === 'balcony' ? 'balcony' : 'nonBalcony'}`
               )}
             </Badge>
           </div>
         </div>
-        <CardTitle className="text-sm font-semibold leading-snug">
+        <CardTitle className="text-base font-semibold leading-snug text-slate-100">
           {t(`actors.${actor.id}.name` as Parameters<typeof t>[0])}
         </CardTitle>
-        <p className="text-xs font-medium text-muted-foreground">
+        <p className="text-xs font-medium tracking-wide text-slate-400">
           {t(`actors.${actor.id}.subtitle` as Parameters<typeof t>[0])}
         </p>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <p className="text-xs leading-relaxed text-muted-foreground">
+      <CardContent className="mt-4 flex flex-col space-y-4 p-0">
+        <p className="text-sm leading-relaxed text-slate-300">
           {t(`actors.${actor.id}.description` as Parameters<typeof t>[0])}
         </p>
 
@@ -64,7 +64,7 @@ export function ActorCard({ actor }: ActorCardProps) {
               <Badge
                 key={tag}
                 variant="outline"
-                className="border-border/50 bg-transparent text-[10px] text-muted-foreground"
+                className="border-slate-700/50 bg-transparent text-xs text-slate-400"
               >
                 {t(`tags.${tag}` as Parameters<typeof t>[0])}
               </Badge>
@@ -77,14 +77,14 @@ export function ActorCard({ actor }: ActorCardProps) {
             {actor.metrics.map((metric) => (
               <div
                 key={metric.id}
-                className="rounded-lg border border-border/40 bg-muted/30 px-2.5 py-1.5"
+                className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2"
               >
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs font-medium tracking-wide text-slate-400">
                   {t(
                     `actors.${actor.id}.metrics.${metric.id}.label` as Parameters<typeof t>[0]
                   )}
                 </p>
-                <p className="font-mono text-xs font-semibold text-foreground">
+                <p className="font-mono text-sm font-semibold text-slate-200">
                   {t(
                     `actors.${actor.id}.metrics.${metric.id}.value` as Parameters<typeof t>[0]
                   )}
@@ -93,7 +93,6 @@ export function ActorCard({ actor }: ActorCardProps) {
             ))}
           </div>
         )}
-
       </CardContent>
     </Card>
   )

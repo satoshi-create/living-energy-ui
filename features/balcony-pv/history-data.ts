@@ -41,7 +41,7 @@ export interface Cell3DVisualSpec {
   cellStructureEn: string
   /** 例: '約30〜40mm (ガラス・フレーム込)' */
   thicknessMm: string
-  flexibility: 'rigid' | 'semi-rigid' | 'flexible-origami'
+  flexibility: 'rigid' | 'semi-rigid' | 'flexible-etfe' | 'flexible-origami'
   lightType: 'direct_beam' | 'high_temperature' | 'diffuse_dominant'
   /** 一覧カード右上: 例 '30° 直達光主体' */
   lightBadgeJa: string
@@ -75,13 +75,17 @@ export interface StreamTradeoffMetric {
 
 /** ベランダ生活適合（設置スタンプ・出仕舞い・避難動線） */
 export interface BalconyLivingFit {
-  /** ベランダ設置適性スタンプ: 'unfit' (不可) | 'conditional' (条件付き) | 'optimal' (最適) */
-  balconyFitStatus: 'unfit' | 'conditional' | 'optimal'
+  /** 不可 / 条件付き / 現行Good Enough / 次世代理想 */
+  balconyFitStatus: 'unfit' | 'conditional' | 'good_enough' | 'optimal'
   balconyFitLabelJa: string
   /** 出仕舞い（台風退避）性能 */
   deShimaiAbilityJa: string
   /** 消防避難動線（60cm）のクリア度 */
   egressClearanceScore: number
+  /** 重量・厚みバッジ */
+  weightThicknessJa?: string
+  /** 解雇した要素 */
+  firedElementJa?: string
 }
 
 /** 三大分類サマリーカード用マスター */
@@ -127,8 +131,8 @@ export type PvHistoryStreamMeta = PvStreamSummary
 export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
   silicon_mainstream: {
     id: 'silicon_mainstream',
-    labelJa: 'Si（シリコン）主流系',
-    labelEn: 'Silicon mainstream',
+    labelJa: '屋根用・重厚リジッド型（c-Si）',
+    labelEn: 'Heavy rigid rooftop (c-Si)',
     generationLabelJa: '第1世代（現在シェア9割超）',
     generationLabelEn: '1st generation (~90%+ market share)',
     generationShortJa: '第1世代',
@@ -136,9 +140,9 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
     taglineJa: '硬くて重いが、最も安く大量発電する大黒柱',
     taglineEn: 'Hard and heavy — the workhorse that generates cheapest at scale',
     structuralPointJa:
-      '重い架台・耐風圧前提。晴天直達光で最大電力量を刈り取る標準規格。',
+      '重い架台・耐風圧前提。ドイツ等で主流だが日本の手すり倒壊・避難路閉塞リスク大。',
     structuralPointEn:
-      'Heavy racks and wind load assumed. Peak yield from clear-sky direct beam — the standard spec.',
+      'Heavy racks & wind-load assumed. Mainstream abroad, high rail-collapse / egress risk on JP balconies.',
     bestFitPlaceJa: '勾配屋根・野立て（直達光と堅固な架台がある場所）',
     bestFitPlaceEn: 'Pitched roofs & ground mounts (direct sun + solid racks)',
     relativeEfficiencyPct: 100,
@@ -152,16 +156,18 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
       shortBadgeEn: 'Heavy yield',
       viewAngleLabels: ['正面セル格子', '斜めフレーム厚', '側面35mm断面'],
       viewAngleLabelsEn: ['Front cell grid', 'Angled frame depth', '35mm side cut'],
-      roleTitleJa: '重量級・高出力',
-      roleTitleEn: 'Heavyweight · High yield',
-      roleSubtitleJa: '屋根・野立ての大黒柱',
-      roleSubtitleEn: 'Roof & ground-mount workhorse',
+      roleTitleJa: '屋根用・重厚リジッド型（c-Si）',
+      roleTitleEn: 'Heavy rigid rooftop (c-Si)',
+      roleSubtitleJa: '固定架台・耐風圧の大黒柱',
+      roleSubtitleEn: 'Fixed-rack wind-load workhorse',
     },
     balconyLivingFit: {
       balconyFitStatus: 'unfit',
-      balconyFitLabelJa: '✕ ベランダ設置不可（重量過剰・避難路閉塞）',
-      deShimaiAbilityJa: '出仕舞い不可（固定架台で嵐と衝突）',
-      egressClearanceScore: 20,
+      balconyFitLabelJa: '❌ ベランダ設置不可',
+      deShimaiAbilityJa: '出仕舞い不可（固定架台必須・風圧衝突）',
+      egressClearanceScore: 18,
+      weightThicknessJa: '21.0kg / 約35mm（ガラス・アルミ枠）',
+      firedElementJa: '燃料補給・遠隔自律電源の制約を解雇',
     },
     primaryTypologyId: 'japanese_tiled_roof',
     recommendedTypologyIds: [
@@ -191,18 +197,18 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
   },
   cigs_cdte: {
     id: 'cigs_cdte',
-    labelJa: '化合物薄膜 (CdTe / CIGS)',
-    labelEn: 'Compound thin film (CdTe / CIGS)',
+    labelJa: '酷暑耐性・BIPVガラス建材（CIGS/CdTe）',
+    labelEn: 'Heat-tough BIPV glass (CIGS/CdTe)',
     generationLabelJa: '第2世代（大面積・高温向け）',
     generationLabelEn: '2nd generation (large-area / high-heat)',
     generationShortJa: '第2世代',
     generationShortEn: 'Gen 2',
-    taglineJa: 'シリコンを使わず、ガラス等に吹き付けた大面積薄膜',
-    taglineEn: 'No silicon — large-area thin films sprayed onto glass and more',
+    taglineJa: '手すり板そのものを発電ガラス化する建材型',
+    taglineEn: 'Turns the rail itself into generating glass fabric',
     structuralPointJa:
-      'フレームレス薄板。高温・垂直壁面でも落ちにくく、腰壁・ファサード向け。',
+      '手すり板そのものを発電ガラス化。欧州美観条例クリアだが既存後付けは困難。',
     structuralPointEn:
-      'Frameless thin plate. Holds on hot vertical façades and sturdy parapets.',
+      'Rail-as-PV glass. Clears EU aesthetics codes; hard to retrofit on existing stock.',
     bestFitPlaceJa: '高温砂漠・ビルの垂直壁面・堅牢な腰壁',
     bestFitPlaceEn: 'Hot deserts, vertical façades, and sturdy parapets',
     relativeEfficiencyPct: 78,
@@ -216,16 +222,18 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
       shortBadgeEn: 'Heat-tough',
       viewAngleLabels: ['正面鏡面ガラス', '斜めスペキュラ', 'ガラス切断面'],
       viewAngleLabelsEn: ['Front mirror glass', 'Angled specular', 'Glass cut edge'],
-      roleTitleJa: '酷暑耐性・ガラス建材',
-      roleTitleEn: 'Heat-tough · Glass building material',
-      roleSubtitleJa: '壁面・腰壁の建材型パネル',
-      roleSubtitleEn: 'Façade & parapet building panel',
+      roleTitleJa: '酷暑耐性・BIPVガラス建材（CIGS/CdTe）',
+      roleTitleEn: 'Heat-tough BIPV glass (CIGS/CdTe)',
+      roleSubtitleJa: '手すり／ファサード建材型',
+      roleSubtitleEn: 'Rail / façade building fabric',
     },
     balconyLivingFit: {
       balconyFitStatus: 'conditional',
-      balconyFitLabelJa: '△ 条件付き（厚手コンクリート腰壁・挟み込み固定）',
-      deShimaiAbilityJa: '出仕舞い不可（常設ボルト固定）',
-      egressClearanceScore: 55,
+      balconyFitLabelJa: '⚠️ 条件付き（新築・手すり建材）',
+      deShimaiAbilityJa: '常設建材（後付けDIY不可）',
+      egressClearanceScore: 52,
+      weightThicknessJa: '重厚ガラス建材 / 約3〜5mm',
+      firedElementJa: 'シリコン厚板が置けない垂直・酷暑面の制約を解雇',
     },
     primaryTypologyId: 'precast_parapet',
     recommendedTypologyIds: ['precast_parapet'],
@@ -250,41 +258,43 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
   },
   organic_perovskite: {
     id: 'organic_perovskite',
-    labelJa: 'ペロブスカイト（新世代薄膜）',
-    labelEn: 'Perovskite (next-gen thin film)',
-    generationLabelJa: '第3世代（軽量・フレキシブル）',
-    generationLabelEn: '3rd generation (light & flexible)',
-    generationShortJa: '第3世代',
-    generationShortEn: 'Gen 3',
-    taglineJa: 'インクのように塗れて、曲がる・軽い新世代フィルム',
-    taglineEn: 'Printable like ink — bendable, light next-gen film',
+    labelJa: '超軽量・剛体折り紙出仕舞い（ペロブスカイト）',
+    labelEn: 'Ultralight rigid-origami stow (perovskite)',
+    generationLabelJa: '次世代（軽量・フレキシブル家具解）',
+    generationLabelEn: 'Next-gen (ultralight furniture)',
+    generationShortJa: '次世代',
+    generationShortEn: 'Next-gen',
+    taglineJa: '散乱光発電 × 剛体折り紙で避難動線を即時開放',
+    taglineEn: 'Diffuse PV × rigid origami — frees egress instantly',
     structuralPointJa:
-      '出仕舞い（完全退避）可能な剛体折り紙。ベランダ避難動線を塞がない。',
+      '散乱光発電 × 剛体折り紙。外力と戦わず葉を閉じるように避難動線を即時開放。',
     structuralPointEn:
-      'Rigid origami that fully stows away — never blocks balcony egress.',
+      'Diffuse-light PV × rigid origami. Folds like a leaf to free egress instantly.',
     bestFitPlaceJa: 'ベランダ手すり・日陰のロッジア・耐荷重のない屋根',
     bestFitPlaceEn: 'Balcony rails, shaded loggias, and low-load roofs',
     relativeEfficiencyPct: 62,
     livingFitnessPct: 92,
     tradeoff: {
       peakPowerScore: 58,
-      agilityScore: 94,
+      agilityScore: 96,
       environmentalFitJa: '散乱光・出仕舞い退避で耐風',
       environmentalFitEn: 'Diffuse light · stow away from wind',
-      shortBadgeJa: '出仕舞い',
-      shortBadgeEn: 'Stow-away',
+      shortBadgeJa: '出仕舞い家具',
+      shortBadgeEn: 'Stow furniture',
       viewAngleLabels: ['正面展開面', '斜めヒンジ', '折り畳み断面'],
       viewAngleLabelsEn: ['Front unfolded', 'Angled hinge', 'Folded cross-section'],
-      roleTitleJa: '超軽量・出仕舞い家具',
-      roleTitleEn: 'Ultralight · Stow-away furniture',
-      roleSubtitleJa: 'ベランダ避難動線を塞がない',
-      roleSubtitleEn: 'Never blocks balcony egress',
+      roleTitleJa: '超軽量・剛体折り紙出仕舞い（ペロブスカイト）',
+      roleTitleEn: 'Ultralight rigid-origami stow (perovskite)',
+      roleSubtitleJa: '次世代・避難動線即時開放',
+      roleSubtitleEn: 'Next-gen · instant egress release',
     },
     balconyLivingFit: {
       balconyFitStatus: 'optimal',
-      balconyFitLabelJa: '◯ ベランダ完全適応（超軽量・生活家具型）',
-      deShimaiAbilityJa: '出仕舞い完全対応（強風時はパッと畳んで退避）',
+      balconyFitLabelJa: '🌟 ベランダ最適（次世代家具解）',
+      deShimaiAbilityJa: '出仕舞い完全対応（強風・夜間に1秒で自動・受動退避）',
       egressClearanceScore: 98,
+      weightThicknessJa: '1.0kg未満 / 1mm未満（薄膜フィルム）',
+      firedElementJa: '重いガラス・金属架台・屋根限定を解雇',
     },
     primaryTypologyId: 'egress_cantilever',
     recommendedTypologyIds: [

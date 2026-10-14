@@ -179,8 +179,8 @@ export function AppShell() {
           className={cn(
             "min-h-0 flex-1",
             isMapView
-              ? "flex flex-col overflow-hidden px-0 pb-16 pt-0 lg:pb-0"
-              : "px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-8"
+              ? "flex flex-col overflow-hidden bg-slate-950 px-0 pb-16 pt-0 lg:pb-0"
+              : "bg-slate-950 px-5 pb-24 pt-5 sm:px-6 md:px-8 lg:pb-8"
           )}
         >
           {activeView === "balcony-simulation" && <BalconyView />}

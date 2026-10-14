@@ -7,7 +7,6 @@ import { MathUtils } from 'three'
 import { useTranslations } from 'next-intl'
 import type { Surface3dModelId } from '../data'
 import { cn } from '@/lib/utils'
-import { WebGLMountGate } from './webgl-mount-gate'
 
 export type Surface3DCameraPreset = '0°' | '30°' | '90°'
 
@@ -673,47 +672,37 @@ export function Surface3DViewer({
       aria-label={t(full ? 'fullView.viewerAria' : 'viewerAria')}
     >
       <div className={cn(full ? 'min-h-0 flex-1' : 'h-44 w-full sm:h-48')}>
-        <WebGLMountGate
-          priority={full}
-          activateOnPointer={!full}
-          placeholder={
-            <div className="flex h-full flex-col items-center justify-center gap-1 bg-slate-950 text-[10px] text-muted-foreground">
-              <span>{full ? '…' : t('hint')}</span>
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
+              …
             </div>
           }
         >
-          <Suspense
-            fallback={
-              <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
-                …
-              </div>
-            }
+          <Canvas
+            key={`${profileId}-${full ? cameraPreset : 'preview'}-${tiltDeg}-${isRetracted}`}
+            dpr={[1, full ? 2 : 1.5]}
+            camera={{
+              position: cam.position,
+              fov: full ? 38 : 42,
+              near: 0.1,
+              far: 40,
+            }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              powerPreference: full ? 'high-performance' : 'low-power',
+            }}
           >
-            <Canvas
-              key={`${profileId}-${full ? cameraPreset : 'preview'}-${tiltDeg}-${isRetracted}`}
-              dpr={[1, full ? 2 : 1.5]}
-              camera={{
-                position: cam.position,
-                fov: full ? 38 : 42,
-                near: 0.1,
-                far: 40,
-              }}
-              gl={{
-                antialias: true,
-                alpha: false,
-                powerPreference: full ? 'high-performance' : 'low-power',
-              }}
-            >
-              <SurfaceScene
-                profileId={profileId}
-                cameraPreset={cameraPreset}
-                full={full}
-                tiltDeg={tiltDeg}
-                isRetracted={isRetracted}
-              />
-            </Canvas>
-          </Suspense>
-        </WebGLMountGate>
+            <SurfaceScene
+              profileId={profileId}
+              cameraPreset={cameraPreset}
+              full={full}
+              tiltDeg={tiltDeg}
+              isRetracted={isRetracted}
+            />
+          </Canvas>
+        </Suspense>
       </div>
       {!full && (
         <>

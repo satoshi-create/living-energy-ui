@@ -29,6 +29,7 @@ import {
   getMarketEcosystemTopology,
   getMaturityScore,
   getMovementPhaseById,
+  getSolarCellTypesForCountryCode,
   getSoutheastAsiaIslandPhaseById,
   matchesModelFilter,
   resolveEcosystemNodeTools,
@@ -46,6 +47,7 @@ import {
   type MovementMilestone,
   type OssProject,
   type RegionCategory,
+  type SolarCellTypeId,
   type SoutheastAsiaIslandPhaseId,
 } from '../data';
 
@@ -89,6 +91,10 @@ interface WorldPvMapProps {
   onHistoryPhaseChange: (phase: MovementHistoryPhaseId | null) => void;
   /** サイドバーのマイルストーン連動用。regionId を渡すとピン強調・パンする */
   historyFocusRegionId?: string | null;
+  /** ISO country codes to pulse/highlight (from panel → map linking). */
+  highlightCountryCodes?: readonly string[];
+  /** Reverse link: open a panel typology card from the map context. */
+  onNavigateToSolarCell?: (cellId: SolarCellTypeId) => void;
 }
 
 type RegionFocus = 'all' | RegionCategory;
@@ -249,8 +255,8 @@ function MilestoneKeyActorCard({
           </a>
         ) : null}
       </div>
-      <p className="text-xs leading-relaxed text-orange-300/95">
-        ⚡ <span className="font-medium">{barrierLabel}</span>: {barrier}
+      <p className="text-xs leading-relaxed text-slate-400">
+        ⚡ <span className="font-medium text-slate-300">{barrierLabel}</span>: {barrier}
       </p>
       <p className="mt-1 text-xs leading-relaxed text-emerald-300/95">
         🎯 <span className="font-medium">{milestoneLabel}</span>: {achievement}
@@ -285,7 +291,7 @@ function MilestoneCard({
       <div
         className={`rounded-md border transition-colors ${
           focused
-            ? 'border-cyan-500/50 bg-cyan-500/15'
+            ? 'border-emerald-500/50 bg-emerald-950/40'
             : 'border-transparent hover:border-slate-600 hover:bg-slate-800/60'
         }`}
       >
@@ -486,25 +492,25 @@ export function CountryPvTimeline({
         return (
           <div
             key={`${phase.period}-${phaseIdx}`}
-            className="rounded-lg border border-cyan-500/30 bg-slate-900/60"
+            className="rounded-xl border border-slate-800/80 bg-slate-900/70"
           >
             <button
               type="button"
               onClick={() => togglePhase(phaseIdx)}
-              className="flex w-full items-start gap-2 px-3 py-2.5 text-left"
+              className="flex w-full items-start gap-2 px-4 py-3 text-left"
             >
-              <span className="mt-0.5 text-sm text-cyan-300">{isOpen ? '▾' : '▸'}</span>
+              <span className="mt-0.5 text-sm text-emerald-400">{isOpen ? '▾' : '▸'}</span>
               <span className="min-w-0 flex-1">
-                <span className="block text-xs font-medium tracking-wide text-cyan-300/90 uppercase">
+                <span className="block text-xs font-medium tracking-wide text-emerald-300/90 uppercase">
                   {phase.period}
                 </span>
-                <span className="block text-sm font-semibold leading-snug text-slate-100">
+                <span className="block text-base font-semibold leading-snug text-slate-100">
                   {phaseTitle}
                 </span>
               </span>
             </button>
             {isOpen ? (
-              <ul className="relative space-y-2 border-t border-cyan-500/20 px-3 py-2.5 before:absolute before:top-3 before:bottom-3 before:left-[calc(0.75rem+5px)] before:w-px before:bg-gradient-to-b before:from-cyan-400/70 before:to-emerald-400/50">
+              <ul className="relative space-y-2 border-t border-slate-800 px-4 py-3 before:absolute before:top-3 before:bottom-3 before:left-[calc(1rem+5px)] before:w-px before:bg-emerald-500/40">
                 {phase.milestones.map((ms: CountryTimelineMilestone, msIdx: number) => {
                   const title = isEn ? ms.titleEn : ms.titleJa;
                   const description = isEn ? ms.descriptionEn : ms.descriptionJa;
@@ -512,14 +518,14 @@ export function CountryPvTimeline({
                     <li key={`${ms.date}-${msIdx}`} className="relative pl-5">
                       <span
                         aria-hidden
-                        className="absolute top-2.5 left-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900"
+                        className="absolute top-2.5 left-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900"
                       />
-                      <div className="rounded-md border border-slate-700/60 bg-slate-950/50 px-2.5 py-2">
+                      <div className="rounded-md border border-slate-700/60 bg-slate-950/50 px-3 py-2.5">
                         <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                           <span className="font-mono text-xs font-medium text-slate-400">
                             {ms.date}
                           </span>
-                          <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                          <span className="rounded-md border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-medium text-emerald-300">
                             {countryLabel}
                           </span>
                         </div>
@@ -531,7 +537,7 @@ export function CountryPvTimeline({
                               href={ms.orgUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="mt-1.5 inline-flex items-center gap-1 text-xs text-cyan-300 transition-colors hover:text-emerald-300"
+                              className="mt-1.5 inline-flex items-center gap-1 text-sm text-emerald-400 transition-colors hover:text-emerald-300"
                               onClick={(e) => e.stopPropagation()}
                             >
                               {ms.orgName}
@@ -542,8 +548,8 @@ export function CountryPvTimeline({
                           )
                         ) : null}
                         {ms.breakthrough ? (
-                          <p className="mt-1.5 text-xs leading-relaxed text-orange-300/95">
-                            ⚡ <span className="font-medium">{barrierLabel}</span>: {ms.breakthrough}
+                          <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+                            ⚡ <span className="font-medium text-slate-300">{barrierLabel}</span>: {ms.breakthrough}
                           </p>
                         ) : null}
                         {ms.outcome ? (
@@ -646,8 +652,8 @@ export function CountryPvOssTools({ country, isEn }: CountryPvOssToolsProps) {
               onClick={() => setSelectedOssCategory(tab.id)}
               className={
                 active
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs px-3 py-1.5 rounded-full font-medium'
-                  : 'bg-slate-900/60 hover:bg-slate-800 text-slate-400 border border-slate-800 text-xs px-3 py-1.5 rounded-full transition-colors'
+                  ? 'bg-emerald-600 text-white border border-emerald-500 px-3 py-1.5 rounded-md text-sm font-medium'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60 px-3 py-1.5 rounded-md text-sm font-medium transition-colors'
               }
             >
               {isEn ? tab.en : tab.ja}
@@ -673,12 +679,12 @@ export function CountryPvOssTools({ country, isEn }: CountryPvOssToolsProps) {
             return (
               <Card
                 key={project.id}
-                className="flex flex-col border-border/50 bg-slate-900/90 shadow-none"
+                className="flex flex-col border-slate-800/80 bg-slate-900/70 shadow-none"
               >
-                <CardHeader className="gap-2 space-y-0 pb-2">
+                <CardHeader className="gap-2 space-y-0 p-5 pb-2 sm:p-6 sm:pb-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <CardTitle className="text-sm font-semibold text-foreground">
+                      <CardTitle className="text-base font-semibold text-slate-100">
                         {project.name}
                       </CardTitle>
                     </div>
@@ -712,24 +718,24 @@ export function CountryPvOssTools({ country, isEn }: CountryPvOssToolsProps) {
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge className="border-primary/30 bg-primary/15 text-[10px] text-primary">
+                    <Badge className="border border-emerald-500/30 bg-emerald-950/40 text-xs font-medium text-emerald-300">
                       {categoryLabel}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-3 pt-0 text-xs">
+                <CardContent className="flex flex-1 flex-col gap-3 p-5 pt-0 text-sm sm:p-6 sm:pt-0">
                   <div>
-                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                    <p className="mb-1 text-sm font-medium text-slate-200">
                       {overviewLabel}
                     </p>
-                    <p className="leading-relaxed text-slate-200">{description}</p>
+                    <p className="leading-relaxed text-slate-300">{description}</p>
                   </div>
                   {hardware ? (
                     <div>
-                      <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                      <p className="mb-1 text-sm font-medium text-slate-200">
                         {hardwareLabel}
                       </p>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {hardware.split(',').map((chip) => {
                           const label = chip.trim();
                           if (!label) return null;
@@ -737,7 +743,7 @@ export function CountryPvOssTools({ country, isEn }: CountryPvOssToolsProps) {
                             <Badge
                               key={label}
                               variant="outline"
-                              className="border-border/60 bg-slate-800 font-normal text-slate-300"
+                              className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300"
                             >
                               {label}
                             </Badge>
@@ -747,10 +753,10 @@ export function CountryPvOssTools({ country, isEn }: CountryPvOssToolsProps) {
                     </div>
                   ) : null}
                   <div className="mt-auto">
-                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                    <p className="mb-1 text-sm font-medium text-slate-200">
                       🎯 {purposeLabel}
                     </p>
-                    <p className="rounded-md bg-black/50 px-2.5 py-1.5 leading-relaxed text-slate-200">
+                    <p className="rounded-md border border-slate-800 bg-slate-950/50 px-3 py-2 leading-relaxed text-slate-200">
                       {keyJob}
                     </p>
                   </div>
@@ -785,24 +791,24 @@ const ECOSYSTEM_ACCENT: Record<
     fill: 'fill-emerald-500/25',
     text: 'text-emerald-300',
     line: 'stroke-emerald-400/70',
-    badge: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
-    stroke: '#34d399',
+    badge: 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300',
+    stroke: '#10B981',
   },
   grid_plugin_prohibited: {
-    ring: 'stroke-amber-400',
-    fill: 'fill-amber-500/25',
-    text: 'text-amber-300',
-    line: 'stroke-amber-400/70',
-    badge: 'border-amber-500/40 bg-amber-500/15 text-amber-300',
-    stroke: '#fbbf24',
+    ring: 'stroke-slate-400',
+    fill: 'fill-slate-500/20',
+    text: 'text-slate-300',
+    line: 'stroke-slate-500/60',
+    badge: 'border-slate-700 bg-slate-800 text-slate-400',
+    stroke: '#94a3b8',
   },
   offgrid_leapfrog: {
-    ring: 'stroke-violet-400',
-    fill: 'fill-violet-500/25',
-    text: 'text-violet-300',
-    line: 'stroke-violet-400/70',
-    badge: 'border-violet-500/40 bg-violet-500/15 text-violet-300',
-    stroke: '#a78bfa',
+    ring: 'stroke-emerald-400',
+    fill: 'fill-emerald-500/20',
+    text: 'text-emerald-300',
+    line: 'stroke-emerald-400/60',
+    badge: 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300',
+    stroke: '#34d399',
   },
 };
 
@@ -810,14 +816,14 @@ const PREREQ_BADGE: Record<
   string,
   { icon: string; tone: string }
 > = {
-  present: { icon: '⚡', tone: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
-  absent: { icon: '❌', tone: 'border-rose-500/40 bg-rose-500/10 text-rose-300' },
-  certified: { icon: '✅', tone: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
-  prohibited: { icon: '⛔', tone: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
-  n_a: { icon: '—', tone: 'border-slate-600/50 bg-slate-800/60 text-slate-400' },
-  bidirectional: { icon: '↔', tone: 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300' },
-  no_reverse: { icon: '⛔', tone: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
-  not_required: { icon: '○', tone: 'border-violet-500/40 bg-violet-500/10 text-violet-300' },
+  present: { icon: '⚡', tone: 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300' },
+  absent: { icon: '❌', tone: 'border-slate-700 bg-slate-800 text-slate-400' },
+  certified: { icon: '✅', tone: 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300' },
+  prohibited: { icon: '⛔', tone: 'border-slate-700 bg-slate-800 text-slate-400' },
+  n_a: { icon: '—', tone: 'border-slate-700/60 bg-slate-800/80 text-slate-400' },
+  bidirectional: { icon: '↔', tone: 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300' },
+  no_reverse: { icon: '⛔', tone: 'border-slate-700 bg-slate-800 text-slate-400' },
+  not_required: { icon: '○', tone: 'border-slate-700/60 bg-slate-800/80 text-slate-300' },
 };
 
 type EcoAccent = (typeof ECOSYSTEM_ACCENT)[string];
@@ -879,7 +885,7 @@ function EcoTopoNode({
         y={titleY}
         textAnchor="middle"
         className={accent.text}
-        fontSize={11}
+        fontSize={12}
         fontWeight={700}
       >
         {title}
@@ -887,7 +893,7 @@ function EcoTopoNode({
       {subtitle ? (
         <foreignObject x={4} y={subtitleY} width={w - 8} height={subtitleH}>
           <p
-            className={`m-0 overflow-hidden text-center text-[8px] leading-snug ${accent.text} opacity-80`}
+            className={`m-0 overflow-hidden text-center text-xs leading-snug ${accent.text} opacity-80`}
             style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
           >
             {subtitle}
@@ -899,7 +905,7 @@ function EcoTopoNode({
         <foreignObject x={overlayX} y={overlayY} width={overlayW} height={overlayH}>
           <div className="flex h-full flex-col gap-1 overflow-visible">
             {overlayTitle ? (
-              <p className="m-0 text-[8px] font-semibold leading-tight text-emerald-400/90">
+              <p className="m-0 text-xs font-semibold leading-tight text-emerald-400/90">
                 {overlayTitle}
               </p>
             ) : null}
@@ -913,20 +919,20 @@ function EcoTopoNode({
                     e.stopPropagation();
                     onSelectOssTab?.();
                   }}
-                  className="rounded-md border border-emerald-500/50 bg-emerald-950/95 px-1.5 py-1 text-left shadow-lg shadow-black/40 backdrop-blur-sm hover:border-emerald-400/70 hover:bg-emerald-900/95"
+                  className="rounded-md border border-emerald-500/50 bg-emerald-950/95 px-2 py-1.5 text-left shadow-lg shadow-black/40 backdrop-blur-sm hover:border-emerald-400/70 hover:bg-emerald-900/95"
                 >
                   <span className="flex flex-wrap items-baseline gap-x-1 gap-y-0">
-                    <span aria-hidden className="text-[9px]">
+                    <span aria-hidden className="text-xs">
                       {emoji}
                     </span>
-                    <span className="text-[9px] font-semibold text-emerald-200">{tool.name}</span>
-                    <span className="text-[8px] font-medium text-emerald-400/90">{tool.role}</span>
+                    <span className="text-xs font-semibold text-emerald-200">{tool.name}</span>
+                    <span className="text-xs font-medium text-emerald-400/90">{tool.role}</span>
                   </span>
-                  <span className="mt-0.5 block text-[8px] leading-snug break-words text-slate-100">
+                  <span className="mt-0.5 block text-xs leading-snug break-words text-slate-100">
                     {tool.capability}
                   </span>
                   {openOssLabel ? (
-                    <span className="mt-0.5 block text-[7px] text-emerald-400/80">
+                    <span className="mt-0.5 block text-xs text-emerald-400/80">
                       {openOssLabel} →
                     </span>
                   ) : null}
@@ -1119,12 +1125,12 @@ function BifurcationTopology({
           className={`${accent.fill} ${accent.ring}`}
           strokeWidth={1.5}
         />
-        <text x={42} y={16} textAnchor="middle" className={accent.text} fontSize={10} fontWeight={700}>
+        <text x={42} y={16} textAnchor="middle" className={accent.text} fontSize={12} fontWeight={700}>
           {isEn ? 'Meter' : 'メーター'}
         </text>
         <foreignObject x={3} y={20} width={78} height={40}>
           <p
-            className={`m-0 overflow-hidden text-center text-[8px] leading-snug ${accent.text} opacity-80`}
+            className={`m-0 overflow-hidden text-center text-xs leading-snug ${accent.text} opacity-80`}
             style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
           >
             {topology.wiringFlow.metering}
@@ -1145,10 +1151,10 @@ function BifurcationTopology({
           width={52}
           height={62}
           rx={8}
-          className="fill-slate-800/80 stroke-cyan-400/70"
+          className="fill-slate-800/80 stroke-emerald-400/70"
           strokeWidth={1.5}
         />
-        <text x={126} y={28} textAnchor="middle" className="fill-cyan-300" fontSize={10} fontWeight={700}>
+        <text x={126} y={28} textAnchor="middle" className="fill-emerald-300" fontSize={12} fontWeight={700}>
           {isEn ? 'Grid' : '系統'}
         </text>
         <text x={126} y={44} textAnchor="middle" className="fill-slate-400" fontSize={8}>
@@ -1197,11 +1203,11 @@ function ClosedLoopTopology({
         width={360}
         height={224}
         rx={14}
-        className="fill-amber-500/5 stroke-amber-400/30"
+        className="fill-emerald-500/5 stroke-emerald-500/30"
         strokeWidth={1.5}
         strokeDasharray="6 4"
       />
-      <text x={40} y={48} className="fill-amber-300/90" fontSize={10} fontWeight={600}>
+      <text x={40} y={48} className="fill-emerald-300/90" fontSize={12} fontWeight={600}>
         {isEn ? 'Closed loop (home)' : '閉ループ回路（宅内）'}
       </text>
       <EcoTopoNode
@@ -1261,20 +1267,20 @@ function ClosedLoopTopology({
         <animateMotion dur="3s" repeatCount="indefinite" path="M236,110 L296,110 L296,204 L160,204 L160,148" />
       </circle>
       {/* barrier wall */}
-      <line x1={400} y1={36} x2={400} y2={244} stroke="#f87171" strokeWidth={3} strokeDasharray="2 6" />
+      <line x1={400} y1={36} x2={400} y2={244} stroke="#64748b" strokeWidth={3} strokeDasharray="2 6" />
       <rect
         x={408}
         y={100}
         width={208}
         height={64}
         rx={10}
-        className="fill-rose-500/15 stroke-rose-400/70"
+        className="fill-slate-800 stroke-slate-600"
         strokeWidth={1.5}
       />
-      <text x={512} y={126} textAnchor="middle" className="fill-rose-300" fontSize={11} fontWeight={700}>
+      <text x={512} y={126} textAnchor="middle" className="fill-slate-300" fontSize={12} fontWeight={700}>
         {isEn ? '⛔ Zero-export stop' : '⛔ 逆潮流ストップ'}
       </text>
-      <text x={512} y={144} textAnchor="middle" className="fill-rose-200/80" fontSize={9}>
+      <text x={512} y={144} textAnchor="middle" className="fill-slate-400" fontSize={11}>
         {isEn ? 'CT clamp / no reverse' : 'ゼロエクスポート / CTクランプ保護'}
       </text>
       <EcoTopoNode
@@ -1321,19 +1327,19 @@ function StandaloneTopology({
           width={120}
           height={52}
           rx={8}
-          className="fill-slate-800/50 stroke-rose-400/50"
+          className="fill-slate-800/50 stroke-slate-600"
           strokeWidth={1.5}
           strokeDasharray="4 3"
         />
-        <text x={76} y={46} textAnchor="middle" className="fill-rose-300" fontSize={11} fontWeight={700}>
+        <text x={76} y={46} textAnchor="middle" className="fill-slate-300" fontSize={12} fontWeight={700}>
           {isEn ? '❌ No grid' : '❌ 系統不在'}
         </text>
-        <text x={76} y={62} textAnchor="middle" className="fill-slate-400" fontSize={9}>
+        <text x={76} y={62} textAnchor="middle" className="fill-slate-400" fontSize={11}>
           {isEn ? 'Utility disconnected' : '商用系統切り離し'}
         </text>
       </g>
-      <line x1={136} y1={50} x2={176} y2={50} stroke="#f87171" strokeWidth={2} strokeDasharray="3 4" />
-      <text x={156} y={42} textAnchor="middle" className="fill-rose-400" fontSize={14}>
+      <line x1={136} y1={50} x2={176} y2={50} stroke="#64748b" strokeWidth={2} strokeDasharray="3 4" />
+      <text x={156} y={42} textAnchor="middle" className="fill-slate-400" fontSize={14}>
         ✂
       </text>
       <EcoTopoNode
@@ -1379,7 +1385,7 @@ function StandaloneTopology({
         openOssLabel={openOssLabel}
         onSelectOssTab={onSelectOssTab}
       />
-      <text x={556} y={200} textAnchor="middle" className="fill-violet-300/90" fontSize={10} fontWeight={600}>
+      <text x={556} y={200} textAnchor="middle" className="fill-emerald-300/90" fontSize={12} fontWeight={600}>
         {isEn ? 'Autonomous micro-supply' : '自立ダイレクト給電'}
       </text>
     </svg>
@@ -1471,16 +1477,15 @@ export function CountryPvEcosystem({
       <div className="flex flex-wrap gap-2">
         {MARKET_ECOSYSTEM_TOPOLOGIES.map((t) => {
           const active = t.modelId === topology.modelId;
-          const a = ECOSYSTEM_ACCENT[t.modelId] ?? ECOSYSTEM_ACCENT.grid_plugin_allowed;
           return (
             <button
               key={t.modelId}
               type="button"
               onClick={() => setSelectedModelId(t.modelId)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
                 active
-                  ? a.badge
-                  : 'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                  ? 'border-emerald-500 bg-emerald-600 text-white'
+                  : 'border-slate-700/60 bg-slate-900/80 text-slate-300 hover:bg-slate-800'
               }`}
             >
               {isEn ? t.badgeEn : t.badgeJa}
@@ -1489,17 +1494,17 @@ export function CountryPvEcosystem({
         })}
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-slate-900/80 p-3 sm:p-4">
+      <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-5 sm:p-6">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <Badge className={`border text-[10px] font-medium ${accent.badge}`}>{badge}</Badge>
-          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+          <Badge className={`border text-xs font-medium ${accent.badge}`}>{badge}</Badge>
+          <h3 className="text-base font-semibold text-slate-100">{title}</h3>
         </div>
-        <p className="text-xs leading-relaxed text-slate-300">{summary}</p>
+        <p className="text-sm leading-relaxed text-slate-300">{summary}</p>
       </div>
 
       {/* 環境前提条件（診断バッジ） */}
-      <div className="rounded-xl border border-border/40 bg-black/30 p-3">
-        <p className="mb-2 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+      <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-5">
+        <p className="mb-3 text-sm font-medium tracking-wide text-slate-200">
           {isEn ? 'Environmental preconditions' : '環境前提条件'}
         </p>
         <div className="flex flex-wrap gap-2">
@@ -1508,7 +1513,7 @@ export function CountryPvEcosystem({
             return (
               <span
                 key={item.key}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${tone.tone}`}
+                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium ${tone.tone}`}
               >
                 <span aria-hidden>{tone.icon}</span>
                 {item.label}
@@ -1518,7 +1523,7 @@ export function CountryPvEcosystem({
         </div>
       </div>
 
-      <div className="overflow-x-auto overflow-y-visible rounded-xl border border-border/40 bg-black/40 p-3 sm:p-4">
+      <div className="overflow-x-auto overflow-y-visible rounded-xl border border-slate-800/80 bg-slate-900/70 p-5 sm:p-6">
         <div className="mx-auto w-full max-w-6xl">
           <EcosystemTopologyDiagram
             topology={topology}
@@ -1532,31 +1537,31 @@ export function CountryPvEcosystem({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {WIRING_FLOW_STEPS.map((step) => (
           <div
             key={step.key}
-            className="rounded-lg border border-border/40 bg-slate-950/50 px-3 py-2"
+            className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-5"
           >
-            <p className="mb-0.5 text-[10px] font-medium text-muted-foreground">
+            <p className="mb-1 text-sm font-medium text-slate-200">
               {isEn ? step.en : step.ja}
             </p>
-            <p className="text-xs leading-relaxed text-slate-200">
+            <p className="text-sm leading-relaxed text-slate-300">
               {topology.wiringFlow[step.key]}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-slate-900/70 p-3 sm:p-4">
-        <p className="mb-2 text-[10px] font-medium text-muted-foreground">
+      <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 p-5 sm:p-6">
+        <p className="mb-3 text-sm font-medium text-slate-200">
           {isEn ? 'Key features' : '特徴'}
         </p>
-        <ul className="space-y-1.5">
+        <ul className="space-y-2">
           {features.map((f) => (
             <li
               key={f}
-              className="flex gap-2 text-xs leading-relaxed text-slate-200 before:mt-1.5 before:size-1.5 before:shrink-0 before:rounded-full before:bg-current before:opacity-60"
+              className="flex gap-2 text-sm leading-relaxed text-slate-200 before:mt-1.5 before:size-1.5 before:shrink-0 before:rounded-full before:bg-emerald-500 before:opacity-80"
             >
               {f}
             </li>
@@ -1568,38 +1573,38 @@ export function CountryPvEcosystem({
 }
 
 const CYAN_TIMELINE_ACCENT: TimelineSidebarAccent = {
-  activeBorder: 'border-cyan-500/40',
-  activeBg: 'bg-cyan-500/10',
-  chevron: 'text-cyan-300',
-  period: 'text-cyan-300/90',
+  activeBorder: 'border-emerald-500/40',
+  activeBg: 'bg-emerald-950/40',
+  chevron: 'text-emerald-300',
+  period: 'text-emerald-300/90',
 };
 
 const VIOLET_TIMELINE_ACCENT: TimelineSidebarAccent = {
-  activeBorder: 'border-violet-500/40',
-  activeBg: 'bg-violet-500/10',
-  chevron: 'text-violet-300',
-  period: 'text-violet-300/90',
+  activeBorder: 'border-emerald-500/40',
+  activeBg: 'bg-emerald-950/40',
+  chevron: 'text-emerald-300',
+  period: 'text-emerald-300/90',
 };
 
 const EMERALD_TIMELINE_ACCENT: TimelineSidebarAccent = {
   activeBorder: 'border-emerald-500/40',
-  activeBg: 'bg-emerald-500/10',
+  activeBg: 'bg-emerald-950/40',
   chevron: 'text-emerald-300',
   period: 'text-emerald-300/90',
 };
 
 const AMBER_TIMELINE_ACCENT: TimelineSidebarAccent = {
-  activeBorder: 'border-amber-500/40',
-  activeBg: 'bg-amber-500/10',
-  chevron: 'text-amber-300',
-  period: 'text-amber-300/90',
+  activeBorder: 'border-slate-700',
+  activeBg: 'bg-slate-800',
+  chevron: 'text-slate-300',
+  period: 'text-slate-400',
 };
 
 const SKY_TIMELINE_ACCENT: TimelineSidebarAccent = {
-  activeBorder: 'border-sky-500/40',
-  activeBg: 'bg-sky-500/10',
-  chevron: 'text-sky-300',
-  period: 'text-sky-300/90',
+  activeBorder: 'border-emerald-500/40',
+  activeBg: 'bg-emerald-950/40',
+  chevron: 'text-emerald-300',
+  period: 'text-emerald-300/90',
 };
 
 const SOUTHEAST_ASIA_PIN_IDS = new Set(['vn', 'sg', 'indonesia', 'philippines']);
@@ -1637,6 +1642,8 @@ export function WorldPvMap({
   historyPhase,
   onHistoryPhaseChange,
   historyFocusRegionId = null,
+  highlightCountryCodes = [],
+  onNavigateToSolarCell,
 }: WorldPvMapProps) {
   const t = useTranslations('worldPv');
   const locale = useLocale();
@@ -2321,8 +2328,30 @@ export function WorldPvMap({
     return aTop - bTop;
   });
 
+  const selectedPin = MAP_PIN_COUNTRIES.find((c) => c.id === selectedCountryId);
+  const selectedPanelLinks = selectedPin
+    ? getSolarCellTypesForCountryCode(String(selectedPin.code))
+    : [];
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-background/50 select-none">
+      {onNavigateToSolarCell && selectedPanelLinks.length > 0 ? (
+        <div className="absolute bottom-3 left-2 z-20 flex max-w-[min(100%-1rem,28rem)] flex-wrap items-center gap-1.5 rounded-xl border border-slate-800/80 bg-slate-900/90 px-3 py-2 shadow-lg backdrop-blur-sm">
+          <span className="text-xs font-medium text-slate-400">
+            {isEn ? 'Panels' : '推奨パネル'}
+          </span>
+          {selectedPanelLinks.map((cell) => (
+            <button
+              key={cell.id}
+              type="button"
+              onClick={() => onNavigateToSolarCell(cell.id)}
+              className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
+            >
+              {isEn ? cell.categoryBadgeEn : cell.categoryBadgeJa}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {/* SP/PC共通: 市場モデル → 地域 → 実装度ランキング → 関連資料（左寄せ・折り返し対応） */}
       <div
         className={`absolute top-2 left-2 z-20 flex flex-wrap items-center justify-start gap-2 rounded-md border border-border/50 bg-card/90 p-0.5 shadow-sm backdrop-blur ${
@@ -2497,6 +2526,9 @@ export function WorldPvMap({
             {sortedPinCountries.map((country) => {
               const isSelected = country.id === selectedCountryId;
               const isHovered = hoveredRegionId === country.id;
+              const isCodeHighlighted = highlightCountryCodes.some(
+                (c) => c.toUpperCase() === String(country.code).toUpperCase(),
+              );
               const focused = isInFocus(country);
               const isMatchFilter = matchesModelFilter(country, selectedModelType);
               const isMilestoneFocus = focusedMilestoneRegionId === country.id;
@@ -2516,7 +2548,9 @@ export function WorldPvMap({
                       ? 0.45
                       : 0.12
                   : !focused
-                    ? 0.22
+                    ? isCodeHighlighted
+                      ? 1
+                      : 0.22
                     : isMatchFilter
                       ? 1
                       : 0.15;
@@ -2525,8 +2559,8 @@ export function WorldPvMap({
                 isAnyHistoryOpen && (isMilestoneFocus || (isPhaseTarget && !focusedMilestoneRegionId));
               const pinScale =
                 (1 / zoom) *
-                (isFilterHighlight || isHistoryEmphasized ? 1.25 : 1) *
-                (isMilestoneFocus ? 1.15 : 1);
+                (isFilterHighlight || isHistoryEmphasized || isCodeHighlighted ? 1.25 : 1) *
+                (isMilestoneFocus || isCodeHighlighted ? 1.15 : 1);
               const color = statusColor(country.status);
               const stars = getMaturityScore(country);
               const countryName = countryField(country, 'name');

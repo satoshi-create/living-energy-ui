@@ -540,7 +540,23 @@
         "company": "企業",
         "npo": "非営利団体",
         "government": "政府機関"
-      }
+      },
+      "recommendedCells": "推奨パネル・タイポロジー",
+      "jump": {
+        "ecosystem": "エコシステム給電図を開く",
+        "surfaces": "3Dサーフェイスを開く",
+        "cellTypes": "セル種類を開く",
+        "vendors": "主要企業一覧を開く",
+        "nonprofits": "関連団体一覧を開く"
+      },
+      "statusCard": {
+        "powerModel": "接続/給電モデル",
+        "works": "工事要否",
+        "excess": "余剰電力",
+        "legal": "法的手続"
+      },
+      "jumpOpen": "開く",
+      "statusSummary": "導入ステータス"
     },
     "architecture": {
       "sectionTitle": "建築形態と生活家具型ソーラー",

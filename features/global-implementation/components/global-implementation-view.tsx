@@ -60,8 +60,8 @@ function FilterChip({
       className={cn(
         "rounded-md border px-2 py-1 text-xs font-medium transition-colors",
         active
-          ? "border-primary/50 bg-primary/20 text-primary"
-          : "border-border/50 bg-black/40 text-muted-foreground hover:border-border hover:bg-slate-900 hover:text-foreground",
+          ? "border-emerald-500 bg-emerald-600 text-white"
+          : "border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80 hover:text-slate-100",
       )}
     >
       {label}
@@ -89,25 +89,25 @@ export function MajorVendorsListView() {
     t(`categories.${CATEGORY_MSG_KEY[id]}` as "categories.all")
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto bg-slate-950/80 p-3 sm:p-4">
-      <div className="shrink-0 space-y-3 rounded-xl border border-border/50 bg-black/60 p-3 sm:p-4">
+    <div className="flex h-full min-h-0 flex-col space-y-8 overflow-y-auto bg-slate-950 p-5 sm:p-6 md:p-8">
+      <div className="mb-8 shrink-0 space-y-4 rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
         <div className="flex items-start gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
             <Building2 className="size-4" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <h2 className="text-base font-semibold text-slate-100">{t("title")}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
               {t("lead", { count: GLOBAL_PV_VENDORS.length })}
             </p>
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
             {t("hqFilter")}
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {VENDOR_REGION_FILTERS.map((id) => (
               <FilterChip
                 key={id}
@@ -119,11 +119,11 @@ export function MajorVendorsListView() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <div className="flex flex-col gap-2 border-t border-slate-800/60 pt-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
             {t("categoryFilter")}
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {VENDOR_CATEGORY_FILTERS.map((id) => (
               <FilterChip
                 key={id}
@@ -137,11 +137,11 @@ export function MajorVendorsListView() {
       </div>
 
       {vendors.length === 0 ? (
-        <p className="rounded-xl border border-border/40 bg-black/40 px-4 py-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-xl border border-slate-800 bg-slate-900/80 px-5 py-8 text-center text-sm text-slate-400">
           {t("empty")}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {vendors.map((vendor) => {
             const displayName = isEn ? vendor.name : vendor.nameJa
             const hq = isEn && vendor.hqCountryEn ? vendor.hqCountryEn : vendor.hqCountry
@@ -150,16 +150,16 @@ export function MajorVendorsListView() {
             return (
               <Card
                 key={vendor.id}
-                className="flex flex-col border-border/50 bg-slate-900/90 shadow-none"
+                className="flex flex-col rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-none transition-all duration-200 hover:border-slate-700/80 hover:bg-slate-800/80 md:p-6"
               >
-                <CardHeader className="gap-2 space-y-0 pb-2">
-                  <div className="flex items-start justify-between gap-2">
+                <CardHeader className="space-y-4 p-0">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <CardTitle className="text-sm font-semibold text-foreground">
+                      <CardTitle className="text-base font-semibold text-slate-100">
                         {displayName}
                       </CardTitle>
                       {!isEn ? (
-                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                        <p className="mt-1 font-mono text-xs text-slate-400">
                           {vendor.name}
                         </p>
                       ) : null}
@@ -168,57 +168,57 @@ export function MajorVendorsListView() {
                       href={vendor.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/50 bg-black/40 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-slate-700/60 bg-slate-900/80 text-slate-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
                       aria-label={`${vendor.name} ${t("officialSite")}`}
                     >
                       <ExternalLink className="size-3.5" />
                     </a>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge
                       variant="outline"
-                      className="gap-1 border-border/60 text-[10px] font-normal text-slate-300"
+                      className="gap-1 border-slate-700/60 text-xs font-normal text-slate-300"
                     >
                       <MapPin className="size-3" />
                       {t("hq")}: {hq}
                     </Badge>
-                    <Badge className="border-primary/30 bg-primary/15 text-[10px] text-primary">
+                    <Badge className="border-emerald-500/30 bg-emerald-500/15 text-xs text-emerald-300">
                       {categoryLabel(vendor.category)}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-3 pt-0 text-xs">
-                  <div>
-                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                <CardContent className="mt-4 flex flex-1 flex-col space-y-4 p-0">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {t("overview")}
                     </p>
-                    <p className="leading-relaxed text-slate-200">{description}</p>
+                    <p className="text-sm font-medium leading-relaxed text-slate-200">{description}</p>
                   </div>
-                  <div>
-                    <p className="mb-1.5 text-[10px] font-medium text-muted-foreground">
+                  <div className="space-y-2 border-t border-slate-800/60 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {t("products")}
                     </p>
-                    <ul className="flex flex-col gap-1">
+                    <ul className="flex flex-col gap-2">
                       {vendor.keyProducts.map((product) => (
                         <li
                           key={product}
-                          className="rounded-md bg-black/50 px-2.5 py-1.5 text-slate-200"
+                          className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200"
                         >
                           {product}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="mt-auto">
-                    <p className="mb-1.5 text-[10px] font-medium text-muted-foreground">
+                  <div className="mt-auto space-y-2 border-t border-slate-800/60 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {t("markets")}
                     </p>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-2">
                       {vendor.targetRegions.map((region) => (
                         <Badge
                           key={region}
                           variant="outline"
-                          className="border-sky-500/30 bg-sky-500/10 text-[10px] font-normal text-sky-300"
+                          className="border-slate-700/60 bg-slate-900/80 text-xs font-normal text-slate-300"
                         >
                           {regionLabel(region)}
                         </Badge>
@@ -248,25 +248,25 @@ export function NonProfitOrgsListView() {
     t(`regions.${id}` as "regions.all")
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto bg-slate-950/80 p-3 sm:p-4">
-      <div className="shrink-0 space-y-3 rounded-xl border border-border/50 bg-black/60 p-3 sm:p-4">
+    <div className="flex h-full min-h-0 flex-col space-y-8 overflow-y-auto bg-slate-950 p-5 sm:p-6 md:p-8">
+      <div className="mb-8 shrink-0 space-y-4 rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
         <div className="flex items-start gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
             <Users className="size-4" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <h2 className="text-base font-semibold text-slate-100">{t("title")}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
               {t("lead", { count: NON_PROFIT_ORGS.length })}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <div className="flex flex-col gap-2 border-t border-slate-800/60 pt-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
             {t("regionFilter")}
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {NON_PROFIT_REGION_FILTERS.map((id) => (
               <FilterChip
                 key={id}
@@ -280,11 +280,11 @@ export function NonProfitOrgsListView() {
       </div>
 
       {orgs.length === 0 ? (
-        <p className="rounded-xl border border-border/40 bg-black/40 px-4 py-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-xl border border-slate-800 bg-slate-900/80 px-5 py-8 text-center text-sm text-slate-400">
           {t("empty")}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {orgs.map((org) => {
             const displayName = isEn ? org.nameEn : org.name
             const hq = isEn ? org.headquartersEn : org.headquarters
@@ -295,16 +295,16 @@ export function NonProfitOrgsListView() {
             return (
               <Card
                 key={org.id}
-                className="flex flex-col border-border/50 bg-slate-900/90 shadow-none"
+                className="flex flex-col rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-none transition-all duration-200 hover:border-slate-700/80 hover:bg-slate-800/80 md:p-6"
               >
-                <CardHeader className="gap-2 space-y-0 pb-2">
-                  <div className="flex items-start justify-between gap-2">
+                <CardHeader className="space-y-4 p-0">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <CardTitle className="text-sm font-semibold text-foreground">
+                      <CardTitle className="text-base font-semibold text-slate-100">
                         {displayName}
                       </CardTitle>
                       {!isEn ? (
-                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                        <p className="mt-1 font-mono text-xs text-slate-400">
                           {org.nameEn}
                         </p>
                       ) : null}
@@ -313,43 +313,43 @@ export function NonProfitOrgsListView() {
                       href={org.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/50 bg-black/40 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-slate-700/60 bg-slate-900/80 text-slate-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-400"
                       aria-label={`${org.nameEn} ${t("officialSite")}`}
                     >
                       <ExternalLink className="size-3.5" />
                     </a>
                   </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge
                       variant="outline"
-                      className="gap-1 border-border/60 text-[10px] font-normal text-slate-300"
+                      className="gap-1 border-slate-700/60 text-xs font-normal text-slate-300"
                     >
                       <MapPin className="size-3" />
                       {t("hq")}: {hq}
                     </Badge>
-                    <Badge className="border-primary/30 bg-primary/15 text-[10px] text-primary">
+                    <Badge className="border-emerald-500/30 bg-emerald-500/15 text-xs text-emerald-300">
                       {category}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-3 pt-0 text-xs">
-                  <div>
-                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                <CardContent className="mt-4 flex flex-1 flex-col space-y-4 p-0">
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {t("overview")}
                     </p>
-                    <p className="leading-relaxed text-slate-200">{overview}</p>
+                    <p className="text-sm font-medium leading-relaxed text-slate-200">{overview}</p>
                   </div>
-                  <div>
-                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                  <div className="space-y-2 border-t border-slate-800/60 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {t("barrierOvercome")}
                     </p>
-                    <p className="leading-relaxed text-slate-200">{barrier}</p>
+                    <p className="text-sm font-medium leading-relaxed text-slate-200">{barrier}</p>
                   </div>
-                  <div className="mt-auto">
-                    <p className="mb-1 text-[10px] font-medium text-muted-foreground">
+                  <div className="mt-auto space-y-2 border-t border-slate-800/60 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {t("keyMilestone")}
                     </p>
-                    <p className="rounded-md bg-black/50 px-2.5 py-1.5 leading-relaxed text-slate-200">
+                    <p className="rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm font-medium leading-relaxed text-slate-200">
                       {milestone}
                     </p>
                   </div>
@@ -545,16 +545,16 @@ export function GlobalImplementationView({
   const southeastAsiaSelected = isSoutheastAsiaIslandRegion(selectedRegionKey)
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="border-border/60">
-        <CardHeader>
+    <div className="flex flex-col space-y-8 bg-slate-950 p-5 sm:p-6 md:p-8">
+      <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+        <CardHeader className="p-0">
           <div className="flex items-start gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Globe2 className="size-5" />
             </div>
             <div>
-              <CardTitle className="text-base font-semibold">{t("title")}</CardTitle>
-              <CardDescription className="mt-1 text-pretty">{t("lead")}</CardDescription>
+              <CardTitle className="text-base font-semibold text-slate-100">{t("title")}</CardTitle>
+              <CardDescription className="mt-2 text-pretty text-sm leading-relaxed text-slate-400">{t("lead")}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -704,32 +704,35 @@ export function GlobalImplementationView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-4">
         {REGIONS.map((item) => (
-          <Card key={item.id} className="border-border/60">
-            <CardHeader className="gap-2">
+          <Card
+            key={item.id}
+            className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 transition-all duration-200 hover:border-slate-700/80 hover:bg-slate-800/80 md:p-6"
+          >
+            <CardHeader className="space-y-4 p-0">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="gap-1 text-xs">
+                <Badge variant="outline" className="gap-1 border-slate-700/60 text-xs text-slate-300">
                   <MapPin className="size-3" />
                   {isEn ? item.regionEn : item.region}
                 </Badge>
-                <Badge className="bg-primary/90 text-primary-foreground text-xs">
+                <Badge className="bg-emerald-600 text-xs text-white">
                   {isEn ? item.badgeEn : item.badge}
                 </Badge>
               </div>
-              <CardTitle className="text-sm font-semibold leading-snug">
+              <CardTitle className="text-base font-semibold leading-snug text-slate-100">
                 {isEn ? item.titleEn : item.title}
               </CardTitle>
-              <CardDescription className="text-pretty text-xs leading-relaxed">
+              <CardDescription className="text-pretty text-sm leading-relaxed text-slate-400">
                 {isEn ? item.bodyEn : item.body}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="mt-4 p-0">
               <ul className="flex flex-col gap-2">
                 {(isEn ? item.pointsEn : item.points).map((point) => (
                   <li
                     key={point}
-                    className="flex items-start gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs text-foreground"
+                    className="flex items-start gap-2 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm text-slate-200"
                   >
                     <Landmark className="mt-0.5 size-3.5 shrink-0 text-primary" />
                     <span>{point}</span>

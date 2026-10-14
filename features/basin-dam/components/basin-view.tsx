@@ -56,16 +56,16 @@ export function BasinView() {
   }, [notice])
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col space-y-8">
       <CitizenSafetySummary safety={safety} />
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold">{BASIN_LABEL}</CardTitle>
-          <CardDescription className="mt-1 max-w-xl text-pretty">{BASIN_DESCRIPTION}</CardDescription>
+      <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+        <CardHeader className="p-0 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-100">{BASIN_LABEL}</CardTitle>
+          <CardDescription className="mt-2 max-w-xl text-pretty text-sm leading-relaxed text-slate-400">{BASIN_DESCRIPTION}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="mb-6 flex flex-col gap-4 rounded-xl border border-border/60 bg-muted/40 px-4 py-4">
+        <CardContent className="p-0">
+          <div className="mb-6 flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5">
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="secondary"
@@ -136,11 +136,11 @@ export function BasinView() {
 
       <BasinEnergyPanel energy={energy} />
 
-      <Card className="border-border/60">
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+        <CardHeader className="flex flex-col gap-4 p-0 pb-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-sm font-semibold">圃場とオリフィス堰板</CardTitle>
-            <CardDescription className="mt-1 max-w-xl text-pretty">
+            <CardTitle className="text-base font-semibold text-slate-100">圃場とオリフィス堰板</CardTitle>
+            <CardDescription className="mt-2 max-w-xl text-pretty text-sm leading-relaxed text-slate-400">
               数千円の板を既存枡に挿すだけで、大雨の夜の水路見回りを解雇できます。
             </CardDescription>
           </div>
@@ -157,7 +157,7 @@ export function BasinView() {
             一括事前排水
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <OrificeFieldCards
             fields={fields}
             onOrificeChange={(fieldId, installed) => {
@@ -169,7 +169,7 @@ export function BasinView() {
       </Card>
 
       {notice && (
-        <div className="fixed right-4 bottom-20 z-50 flex max-w-sm items-center gap-2 rounded-xl border border-primary/40 bg-card px-3 py-2.5 text-sm text-card-foreground shadow-lg lg:bottom-6">
+        <div className="fixed right-4 bottom-20 z-50 flex max-w-sm items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3 text-sm text-slate-200 shadow-lg lg:bottom-6">
           <ShieldCheck className="size-4 shrink-0 text-primary" />
           <span className="flex-1">{notice}</span>
           <button

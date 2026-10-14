@@ -12,12 +12,12 @@ type OrificeFieldCardsProps = {
 
 export function OrificeFieldCards({ fields, onOrificeChange }: OrificeFieldCardsProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {fields.map((field) => (
         <div
           key={field.id}
           className={cn(
-            "flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-4",
+            "flex flex-col space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 transition-all duration-200 hover:border-slate-700/80 hover:bg-slate-800/80 md:p-6",
             field.tone === "watch" && "border-amber-500/40"
           )}
         >
@@ -27,13 +27,13 @@ export function OrificeFieldCards({ fields, onOrificeChange }: OrificeFieldCards
                 <Sprout className="size-4.5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-card-foreground">{field.name}</p>
-                <p className="text-xs text-muted-foreground">{field.crop}</p>
+                <p className="text-sm font-medium text-slate-200">{field.name}</p>
+                <p className="text-xs text-slate-400">{field.crop}</p>
               </div>
             </div>
             <span
               className={cn(
-                "rounded px-1.5 py-0.5 text-[10px] font-medium",
+                "rounded px-2 py-0.5 text-xs font-medium",
                 field.tone === "watch" && "bg-amber-500/15 text-amber-400",
                 field.tone === "done" && "bg-sky-500/15 text-sky-300",
                 field.tone === "normal" && "bg-primary/15 text-primary"
@@ -43,12 +43,12 @@ export function OrificeFieldCards({ fields, onOrificeChange }: OrificeFieldCards
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>土壌含水率</span>
-            <span className="font-mono tabular-nums text-foreground">{field.moisture}%</span>
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold uppercase tracking-wider text-slate-400">土壌含水率</span>
+            <span className="font-mono tabular-nums text-slate-200">{field.moisture}%</span>
           </div>
           <div
-            className="h-1.5 overflow-hidden rounded-full bg-muted"
+            className="h-1.5 overflow-hidden rounded-full bg-slate-800"
             role="meter"
             aria-label={`${field.name}の含水率`}
             aria-valuenow={field.moisture}
@@ -64,10 +64,10 @@ export function OrificeFieldCards({ fields, onOrificeChange }: OrificeFieldCards
             />
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-border/50 pt-3">
+          <div className="flex items-center justify-between gap-3 border-t border-slate-800/60 pt-4">
             <div>
-              <p className="text-xs font-medium text-card-foreground">オリフィス堰板</p>
-              <p className="text-[11px] text-muted-foreground">既存枡に板を挿すだけ</p>
+              <p className="text-sm font-medium text-slate-200">オリフィス堰板</p>
+              <p className="text-xs text-slate-400">既存枡に板を挿すだけ</p>
             </div>
             <Switch
               checked={field.orificeInstalled}

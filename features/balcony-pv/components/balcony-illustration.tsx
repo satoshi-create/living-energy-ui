@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, type CSSProperties } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
+import { ChevronLeft, PanelRightClose, PanelRightOpen } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   SURFACE_TYPOLOGIES,
   getPanelTiltOption,
@@ -20,6 +22,11 @@ import {
   type SurfaceTypologyDetail,
   type WeatherCondition,
 } from "../simulator-data"
+import {
+  getSolarCellTypesForSurface,
+  type SolarCellTypeDetail,
+  type SolarCellTypeId,
+} from "../data"
 
 type SurfaceCategoryFilter = "all" | "balcony" | "roof"
 
@@ -595,7 +602,7 @@ export function BalconyIllustration({
   const laundryShadowStrength = 1 - elevation * 0.35
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-muted/40 to-background">
+    <div className="overflow-hidden rounded-xl border border-slate-800/80 bg-gradient-to-b from-slate-900/60 to-slate-950">
       <svg viewBox="0 0 300 200" className="h-56 w-full" role="img" aria-label={t("illustration.ariaLabel")}>
         <LifeLayerDefs />
         {/* sky */}
@@ -693,7 +700,7 @@ export function SurfaceCountryTags({ typology }: SurfaceCountryTagsProps) {
         <Badge
           key={country.code}
           variant="outline"
-          className="h-5 rounded-md px-1.5 text-[10px] font-medium"
+          className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
         >
           {country.code} {tPv(country.nameKey)}
         </Badge>
@@ -715,7 +722,7 @@ export function SurfaceMountJobBadges({ typology }: SurfaceMountJobBadgesProps) 
         <Badge
           key={opt.mountMethod}
           variant="secondary"
-          className="h-5 rounded-md px-1.5 text-[10px] font-medium"
+          className="rounded-md border border-slate-700/60 bg-slate-800/80 px-3 py-1 text-xs font-medium text-slate-300"
         >
           🔧 {tPv(opt.labelKey)}
         </Badge>
@@ -724,8 +731,8 @@ export function SurfaceMountJobBadges({ typology }: SurfaceMountJobBadgesProps) 
         variant="outline"
         className={
           typology.requiresDeShimai
-            ? "h-5 rounded-md border-amber-500/50 bg-amber-500/15 px-1.5 text-[10px] font-medium text-amber-200"
-            : "h-5 rounded-md border-slate-500/40 bg-slate-500/10 px-1.5 text-[10px] font-medium text-slate-300"
+            ? "rounded-md border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-medium text-emerald-300"
+            : "rounded-md border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-400"
         }
       >
         {typology.requiresDeShimai
@@ -740,25 +747,35 @@ export type SurfaceTypologyCardProps = {
   typology: SurfaceTypologyDetail
   selected?: boolean
   onSelect?: (id: SurfaceTypology) => void
+  /** Reverse link: open a panel typology card. */
+  onNavigateToCell?: (cellId: SolarCellTypeId) => void
+  highlightCellId?: SolarCellTypeId | null
 }
 
 /** Single typology-first catalog card (title = pure form geometry, not country). */
-export function SurfaceTypologyCard({ typology, selected, onSelect }: SurfaceTypologyCardProps) {
+export function SurfaceTypologyCard({
+  typology,
+  selected,
+  onSelect,
+  onNavigateToCell,
+  highlightCellId = null,
+}: SurfaceTypologyCardProps) {
   const t = useTranslations("balconyPv.typologies")
   const defaultMode = resolveDefaultTiltMode(typology)
   const tiltOption = getPanelTiltOption(defaultMode)
   const tiltDeg = tiltOption.tiltDeg
   const tiltLabel = `${tiltDeg}°`
   const opticalLabel = t(`opticalProfile.${typology.opticalProfile}`)
+  const panelLinks = getSolarCellTypesForSurface(typology.id)
 
   return (
     <button
       type="button"
       onClick={() => onSelect?.(typology.id)}
-      className={`group flex w-full flex-col overflow-hidden rounded-2xl border text-left transition-colors ${
+      className={`group flex w-full flex-col overflow-hidden rounded-xl border text-left transition-colors ${
         selected
-          ? "border-primary/70 bg-primary/5 ring-1 ring-primary/40"
-          : "border-border/60 bg-card/40 hover:border-primary/40 hover:bg-card/70"
+          ? "border-emerald-500/60 bg-slate-900/70 ring-1 ring-emerald-500/40"
+          : "border-slate-800/80 bg-slate-900/70 hover:border-emerald-500/40"
       }`}
     >
       <div className="relative">
@@ -771,21 +788,21 @@ export function SurfaceTypologyCard({ typology, selected, onSelect }: SurfaceTyp
           isRetracted={defaultMode === "retracted"}
         />
         <div className="pointer-events-none absolute right-2 top-2 flex flex-col items-end gap-1">
-          <span className="rounded-md bg-background/85 px-2 py-0.5 font-mono text-xs text-foreground shadow-sm ring-1 ring-border/50">
+          <span className="rounded-md border border-slate-700/50 bg-slate-900/90 px-2 py-0.5 font-mono text-xs text-slate-200">
             {tiltLabel}
           </span>
-          <span className="rounded-md bg-background/85 px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm ring-1 ring-border/50">
+          <span className="rounded-md border border-slate-700/50 bg-slate-900/90 px-2 py-0.5 text-xs text-slate-400">
             {opticalLabel}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 p-3">
+      <div className="flex flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-semibold leading-snug text-foreground">
+          <h3 className="text-base font-semibold leading-snug text-slate-100">
             {t(`${typology.id}.name`)}
           </h3>
-          <div className="shrink-0 text-right font-mono text-[10px] leading-tight text-muted-foreground">
+          <div className="shrink-0 text-right font-mono text-xs leading-tight text-slate-400">
             <div>{tiltLabel}</div>
             <div>{opticalLabel}</div>
           </div>
@@ -793,14 +810,44 @@ export function SurfaceTypologyCard({ typology, selected, onSelect }: SurfaceTyp
 
         <SurfaceCountryTags typology={typology} />
 
+        {panelLinks.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {panelLinks.map((cell) => (
+              <span
+                key={cell.id}
+                role="link"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onNavigateToCell?.(cell.id)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onNavigateToCell?.(cell.id)
+                  }
+                }}
+                className={`rounded-md border px-3 py-1 text-xs font-medium transition-colors ${
+                  highlightCellId === cell.id
+                    ? "border-emerald-500 bg-emerald-950/40 text-emerald-300"
+                    : "border-slate-700/50 bg-slate-800 text-slate-300 hover:border-emerald-500/50 hover:bg-slate-700"
+                }`}
+              >
+                {cell.categoryBadgeJa}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="rounded-md bg-muted/80 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <span className="rounded-md border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-medium text-emerald-300">
             {t(`category.${typology.category}`)}
           </span>
           {typology.typicalRegions.map((region) => (
             <span
               key={region}
-              className="rounded-md bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground/90"
+              className="rounded-md border border-slate-700/60 bg-slate-800/80 px-3 py-1 text-xs text-slate-300"
             >
               {t(`regions.${region}`)}
             </span>
@@ -809,16 +856,416 @@ export function SurfaceTypologyCard({ typology, selected, onSelect }: SurfaceTyp
 
         <SurfaceMountJobBadges typology={typology} />
 
-        <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+        <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">
           {t(`${typology.id}.constraints`)}
         </p>
-        <p className="line-clamp-2 text-[10px] leading-relaxed text-muted-foreground/70">
+        <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">
           {t(`${typology.id}.regionContext`)}
         </p>
 
-        <p className="text-[10px] text-muted-foreground/80">{t("orbitHint")}</p>
+        <p className="text-xs text-slate-400">{t("orbitHint")}</p>
       </div>
     </button>
+  )
+}
+
+/** セル／パネル4大タイポロジーの2Dプレビュー（ETFEハトメ・折り紙など） */
+export type CellTypologyPreviewProps = {
+  cellType:
+    | 'rigid_silicon'
+    | 'bipv_thin_film'
+    | 'etfe_flexible_silicon'
+    | 'origami_perovskite'
+  className?: string
+}
+
+export function CellTypologyPreview({ cellType, className }: CellTypologyPreviewProps) {
+  return (
+    <svg
+      viewBox="0 0 160 100"
+      className={className ?? 'h-full w-full'}
+      role="img"
+      aria-hidden
+    >
+      <rect x="0" y="0" width="160" height="100" fill="var(--color-slate-950)" opacity="0.85" />
+      {cellType === 'rigid_silicon' && (
+        <g>
+          <rect x="28" y="18" width="104" height="64" rx="3" fill="#94a3b8" opacity="0.9" />
+          <rect x="34" y="24" width="92" height="52" fill="#1e40af" opacity="0.95" />
+          {[0, 1, 2, 3].map((c) => (
+            <line
+              key={c}
+              x1={42 + c * 20}
+              y1="26"
+              x2={42 + c * 20}
+              y2="74"
+              stroke="#e2e8f0"
+              strokeWidth="1.5"
+              opacity="0.7"
+            />
+          ))}
+          <rect x="28" y="18" width="104" height="8" fill="#cbd5e1" />
+          <rect x="28" y="74" width="104" height="8" fill="#cbd5e1" />
+        </g>
+      )}
+      {cellType === 'bipv_thin_film' && (
+        <g>
+          <rect
+            x="30"
+            y="22"
+            width="100"
+            height="56"
+            rx="1"
+            fill="#0f172a"
+            stroke="#cbd5e1"
+            strokeWidth="2"
+            opacity="0.95"
+          />
+          <rect x="34" y="26" width="92" height="48" fill="#1e293b" opacity="0.8" />
+          <line x1="30" y1="50" x2="130" y2="50" stroke="#e2e8f0" strokeWidth="0.8" opacity="0.35" />
+        </g>
+      )}
+      {cellType === 'etfe_flexible_silicon' && (
+        <g>
+          {/* Thin ETFE plate */}
+          <rect x="32" y="28" width="96" height="44" rx="2" fill="#64748b" opacity="0.55" />
+          <rect x="36" y="32" width="88" height="36" rx="1" fill="#1d4ed8" opacity="0.85" />
+          {/* Grommets (ハトメ) at corners */}
+          {[
+            [38, 34],
+            [122, 34],
+            [38, 66],
+            [122, 66],
+          ].map(([cx, cy], i) => (
+            <g key={i}>
+              <circle cx={cx} cy={cy} r="4.5" fill="none" stroke="#e2e8f0" strokeWidth="1.5" />
+              <circle cx={cx} cy={cy} r="1.8" fill="#0f172a" />
+            </g>
+          ))}
+          {/* Soft edge curl */}
+          <path
+            d="M36 68 Q80 76 124 68"
+            fill="none"
+            stroke="#94a3b8"
+            strokeWidth="1.5"
+            opacity="0.7"
+          />
+        </g>
+      )}
+      {cellType === 'origami_perovskite' && (
+        <g>
+          {/* Rigid origami fold — center + angled wings */}
+          <polygon
+            points="80,22 80,78 52,70 52,30"
+            fill="#10b981"
+            opacity="0.9"
+          />
+          <polygon
+            points="80,22 80,78 108,70 108,30"
+            fill="#34d399"
+            opacity="0.85"
+          />
+          <polygon
+            points="52,30 28,38 28,62 52,70"
+            fill="#059669"
+            opacity="0.8"
+          />
+          <polygon
+            points="108,30 132,38 132,62 108,70"
+            fill="#047857"
+            opacity="0.75"
+          />
+          <line x1="80" y1="22" x2="80" y2="78" stroke="#94a3b8" strokeWidth="1.2" opacity="0.8" />
+        </g>
+      )}
+    </svg>
+  )
+}
+
+export type CellTypologyCatalogProps = {
+  cells: SolarCellTypeDetail[]
+  selectedId?: SolarCellTypeId | null
+  onSelect?: (id: SolarCellTypeId | null) => void
+  onNavigateToSurface?: (surfaceId: SurfaceTypology) => void
+  onNavigateToCountry?: (code: string) => void
+}
+
+type CellDetailAngle = 0 | 30 | 90
+type CellDetailTab = "physics" | "architecture" | "history"
+
+function TradeoffMeter({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-slate-200">{label}</span>
+        <span className="font-mono text-sm tabular-nums text-emerald-400">{value}</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+        <div
+          className="h-full rounded-full bg-emerald-500 transition-[width]"
+          style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+/** 太陽光パネル（セル）一覧 + 詳細（3D + 開閉サイドバー）。 */
+export function CellTypologyCatalog({
+  cells,
+  selectedId = null,
+  onSelect,
+  onNavigateToSurface,
+  onNavigateToCountry,
+}: CellTypologyCatalogProps) {
+  const locale = useLocale()
+  const isEn = locale === "en"
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [viewAngle, setViewAngle] = useState<CellDetailAngle>(0)
+  const [detailTab, setDetailTab] = useState<CellDetailTab>("physics")
+
+  const selected = selectedId
+    ? cells.find((c) => c.id === selectedId) ?? null
+    : null
+
+  if (selected) {
+    const title = isEn ? selected.roleTitleEn : selected.roleTitleJa
+    const subtitle = isEn ? selected.roleSubtitleEn : selected.roleSubtitleJa
+    const angleLabel = isEn
+      ? selected.viewAngleLabelsEn[[0, 30, 90].indexOf(viewAngle)]
+      : selected.viewAngleLabels[[0, 30, 90].indexOf(viewAngle)]
+
+    return (
+      <section className="flex min-h-[28rem] flex-col overflow-hidden rounded-xl border border-slate-800/80 bg-slate-900/70">
+        <header className="flex items-start gap-3 border-b border-slate-800 px-5 py-4">
+          <button
+            type="button"
+            onClick={() => onSelect?.(null)}
+            className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-700/60 bg-slate-800/80 text-slate-200 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
+            aria-label={isEn ? "Back to list" : "一覧へ戻る"}
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold leading-snug text-slate-100">{title}</h2>
+            <p className="mt-0.5 text-xs text-slate-400">
+              {isEn
+                ? `Drag to orbit · view ${viewAngle}° — ${angleLabel}`
+                : `ドラッグで周回 · 観察 ${viewAngle}° — ${angleLabel}`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((v) => !v)}
+            className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-700/60 bg-slate-800/80 text-slate-200 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
+            aria-label={sidebarOpen ? (isEn ? "Collapse sidebar" : "サイドバーを閉じる") : (isEn ? "Expand sidebar" : "サイドバーを開く")}
+          >
+            {sidebarOpen ? (
+              <PanelRightClose className="size-4" />
+            ) : (
+              <PanelRightOpen className="size-4" />
+            )}
+          </button>
+        </header>
+
+        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+          <div className="relative flex min-h-[16rem] flex-1 items-center justify-center bg-slate-950/50 p-5">
+            <div
+              className="h-56 w-full max-w-md transition-transform duration-300"
+              style={{
+                transform: `perspective(800px) rotateX(${viewAngle === 90 ? 72 : viewAngle === 30 ? 28 : 0}deg) rotateY(${viewAngle === 0 ? 0 : viewAngle === 30 ? -18 : -8}deg)`,
+              }}
+            >
+              <CellTypologyPreview cellType={selected.id} className="h-full w-full rounded-xl" />
+            </div>
+          </div>
+
+          {sidebarOpen ? (
+            <aside className="flex w-full shrink-0 flex-col gap-5 border-t border-slate-800 bg-slate-950/40 p-5 lg:w-80 lg:border-l lg:border-t-0">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold tracking-tight text-slate-100">
+                  {isEn ? "Observation angle" : "観察角度"}
+                </p>
+                <ToggleGroup
+                  value={[String(viewAngle)]}
+                  onValueChange={(v) => {
+                    const next = Number(v[0])
+                    if (next === 0 || next === 30 || next === 90) setViewAngle(next)
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {([0, 30, 90] as const).map((deg) => (
+                    <ToggleGroupItem
+                      key={deg}
+                      value={String(deg)}
+                      className="flex-1 px-2 py-1.5 font-mono text-sm font-medium text-slate-200"
+                    >
+                      {deg}°
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-sm font-semibold tracking-tight text-slate-100">
+                  {isEn ? "Trade-off intuition meter" : "トレードオフ直感メーター"}
+                </p>
+                <TradeoffMeter
+                  label={isEn ? "Peak generation" : "ピーク発電力"}
+                  value={selected.peakPowerScore}
+                />
+                <TradeoffMeter
+                  label={isEn ? "Living / egress fit" : "生活・避難動線適応"}
+                  value={selected.egressClearanceScore}
+                />
+              </div>
+
+              <Tabs
+                value={detailTab}
+                onValueChange={(v) => {
+                  if (v === "physics" || v === "architecture" || v === "history") {
+                    setDetailTab(v)
+                  }
+                }}
+                className="flex min-h-0 flex-1 flex-col gap-3"
+              >
+                <TabsList className="h-auto w-full flex-wrap justify-start gap-1">
+                  <TabsTrigger value="physics" className="px-2.5 py-1 text-sm">
+                    {isEn ? "Physics / cell" : "物性・セル構造"}
+                  </TabsTrigger>
+                  <TabsTrigger value="architecture" className="px-2.5 py-1 text-sm">
+                    {isEn ? "Built form" : "適した建築形態"}
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="px-2.5 py-1 text-sm">
+                    {isEn ? "History" : "開発史・背景"}
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="physics" className="mt-0 space-y-2 text-sm leading-relaxed text-slate-400">
+                  <p>{isEn ? selected.cellStructureEn : selected.cellStructureJa}</p>
+                  <p className="font-mono text-xs text-slate-200">
+                    {isEn ? selected.weightThicknessEn : selected.weightThicknessJa}
+                  </p>
+                  <p>{isEn ? selected.lightAbsorptionEn : selected.lightAbsorptionJa}</p>
+                  <p>{isEn ? selected.environmentalFitEn : selected.environmentalFitJa}</p>
+                </TabsContent>
+                <TabsContent value="architecture" className="mt-0 space-y-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {selected.suitableSurfaceLabels.map((surf) => (
+                      <button
+                        key={surf.id}
+                        type="button"
+                        onClick={() => onNavigateToSurface?.(surf.id as SurfaceTypology)}
+                        className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
+                      >
+                        {surf.labelJa}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs leading-relaxed text-slate-400">
+                    {isEn ? selected.useCaseEn : selected.useCaseJa}
+                  </p>
+                </TabsContent>
+                <TabsContent value="history" className="mt-0 space-y-2 text-sm leading-relaxed text-slate-400">
+                  <p className="font-medium text-slate-200">
+                    {isEn ? selected.generationShortEn : selected.generationShortJa}
+                  </p>
+                  <p>{isEn ? selected.descriptionEn : selected.descriptionJa}</p>
+                  <p>{isEn ? selected.firedElementEn : selected.firedElementJa}</p>
+                </TabsContent>
+              </Tabs>
+            </aside>
+          ) : null}
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="space-y-4">
+      <header>
+        <h2 className="text-lg font-semibold text-foreground">
+          {isEn ? "Solar panel (cell) types" : "太陽光パネル（セル）の種類"}
+        </h2>
+      </header>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {cells.map((cell) => (
+          <button
+            key={cell.id}
+            type="button"
+            onClick={() => onSelect?.(cell.id)}
+            className={`flex flex-col gap-3 rounded-xl border p-5 text-left transition-colors ${
+              selectedId === cell.id
+                ? "border-emerald-500/60 bg-slate-900/70 ring-1 ring-emerald-500/40"
+                : "border-slate-800/80 bg-slate-900/70 hover:border-emerald-500/40"
+            }`}
+          >
+            <h3 className="text-base font-semibold text-slate-100">
+              {isEn ? cell.roleTitleEn : cell.roleTitleJa}
+            </h3>
+            <p className="text-sm leading-relaxed text-slate-400">
+              {isEn ? cell.roleSubtitleEn : cell.roleSubtitleJa}
+            </p>
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium text-slate-200">
+                {isEn ? "Suitable 3D surfaces" : "適した3Dサーフェイス"}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {cell.suitableSurfaceLabels.map((surf) => (
+                  <span
+                    key={surf.id}
+                    role="link"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onNavigateToSurface?.(surf.id as SurfaceTypology)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        onNavigateToSurface?.(surf.id as SurfaceTypology)
+                      }
+                    }}
+                    className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
+                  >
+                    {surf.labelJa}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium text-slate-200">
+                {isEn ? "Key countries" : "主な実装国"}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {cell.representativeCountryCodes.map((code) => (
+                  <span
+                    key={code}
+                    role="link"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onNavigateToCountry?.(code)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        onNavigateToCountry?.(code)
+                      }
+                    }}
+                    className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 font-mono text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
+                  >
+                    {code}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -826,6 +1273,8 @@ export type SurfaceTypologyCatalogProps = {
   selectedId?: SurfaceTypology
   onSelect?: (id: SurfaceTypology) => void
   categoryFilter?: SurfaceCategoryFilter
+  onNavigateToCell?: (cellId: SolarCellTypeId) => void
+  highlightCellId?: SolarCellTypeId | null
 }
 
 /** Deduplicate master rows by typology id (guards against accidental double registration). */
@@ -847,6 +1296,8 @@ export function SurfaceTypologyCatalog({
   selectedId,
   onSelect,
   categoryFilter = "all",
+  onNavigateToCell,
+  highlightCellId = null,
 }: SurfaceTypologyCatalogProps) {
   const t = useTranslations("balconyPv.typologies")
   const tFilter = useTranslations("balconyPv.filter")
@@ -877,13 +1328,13 @@ export function SurfaceTypologyCatalog({
         }}
       >
         <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-fit">
-          <TabsTrigger value="all" className="px-3 py-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="all" className="px-3 py-1.5 text-sm font-medium">
             {tFilter("all")} ({allCount})
           </TabsTrigger>
-          <TabsTrigger value="balcony" className="px-3 py-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="balcony" className="px-3 py-1.5 text-sm font-medium">
             {tFilter("balcony")} ({balconyCount})
           </TabsTrigger>
-          <TabsTrigger value="roof" className="px-3 py-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="roof" className="px-3 py-1.5 text-sm font-medium">
             {tFilter("roof")} ({roofCount})
           </TabsTrigger>
         </TabsList>
@@ -896,6 +1347,8 @@ export function SurfaceTypologyCatalog({
             typology={typology}
             selected={selectedId === typology.id}
             onSelect={onSelect}
+            onNavigateToCell={onNavigateToCell}
+            highlightCellId={highlightCellId}
           />
         ))}
       </div>

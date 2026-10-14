@@ -61,12 +61,12 @@ export function EcosystemView({ initialCountryCode }: EcosystemViewProps) {
     : baseActors
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+    <div className="flex flex-col space-y-8 bg-slate-950 p-5 sm:p-6 md:p-8">
+      <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+        <h1 className="text-xl font-semibold tracking-tight text-slate-100 sm:text-2xl">
           {t('title')}
         </h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">{t('lead')}</p>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-400">{t('lead')}</p>
       </div>
 
       {selectedCountryCode && (
@@ -80,7 +80,7 @@ export function EcosystemView({ initialCountryCode }: EcosystemViewProps) {
         </button>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+      <div className="mb-8 flex flex-col gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 md:p-6">
         <Tabs
           value={formFactor}
           onValueChange={(value) => {
@@ -152,7 +152,7 @@ export function EcosystemView({ initialCountryCode }: EcosystemViewProps) {
       </div>
 
       {viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {actors.map((actor) => (
             <ActorCard key={actor.id} actor={actor} />
           ))}

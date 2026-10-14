@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import type { CountryCode } from "@/lib/country-codes"
 import { BalconyIllustration } from "./balcony-illustration"
 import {
   DIRECTIONS,
@@ -39,10 +38,6 @@ const HomeView = dynamic(
 
 type BalconyTab = "simulator" | "living-sense"
 
-export type BalconyViewProps = {
-  onNavigateToEcosystem?: (countryCode: CountryCode) => void
-}
-
 function formatHour(hour: number) {
   const h = Math.floor(hour)
   const m = Math.round((hour - h) * 60)
@@ -56,7 +51,7 @@ function scoreBand(score: number): "excellent" | "good" | "fair" | "poor" {
   return "poor"
 }
 
-export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: BalconyViewProps) {
+export function BalconyView() {
   const t = useTranslations("balconyPv")
   const tDirections = useTranslations("common.directions")
   const [tab, setTab] = useState<BalconyTab>("simulator")
@@ -79,12 +74,12 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
   const kit = useMemo(() => recommendedKit(score), [score])
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col space-y-8">
       <ToggleGroup
         value={[tab]}
         onValueChange={(v) => v[0] && setTab(v[0] as BalconyTab)}
         variant="outline"
-        className="w-full sm:w-auto"
+        className="w-full flex-wrap sm:w-auto"
       >
         <ToggleGroupItem value="simulator" className="flex-1 text-sm sm:flex-none">
           {t("tabs.simulator")}
@@ -98,13 +93,13 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
         <HomeView />
       ) : (
         <>
-          <Card className="border-border/60">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold">{t("conditions.title")}</CardTitle>
+          <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40">
+            <CardHeader className="p-5 pb-3 sm:p-6 sm:pb-3">
+              <CardTitle className="text-base font-semibold text-slate-100">{t("conditions.title")}</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-6">
+            <CardContent className="flex flex-col gap-6 p-5 pt-0 sm:p-6 sm:pt-0">
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-bold tracking-tight text-foreground">{t("conditions.direction")}</p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("conditions.direction")}</p>
                 <ToggleGroup
                   value={[direction]}
                   onValueChange={(v) => v[0] && setDirection(v[0] as Direction)}
@@ -112,7 +107,7 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                   className="flex-wrap"
                 >
                   {DIRECTIONS.map((value) => (
-                    <ToggleGroupItem key={value} value={value} className="px-3 py-1.5 text-xs font-semibold">
+                    <ToggleGroupItem key={value} value={value} className="px-3 py-1.5 text-sm font-medium text-slate-200">
                       {tDirections(value)}
                     </ToggleGroupItem>
                   ))}
@@ -120,7 +115,7 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
               </div>
 
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-bold tracking-tight text-foreground">{t("conditions.railing")}</p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("conditions.railing")}</p>
                 <ToggleGroup
                   value={[railing]}
                   onValueChange={(v) => v[0] && setRailing(v[0] as RailingType)}
@@ -128,7 +123,7 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                   className="flex-wrap"
                 >
                   {RAILING_TYPES.map((r) => (
-                    <ToggleGroupItem key={r.value} value={r.value} className="px-3 py-1.5 text-xs font-semibold">
+                    <ToggleGroupItem key={r.value} value={r.value} className="px-3 py-1.5 text-sm font-medium text-slate-200">
                       {t(`railing.${r.value}`)}
                     </ToggleGroupItem>
                   ))}
@@ -137,8 +132,8 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold tracking-tight text-foreground">{t("conditions.seasonTime")}</p>
-                  <span className="font-mono text-xs font-bold text-foreground">{formatHour(hour)}</span>
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("conditions.seasonTime")}</p>
+                  <span className="font-mono text-sm font-medium text-slate-100">{formatHour(hour)}</span>
                 </div>
                 <Slider
                   value={[hour]}
@@ -146,15 +141,16 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                   max={17}
                   step={0.5}
                   onValueChange={(v) => setHour(Array.isArray(v) ? v[0] : v)}
+                  className="accent-emerald-500"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground">
+                <div className="flex justify-between text-xs text-slate-400">
                   <span>{t("conditions.morning")}</span>
                   <span>{t("conditions.evening")}</span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-bold tracking-tight text-foreground">{t("conditions.livingHabit")}</p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("conditions.livingHabit")}</p>
                 <ToggleGroup
                   value={[livingContext.habit]}
                   onValueChange={(v) => {
@@ -171,7 +167,7 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                       "outdoor_unit_service",
                     ] as const
                   ).map((habit) => (
-                    <ToggleGroupItem key={habit} value={habit} className="px-3 py-1.5 text-xs font-semibold">
+                    <ToggleGroupItem key={habit} value={habit} className="px-3 py-1.5 text-sm font-medium text-slate-200">
                       {t(`livingHabit.${habit}`)}
                     </ToggleGroupItem>
                   ))}
@@ -179,7 +175,7 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
               </div>
 
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-bold tracking-tight text-foreground">{t("conditions.weather")}</p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("conditions.weather")}</p>
                 <ToggleGroup
                   value={[livingContext.weather]}
                   onValueChange={(v) => {
@@ -190,7 +186,7 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
                   className="flex-wrap"
                 >
                   {(["clear", "overcast_tsuyu", "typhoon_alert"] as const).map((weather) => (
-                    <ToggleGroupItem key={weather} value={weather} className="px-3 py-1.5 text-xs font-semibold">
+                    <ToggleGroupItem key={weather} value={weather} className="px-3 py-1.5 text-sm font-medium text-slate-200">
                       {t(`weather.${weather}`)}
                     </ToggleGroupItem>
                   ))}
@@ -199,12 +195,12 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Card className="border-border/60">
-              <CardHeader>
-                <CardTitle className="text-sm font-semibold">{t("results.visualTitle")}</CardTitle>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card className="rounded-xl border border-slate-800 bg-slate-900/80">
+              <CardHeader className="p-5 pb-3 sm:p-6 sm:pb-3">
+                <CardTitle className="text-base font-semibold text-slate-100">{t("results.visualTitle")}</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-5 pt-0 sm:p-6 sm:pt-0">
                 <BalconyIllustration
                   direction={direction}
                   railing={railing}
@@ -216,37 +212,37 @@ export function BalconyView({ onNavigateToEcosystem: _onNavigateToEcosystem }: B
               </CardContent>
             </Card>
 
-            <div className="flex flex-col gap-4">
-              <Card className="border-border/60">
-                <CardContent className="flex flex-col items-center gap-3 py-6 text-center">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Gauge className="size-4" />
-                    <span className="text-sm font-bold tracking-tight text-foreground">{t("results.scoreLabel")}</span>
+            <div className="flex flex-col gap-6">
+              <Card className="rounded-xl border border-slate-800 bg-slate-900/80">
+                <CardContent className="flex flex-col items-center gap-4 p-5 text-center md:p-6">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Gauge className="size-4 text-emerald-400" />
+                    <span className="text-sm font-medium text-slate-200">{t("results.scoreLabel")}</span>
                   </div>
-                  <span className="font-mono text-5xl font-semibold tabular-nums text-primary">{score}</span>
-                  <Badge className="bg-primary/90 text-primary-foreground">{t(`score.${scoreBand(score)}`)}</Badge>
-                  <p className="text-xs text-muted-foreground">
+                  <span className="font-mono text-2xl font-bold tabular-nums text-emerald-400 sm:text-5xl">{score}</span>
+                  <Badge className="border border-emerald-500/30 bg-emerald-950/40 text-emerald-300">{t(`score.${scoreBand(score)}`)}</Badge>
+                  <p className="text-xs text-slate-400">
                     {t("results.lifeComplianceLabel")}:{" "}
-                    <span className="font-mono text-xs font-bold text-foreground">{lifeCompliance}%</span>
+                    <span className="font-mono text-xs font-bold text-slate-100">{lifeCompliance}%</span>
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="border-border/60">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                    <PackageCheck className="size-4 text-primary" />
+              <Card className="rounded-xl border border-slate-800 bg-slate-900/80">
+                <CardHeader className="p-5 pb-3 sm:p-6 sm:pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-100">
+                    <PackageCheck className="size-4 text-emerald-400" />
                     {t("results.kitTitle")}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col gap-2 text-sm">
-                  <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-                    <span className="text-muted-foreground">{t("results.panel")}</span>
-                    <span className="font-medium text-foreground">{t(`kit.${kit.panel}`)}</span>
+                <CardContent className="flex flex-col gap-3 p-5 pt-0 text-sm sm:p-6 sm:pt-0">
+                  <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2.5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("results.panel")}</span>
+                    <span className="font-medium text-slate-200">{t(`kit.${kit.panel}`)}</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-                    <span className="text-muted-foreground">{t("results.battery")}</span>
-                    <span className="font-medium text-foreground">{t(`kit.${kit.battery}`)}</span>
+                  <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2.5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("results.battery")}</span>
+                    <span className="font-medium text-slate-200">{t(`kit.${kit.battery}`)}</span>
                   </div>
                 </CardContent>
               </Card>

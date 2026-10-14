@@ -66,9 +66,9 @@ export function RankingView() {
         </div>
 
         {isSidebarOpen && (
-          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[min(48vh,360px)] w-full flex-col overflow-hidden rounded-t-2xl border-t border-border/40 bg-card/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-xl backdrop-blur lg:static lg:inset-auto lg:z-auto lg:flex lg:h-full lg:max-h-none lg:w-[380px] lg:flex-none lg:rounded-none lg:border-l lg:border-t-0 lg:p-0 lg:pb-0 lg:shadow-none">
-            <div className="mx-auto mb-2 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30 lg:hidden" aria-hidden />
-            <div className="flex shrink-0 items-center justify-between border-b border-border/30 pb-2 lg:p-3 lg:pb-2">
+          <div className="absolute inset-x-0 bottom-0 z-30 flex h-[min(48vh,360px)] w-full flex-col overflow-hidden rounded-t-2xl border-t border-slate-800 bg-slate-900/95 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-xl backdrop-blur lg:static lg:inset-auto lg:z-auto lg:flex lg:h-full lg:max-h-none lg:w-[380px] lg:flex-none lg:rounded-none lg:border-l lg:border-t-0 lg:bg-slate-900/40 lg:p-0 lg:pb-0 lg:shadow-none">
+            <div className="mx-auto mb-3 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30 lg:hidden" aria-hidden />
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-800/60 pb-3 lg:p-5 lg:pb-3">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <span className="text-base font-bold text-foreground">{countryText('name')}</span>
                 <span className="font-mono text-xs text-muted-foreground">
@@ -114,16 +114,16 @@ export function RankingView() {
                           {country.rating}
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="rounded border border-border/30 bg-muted/40 p-2">
-                          <div className="text-[10px] text-muted-foreground">{t('detail.powerLimit')}</div>
-                          <div className="text-xs font-semibold leading-snug text-foreground">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.powerLimit')}</div>
+                          <div className="mt-1 text-sm font-semibold leading-snug text-slate-200">
                             {countryText('powerLimit')}
                           </div>
                         </div>
-                        <div className="rounded border border-border/30 bg-muted/40 p-2">
-                          <div className="text-[10px] text-muted-foreground">{t('detail.payback')}</div>
-                          <div className="text-xs font-semibold leading-snug text-foreground">
+                        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.payback')}</div>
+                          <div className="mt-1 text-sm font-semibold leading-snug text-slate-200">
                             {countryText('paybackYears')}
                           </div>
                         </div>

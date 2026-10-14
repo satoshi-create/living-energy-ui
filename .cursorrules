@@ -1,43 +1,54 @@
-# Living Energy UI — AI Development Guidelines
+### Living Energy UI デザインシステム統一規約 (Design System Rules)
 
-賃貸・ベランダのプラグインPVを、kWhではなく「生活実感」で可視化する破壊的UI。
-構造分析書: `docs/構造分析書.md`
+画面間（シミュレーション、世界実装、パネル種類、エコシステム等）のデザイン乖離・手戻りを防ぐため、コンポーネント実装時はトップページ（ベランダ発電シミュレーション）のトンマナを厳守すること。
 
-## Hired Job
-「賃貸・マンション住まいにおいて、高価な工事や専門知識なしで、在宅ワークの電気代を浮かせつつ脱炭素への貢献実感を得る」
+#### 1. タイポグラフィ階層（font-size 縮小化の禁止）
+- **text-[10px] や text-[11px] の多用は全面禁止**。全体的に文字が小さくなりすぎるのを防ぐ。
+- 階層基準（Tailwind CSS）：
+  - **ページ・重要数値見出し**: `text-2xl` 〜 `text-4xl` (`font-bold`)
+  - **カード見出し・セクション大項目**: `text-base` (`font-semibold text-slate-100`)
+  - **標準本文・主要ラベル・ボタン**: `text-sm` (`font-medium text-slate-200`)
+  - **補足注記・メタ情報（最小サイズ）**: `text-xs` (`text-slate-400`。これ未満のサイズは使用不可)
 
-解雇したジョブ: 数百万円の屋根置き太陽光 + 難解な専用モニター + 出力制御への怯え。
+#### 2. カラーパレット統一規約（ダーク＆エメラルドグリーン基調）
+トップページのトーン（ダークネイビー × エメラルド）をブランドの基本色とする。
+- **ベース背景**: `bg-[#0B0F17]` 〜 `bg-slate-950`
+- **サーフェス・カード背景**: `bg-slate-900/60` または `bg-[#111827]/70`（`border border-slate-800` を併用）
+- **プライマリアクセント（ブランドカラー）**: `emerald-500` (`#10B981`)
+  - スコア、ハイライト、進行ゲージ、主要ボタンのアクティブ状態はすべてエメラルドグリーン系で統一。
+- **セカンダリ・ステータスカラーの使用制限**:
+  - シアン（`sky` / `cyan`）、イエロー（`amber`）、レッド（`rose`）は警告や物理系統の区別など「真に必要な文脈」にのみ限定し、単一カード内に多色を混在させない。
 
-## Design Principles
-- **生活実感換算が主役**: 発電量は必ず家電価値へ翻訳する（MacBook充電回数、サーキュレーター稼働時間など）。kWh単体をヒーローにしない。
-- **ローエンド破壊**: 導入ハードル・工事レス・Web標準を優先。産業用SCADA、ミリ秒需給、単線結線図は性能過剰として排除する。
-- **ブラウザ完結**: 当面は各 `features/*/data.ts` のモック。SunCalc / React Flow / Open-Meteo×FastAPI は依頼があるまで足さない。
-- **非消費者起点**: 持ち家屋根置きではなく、賃貸・集合住宅のベランダを第一画面にする。
+#### 3. コンポーネント・装飾の引き算ルール
+- **ピル・タグ**:
+  - 非アクティブ: `bg-slate-900/80 text-slate-300 border border-slate-700/60`
+  - アクティブ/選択中: `bg-emerald-600 text-white font-medium` または `border-emerald-500 text-emerald-400`
+- **バッジ・メーターの簡素化**:
+  - 1つのカード内に3種類以上の色付きバッジ（赤、黄、緑等）を並べない。
+  - プログレスバーやスライダーはトップページのタイムラインと同様、`accent-emerald-500` / `bg-emerald-500` の滑らかな単一バーを使用する。
+- **カードのパディングと余白**:
+  - カード内余白は `p-5` 〜 `p-6`（狭小な `p-2` や `p-3` に文字を詰め込まない）。
 
-## Tech Stack
-- Next.js 16 (App Router) / React 19 / TypeScript strict
-- Tailwind CSS 4 + shadcn (base-nova) + `@base-ui/react`
-- next-intl（`/[locale]`、既定 `ja`、プレフィックス必須）
-- lucide-react / pnpm / Vercel Analytics（本番のみ）
-- フォント: Noto Sans JP + JetBrains Mono。ダーク基調（`layout.tsx` で `html.dark` 固定）
+#### 4. 空間設計・余白・背景深度（Spatial System & Elevation Rules）
+画面の窮屈感・認知負荷を解消し、トップページ（ベランダ発電シミュレーション）同様の「呼吸感のある余白」を保つため、以下のレイアウト数値を一律厳守すること。
 
-## Architecture
-- UI: `features/<name>/components/`（kebab-case、表示に特化）
-- データ・純関数: `features/<name>/data.ts`（共有地域は `lib/regions.ts`）
-- 文言: `messages/{ja,en}.json`（`i18n/routing.ts` / `i18n/request.ts`）
-- shadcn プリミティブ: `components/ui/`（再生成可能。独自改変しない）
-- 画面切替は `AppShell` のクライアント状態。認証・DB・グローバルストアは導入しない。
-- エントリ: `app/[locale]/page.tsx` → `<AppShell />`。`/` は `proxy.ts` 経由で `/ja` へ。
+##### ① 背景深度の3レイヤー設計（黒つぶれ防止）
+画面内の背景色は以下の3段階のみを使用し、要素同士を直接同色で重ねない：
+- **Layer 0（ベース背景 / キャンバス）**: `bg-[#0B0F17]` または `bg-slate-950`
+- **Layer 1（セクション外枠 / コンテナパネル）**: `bg-slate-900/40` + `border border-slate-800/80` + `rounded-2xl`
+- **Layer 2（カード / インタラクティブ要素）**: `bg-slate-900/80` + `border border-slate-800` + `rounded-xl`
+  - ※ホバー時: `hover:bg-slate-800/80 hover:border-slate-700`
 
-## Coding
-- パスは `@/`。インタラクションがあるファイルのみ `'use client'`。
-- 関数コンポーネントは named export。Props は `XxxProps`。
-- 外科手術的編集。ファイル全体の書き換え禁止。v0 内部ファイル（`__v0_*`, `.snowflake/`）を触らない。
-- 秘密情報（`.env.local` の実値）をコミット・チャットに貼らない。
-- **i18n**: ユーザー向け文言は `messages/{ja,en}.json` で管理し、コンポーネント内へのハードコードは禁止。ロケール非依存の ID（例: `south`, `east`）のみコード側に置き、表示ラベルは辞書から解決する。ルートは `/[locale]`（`ja` 既定・プレフィックス必須）。
+##### ② 余白（Padding / Gap）の最低下限ルール
+狭小な余白（`p-2`, `p-3`, `gap-2`）のカードレイアウトは禁止。
+- **カード内パディング**: 原則 **`p-5` 〜 `p-6`**（20px〜24px）を標準とする。`p-4` 未満は原則禁止。
+- **セクション間の垂直余白**: 主要ブロック間は **`space-y-8` 〜 `space-y-10`**（32px〜40px）を空け、視線の区切りを作る。
+- **グリッドギャップ**: カード一覧グリッド（Grid）は **`gap-6`**（24px）以上を確保する（`gap-3` や `gap-4` で詰め込まない）。
+- **フォーム・選択ボタン列の余白**: ラベルとボタングループ間は `mb-3`、選択肢ピル間は `gap-2` 〜 `gap-2.5`。
 
-## Forbidden
-- ログイン画面、産業用EMS、高精度潮流計算、kWh/MW ダッシュボード化
-- 既存のダーク×primary（緑）ビジュアル言語の無断差し替え
-- 依頼なしの React Flow / FastAPI / IoT 連携の追加
-- コンポーネント内へのユーザー向け文言のハードコード（辞書未移行のレガシー箇所は段階移行で解消）
+##### ③ 認知負荷低減のタイポグラフィ行間・情報密度
+- **行間（Leading）**: 本文や説明文は必ず `leading-relaxed`（1.625）または `leading-normal` を指定し、行同士が接触しないようにする。
+- **カード内セクション分離**: カード内の「概要」「主力製品」「主要市場」などの小セクション間には、`space-y-4` や控えめな区切り（`border-t border-slate-800/60 pt-3`）を設け、境界を明確にする。
+- **ラベルと値のコントラスト**:
+  - ラベル（項目名）: `text-xs font-semibold text-slate-400 uppercase tracking-wider`
+  - データ値/本文: `text-sm font-medium text-slate-200`

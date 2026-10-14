@@ -26,7 +26,7 @@ export function NetworkView() {
 
   return (
     <div
-      className="relative h-[calc(100dvh-7.5rem)] min-h-[500px] w-full overflow-hidden bg-background/50"
+      className="relative h-[calc(100dvh-7.5rem)] min-h-[500px] w-full overflow-hidden bg-slate-950"
       style={{ ["--sidebar-w" as string]: `${sidebarWidth}px` }}
     >
       <div

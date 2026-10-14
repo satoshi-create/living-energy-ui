@@ -540,7 +540,23 @@
         "company": "Companies",
         "npo": "NPOs & Commons",
         "government": "Government"
-      }
+      },
+      "recommendedCells": "Recommended panel typologies",
+      "jump": {
+        "ecosystem": "Open ecosystem power flow",
+        "surfaces": "Open 3D surfaces",
+        "cellTypes": "Open cell types",
+        "vendors": "Open key companies",
+        "nonprofits": "Open related organizations"
+      },
+      "statusCard": {
+        "powerModel": "Grid / power model",
+        "works": "Install work",
+        "excess": "Surplus power",
+        "legal": "Legal steps"
+      },
+      "jumpOpen": "Open",
+      "statusSummary": "Install status"
     },
     "architecture": {
       "sectionTitle": "Architectural forms & living-furniture solar",

@@ -9,22 +9,22 @@ type BasinEnergyPanelProps = {
 
 export function BasinEnergyPanel({ energy }: BasinEnergyPanelProps) {
   return (
-    <Card className="border-border/60">
-      <CardHeader>
+    <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+      <CardHeader className="p-0 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <CardTitle className="text-sm font-semibold">発電・蓄電の生活実感</CardTitle>
-            <CardDescription className="mt-1 text-pretty">
+            <CardTitle className="text-base font-semibold text-slate-100">発電・蓄電の生活実感</CardTitle>
+            <CardDescription className="mt-2 text-pretty text-sm leading-relaxed text-slate-400">
               水路マイクロ水力と流域内の太陽光のデモ推計です。数値はシミュレーションです。
             </CardDescription>
           </div>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary">
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
             <i className="size-1.5 rounded-full bg-primary" />
             LIVE
           </span>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+      <CardContent className="flex flex-col gap-6 p-0">
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">

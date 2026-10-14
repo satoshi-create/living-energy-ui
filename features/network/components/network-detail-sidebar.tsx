@@ -89,16 +89,16 @@ function StageSection({
 }) {
   if (nodes.length === 0) return null
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-xs font-semibold tracking-wider text-cyan-400 uppercase">{label}</p>
-      <ul className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-3">
+      <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">{label}</p>
+      <ul className="flex flex-col gap-3">
         {nodes.map((node) => {
           const nodeCopy = localizedNode(node, locale)
           const Icon = NODE_ICONS[node.icon]
           return (
             <li
               key={node.id}
-              className="flex items-start gap-2.5 rounded-lg border border-white/5 bg-[#111827]/70 p-3 transition-colors hover:border-cyan-500/30"
+              className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 transition-colors hover:border-slate-700 hover:bg-slate-800/80"
             >
               <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-400">
                 <Icon className="size-3.5" />
@@ -209,7 +209,7 @@ export function NetworkDetailSidebar({
         <div className="h-1.5 w-10 rounded-full bg-muted-foreground/40" />
       </div>
 
-      <div className="flex shrink-0 items-center justify-end gap-1 border-b border-border/50 px-3 pt-1 pb-2 pl-5">
+      <div className="flex shrink-0 items-center justify-end gap-1 border-b border-slate-800/60 px-5 pt-2 pb-3">
         <button
           type="button"
           onClick={onClose}
@@ -222,7 +222,7 @@ export function NetworkDetailSidebar({
 
       {config && copy && modelCopy ? (
         <>
-          <CardHeader className="flex shrink-0 flex-col gap-3 space-y-0 pl-5">
+          <CardHeader className="flex shrink-0 flex-col gap-4 space-y-0 px-5 pt-5">
             <div className="flex min-w-0 flex-col gap-1">
               <CardTitle className="text-xl font-bold text-white">{copy.label}</CardTitle>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -320,7 +320,7 @@ export function NetworkDetailSidebar({
             </div>
           </CardHeader>
 
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pl-5 text-sm">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pb-5 text-sm">
             <p className="leading-relaxed text-slate-300">{modelCopy.description}</p>
 
             {paradigmText ? (

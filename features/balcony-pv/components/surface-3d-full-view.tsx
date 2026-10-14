@@ -181,11 +181,11 @@ export function Surface3DFullView({
   return (
     <div
       className={cn(
-        'flex min-h-0 flex-1 flex-col gap-3 overflow-hidden lg:flex-row',
+        'flex min-h-0 flex-1 flex-col gap-6 overflow-hidden bg-slate-950 lg:flex-row',
         className,
       )}
     >
-      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-xl border border-border/50 bg-slate-950">
+      <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950">
         <Surface3DViewer
           profileId={profile.model3dId}
           variant="full"
@@ -214,9 +214,9 @@ export function Surface3DFullView({
         </div>
       </div>
 
-      <aside className="flex w-full shrink-0 flex-col gap-3 overflow-y-auto rounded-xl border border-border/60 bg-card/95 p-3 backdrop-blur-md lg:w-80 lg:max-w-sm">
-        <div className="flex flex-col gap-1.5">
-          <p className="text-[11px] font-semibold text-muted-foreground">{tFull('profileSelect')}</p>
+      <aside className="flex w-full shrink-0 flex-col gap-6 overflow-y-auto rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-md md:p-6 lg:w-80 lg:max-w-sm">
+        <div className="flex flex-col gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{tFull('profileSelect')}</p>
           <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto">
             {catalog.map(({ countryId: cid, profile: p, typology }) => {
               const active = p.id === profileId && cid === countryId

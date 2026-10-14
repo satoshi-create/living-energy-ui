@@ -12,33 +12,33 @@ export function HomeView() {
   const t = useTranslations("livingSense")
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="overflow-hidden border-border/60 bg-gradient-to-br from-primary/10 via-card to-card">
-        <CardContent className="flex flex-col gap-6 p-6 sm:p-8">
+    <div className="flex flex-col space-y-8">
+      <Card className="overflow-hidden rounded-2xl border border-slate-800/80 bg-gradient-to-br from-primary/10 via-slate-900/40 to-slate-900/40">
+        <CardContent className="flex flex-col gap-6 p-5 sm:p-6 md:p-8">
           <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
             <div>
-              <p className="text-sm text-muted-foreground">{t("instantGeneration")}</p>
-              <div className="mt-1 flex items-baseline gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("instantGeneration")}</p>
+              <div className="mt-2 flex items-baseline gap-2">
                 <Zap className="size-7 text-primary" />
-                <span className="font-mono text-5xl font-semibold tabular-nums text-foreground">
+                <span className="font-mono text-5xl font-semibold tabular-nums text-slate-100">
                   {LIVE_STATUS.instantWatts}
                 </span>
-                <span className="text-lg text-muted-foreground">W</span>
+                <span className="text-lg text-slate-400">W</span>
               </div>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
                 {t("todayTotal", { val: LIVE_STATUS.todayKwh })}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="gap-1.5 border border-border/60 bg-muted/60 py-1.5 text-foreground">
+              <Badge variant="secondary" className="gap-1.5 border border-slate-700/60 bg-slate-900/80 py-1.5 text-slate-200">
                 <Leaf className="size-3.5 text-primary" />
                 {t("co2Saved", { kg: LIVE_STATUS.co2SavedKg })}
               </Badge>
-              <Badge className="gap-1.5 bg-primary/90 py-1.5 text-primary-foreground">
+              <Badge className="gap-1.5 bg-emerald-600 py-1.5 text-white">
                 <PiggyBank className="size-3.5" />
                 {t("monthlySavings", { yen: LIVE_STATUS.monthlySavingsYen.toLocaleString() })}
               </Badge>
-              <Badge variant="secondary" className="gap-1.5 border border-border/60 bg-muted/60 py-1.5 text-foreground">
+              <Badge variant="secondary" className="gap-1.5 border border-slate-700/60 bg-slate-900/80 py-1.5 text-slate-200">
                 <ShieldCheck className="size-3.5 text-primary" />
                 {t("basinBadge", { system: t(FLOOD_STATUS.systemKey) })}
               </Badge>
@@ -48,8 +48,8 @@ export function HomeView() {
       </Card>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-foreground">{t("livingCardsTitle")}</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <h2 className="mb-3 text-base font-semibold text-slate-100">{t("livingCardsTitle")}</h2>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {LIVING_CARDS.map((card) => (
             <LivingCard key={card.id} card={card} />
           ))}
@@ -58,10 +58,10 @@ export function HomeView() {
 
       <div>
         <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="text-sm font-semibold text-foreground">{t("floodCardsTitle")}</h2>
-          <p className="text-xs text-muted-foreground">{t("floodNote")}</p>
+          <h2 className="text-base font-semibold text-slate-100">{t("floodCardsTitle")}</h2>
+          <p className="text-xs text-slate-400">{t("floodNote")}</p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           {FLOOD_LIVING_CARDS.map((card) => (
             <LivingCard
               key={card.id}
@@ -73,11 +73,11 @@ export function HomeView() {
         </div>
       </div>
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold">{t("quickFlowTitle")}</CardTitle>
+      <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+        <CardHeader className="p-0 pb-4">
+          <CardTitle className="text-base font-semibold text-slate-100">{t("quickFlowTitle")}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <PowerFlowDiagram nodes={HOME_FLOW} />
         </CardContent>
       </Card>

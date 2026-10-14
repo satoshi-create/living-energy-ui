@@ -120,7 +120,10 @@ export function NetworkFlow({
   }, [nodes, edges, mode, variant])
 
   return (
-    <div ref={containerRef} className="relative">
+    <div
+      ref={containerRef}
+      className="relative rounded-2xl border border-slate-800 bg-slate-900/30 p-6 md:p-8"
+    >
       <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
         {lines.map((line) => (
           <g key={line.key}>
@@ -147,11 +150,11 @@ export function NetworkFlow({
         ))}
       </svg>
 
-      <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-10">
+      <div className="relative grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-12">
         {(["supply", "convert", "consume"] as const).map((kind) => (
-          <div key={kind} className="flex flex-col gap-4">
+          <div key={kind} className="flex flex-col gap-6">
             <p className="text-center text-xs font-medium text-muted-foreground">{kindLabel[kind]}</p>
-            <div className="flex flex-col gap-4 sm:justify-center sm:gap-6">
+            <div className="flex flex-col gap-6 sm:justify-center sm:gap-8">
               {columns[kind].map((node) => {
                 const Icon = ICONS[node.icon]
                 const copy = localizedNode(node, locale)
@@ -165,7 +168,7 @@ export function NetworkFlow({
                       if (el) nodeRefs.current.set(node.id, el)
                     }}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl border border-border/60 bg-card px-3.5 py-3 transition-opacity",
+                      "flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-3 transition-opacity",
                       dimmed && "opacity-40",
                       watching && "border-amber-500/40"
                     )}

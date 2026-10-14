@@ -54,16 +54,16 @@ const JOB_FRAMES = [
 
 export function EcosystemOrgsView() {
   return (
-    <div className="flex flex-col gap-6">
-      <Card className="border-border/60">
-        <CardHeader>
+    <div className="flex flex-col space-y-8">
+      <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+        <CardHeader className="p-0">
           <div className="flex items-start gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Building2 className="size-5" />
             </div>
             <div>
-              <CardTitle className="text-base font-semibold">ベランダソーラーに関する企業・非営利団体</CardTitle>
-              <CardDescription className="mt-1 text-pretty">
+              <CardTitle className="text-base font-semibold text-slate-100">ベランダソーラーに関する企業・非営利団体</CardTitle>
+              <CardDescription className="mt-1 text-pretty text-sm leading-relaxed text-slate-300">
                 Anker、Enphase、市民協同体など、製品・組織・求人をつなぐエコシステムの骨組み一覧です（デモ）。
               </CardDescription>
             </div>
@@ -71,10 +71,13 @@ export function EcosystemOrgsView() {
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {ORGS.map((org) => (
-          <Card key={org.id} className="border-border/60">
-            <CardHeader className="gap-2">
+          <Card
+            key={org.id}
+            className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 transition-all duration-200 hover:border-slate-700/80 md:p-6"
+          >
+            <CardHeader className="space-y-4 p-0">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="text-xs">
                   {org.category}
@@ -85,37 +88,43 @@ export function EcosystemOrgsView() {
                   </Badge>
                 ))}
               </div>
-              <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-100">
                 <Users className="size-4 text-primary" />
                 {org.name}
               </CardTitle>
-              <CardDescription className="text-xs font-medium text-foreground/80">{org.role}</CardDescription>
+              <p className="text-xs font-medium tracking-wide text-slate-400">{org.role}</p>
             </CardHeader>
-            <CardContent>
-              <p className="text-xs leading-relaxed text-muted-foreground">{org.summary}</p>
+            <CardContent className="mt-4 space-y-4 p-0">
+              <div className="space-y-2">
+                <p className="text-xs font-medium tracking-wide text-slate-400">概要/役割</p>
+                <p className="text-sm leading-relaxed text-slate-300">{org.summary}</p>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+      <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+        <CardHeader className="space-y-4 p-0">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-100">
             <Briefcase className="size-4 text-primary" />
             求人・組織エコシステム連携（枠組み）
           </CardTitle>
-          <CardDescription className="text-pretty text-xs">
+          <CardDescription className="text-pretty text-sm leading-relaxed text-slate-300">
             企業採用情報と市民協同・実装現場をつなぐ枠組みのプレースホルダ。今後、外部求人・団体ディレクトリと接続予定。
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <CardContent className="mt-4 grid grid-cols-1 gap-6 p-0 sm:grid-cols-3">
           {JOB_FRAMES.map((frame) => (
-            <div key={frame.title} className="rounded-xl border border-border/60 bg-muted/40 p-4">
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+            <div
+              key={frame.title}
+              className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 transition-all duration-200 hover:border-slate-700/80 md:p-6"
+            >
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-200">
                 <Handshake className="size-3.5 text-primary" />
                 {frame.title}
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">{frame.detail}</p>
+              <p className="text-sm leading-relaxed text-slate-300">{frame.detail}</p>
             </div>
           ))}
         </CardContent>

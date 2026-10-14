@@ -21,6 +21,7 @@ import {
   Wifi,
   X,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -113,12 +114,15 @@ import {
   getMarketEcosystemForCountry,
   getMaturityScore,
   getPvRegionsByMaturityDesc,
+  getSolarCellTypesForCountryCode,
+  getSolarCellTypesForRegionId,
   getSurfaceTypologyDetail,
   listArchitectureCatalog,
   resolveMarketEcosystemWiringFlow,
   resolveProfileTypology,
   resolveSystemModel,
   setMarketEcosystemUiLocale,
+  solarCellTypeFromHistoryStream,
   type ArchitectureProfile,
   type ArchitectureSurfaceType,
   type CountryPvDetail,
@@ -127,6 +131,7 @@ import {
   type EcosystemWiringStepKey,
   type MarketEcosystemModelId,
   type PoweredAppliance,
+  type SolarCellTypeId,
   type SolarFurnitureId,
   type SurfaceTypology,
   type SystemModelType,
@@ -267,11 +272,32 @@ function excessPowerFromModel(model: SystemModelType): ExcessPowerMsgKey {
   }
 }
 
-const SIDEBAR_SPEC_FIELDS = [
-  { key: "plugInEase" as const, labelKey: "plugInEase" },
-  { key: "excessPower" as const, labelKey: "excessPower" },
-  { key: "ruleSummary" as const, labelKey: "ruleSummary" },
-]
+function SidebarJumpButton({
+  label,
+  onClick,
+  icon: Icon = ExternalLink,
+  "aria-label": ariaLabel,
+}: {
+  label: string
+  onClick: () => void
+  icon?: LucideIcon
+  "aria-label"?: string
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      aria-label={ariaLabel ?? label}
+      className="h-auto shrink-0 gap-1 px-2 py-1 text-xs font-medium text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300"
+    >
+      <Icon className="size-3" aria-hidden />
+      {label}
+      <span aria-hidden>↗</span>
+    </Button>
+  )
+}
 
 const ACTOR_TYPE_ICON: Record<EcosystemActorType, typeof Building2> = {
   company: Building2,
@@ -291,6 +317,8 @@ type ArchitectureSidebarProps = {
   highlightedFurnitureId: SolarFurnitureId | null
   onHighlightFurniture: (id: SolarFurnitureId) => void
   onOpenSurfaceDetail: (focus: Surface3DFocus) => void
+  onJumpToSurfacesTab: () => void
+  jumpToSurfacesLabel: string
 }
 
 function ArchitectureSidebar({
@@ -299,8 +327,11 @@ function ArchitectureSidebar({
   highlightedFurnitureId,
   onHighlightFurniture,
   onOpenSurfaceDetail,
+  onJumpToSurfacesTab,
+  jumpToSurfacesLabel,
 }: ArchitectureSidebarProps) {
   const tArch = useTranslations("worldPv.architecture")
+  const tSidebarJump = useTranslations("worldPv.sidebar")
   const balconyProfiles = useMemo(
     () => profiles.filter((p) => p.type === "balcony"),
     [profiles],
@@ -322,8 +353,15 @@ function ArchitectureSidebar({
   if (profiles.length === 0) return null
 
   return (
-    <div className="flex flex-col gap-3 border-t border-slate-800 pt-3">
-      <p className="text-sm font-bold tracking-tight text-foreground">{tArch("sectionTitle")}</p>
+    <div className="flex flex-col gap-2 border-t border-slate-800 pt-3">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-slate-100">{tArch("sectionTitle")}</h3>
+        <SidebarJumpButton
+          label={jumpToSurfacesLabel}
+          aria-label={tSidebarJump("jump.surfaces")}
+          onClick={onJumpToSurfacesTab}
+        />
+      </div>
       {hasBothSurfaces && (
         <div
           role="tablist"
@@ -338,7 +376,7 @@ function ArchitectureSidebar({
               aria-selected={surfaceTab === tab}
               onClick={() => setSurfaceTab(tab)}
               className={cn(
-                "flex-1 rounded px-3 py-1.5 text-xs font-semibold transition-colors",
+                "flex-1 rounded px-2.5 py-1 text-xs font-semibold transition-colors",
                 surfaceTab === tab
                   ? "bg-primary/20 text-primary"
                   : "text-muted-foreground hover:text-foreground",
@@ -349,16 +387,16 @@ function ArchitectureSidebar({
           ))}
         </div>
       )}
-      <ul className="flex flex-col gap-2.5">
+      <ul className="flex flex-col gap-2">
         {visibleProfiles.map((profile) => {
           const TypeIcon = ARCH_TYPE_ICON[profile.type]
           const typology = getSurfaceTypologyDetail(resolveProfileTypology(profile))
           return (
             <li
               key={profile.id}
-              className="flex flex-col gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5"
+              className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-muted/30 px-2.5 py-2"
             >
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1">
                 <Badge
                   variant="secondary"
                   className="inline-flex items-center gap-1 text-xs font-semibold"
@@ -376,7 +414,7 @@ function ArchitectureSidebar({
                   {tArch(`opticalProfile.${typology.opticalProfile}`)}
                 </Badge>
               </div>
-              <div className="relative">
+              <div className="relative max-h-[140px] overflow-hidden rounded-md [&_>div]:min-h-[120px] [&_>div]:h-[140px]">
                 <Surface3DViewer profileId={profile.model3dId} />
                 <button
                   type="button"
@@ -386,29 +424,29 @@ function ArchitectureSidebar({
                       profileId: profile.id,
                     })
                   }
-                  className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-md border border-border/60 bg-black/70 px-3 py-1.5 text-xs font-semibold text-primary backdrop-blur transition-colors hover:bg-black/85 hover:text-emerald-300"
+                  className="absolute top-1.5 right-1.5 z-10 inline-flex items-center gap-1 rounded-md border border-border/60 bg-black/70 px-2 py-1 text-xs font-semibold text-primary backdrop-blur transition-colors hover:bg-black/85 hover:text-emerald-300"
                 >
                   {tArch("surface3d.expandFull")}
                   <ExternalLink className="size-3" />
                 </button>
               </div>
-              <p className="text-xs leading-relaxed text-slate-200">
+              <p className="line-clamp-2 text-xs leading-relaxed text-slate-200">
                 {tArch(profile.descriptionKey)}
               </p>
-              <div className="rounded-md bg-rose-500/10 px-2.5 py-1.5">
-                <p className="text-sm font-bold tracking-tight text-foreground">
+              <div className="rounded-md bg-rose-500/10 px-2 py-1">
+                <p className="text-xs font-semibold text-slate-100">
                   {tArch("constraintsLabel")}
                 </p>
-                <p className="mt-0.5 text-xs leading-relaxed text-slate-200">
+                <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-200">
                   {tArch(profile.constraintsKey)}
                 </p>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <p className="flex items-center gap-1 text-sm font-bold tracking-tight text-foreground">
-                  <Sofa className="size-3.5 text-emerald-400" />
+              <div className="flex flex-col gap-1">
+                <p className="flex items-center gap-1 text-xs font-semibold text-slate-100">
+                  <Sofa className="size-3 text-emerald-400" />
                   {tArch("adaptedFurnitureLabel")}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {profile.adaptedFurnitureIds.map((fid) => {
                     const active = highlightedFurnitureId === fid
                     return (
@@ -417,14 +455,14 @@ function ArchitectureSidebar({
                         type="button"
                         onClick={() => onHighlightFurniture(fid)}
                         className={cn(
-                          "rounded-md border px-3 py-1.5 text-left text-xs font-semibold transition-colors",
+                          "rounded-md border px-2 py-1 text-left text-xs font-medium transition-colors",
                           active
                             ? "border-primary/60 bg-primary/20 text-primary ring-1 ring-primary/40"
                             : "border-border/50 bg-muted/40 text-slate-200 hover:border-primary/40 hover:bg-muted/60",
                         )}
                       >
                         <span className="font-medium">{tArch(`furniture.${fid}.name`)}</span>
-                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                        <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">
                           {tArch(`furniture.${fid}.adaptation`)}
                         </span>
                       </button>
@@ -498,8 +536,15 @@ export function WorldImplementationView() {
   const [actorFilter, setActorFilter] = useState<EcosystemActorFilter>("all")
   const [highlightedFurnitureId, setHighlightedFurnitureId] =
     useState<SolarFurnitureId | null>(null)
-  const [selectedCellStream, setSelectedCellStream] =
-    useState<PvHistoryStream | null>(null)
+  const [selectedCellStream, setSelectedCellStream] = useState<
+    PvHistoryStream | SolarCellTypeId | null
+  >(null)
+  const [highlightCellId, setHighlightCellId] = useState<SolarCellTypeId | null>(
+    null,
+  )
+  const [highlightCountryCodes, setHighlightCountryCodes] = useState<string[]>(
+    [],
+  )
   const sidebarRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
 
@@ -519,10 +564,47 @@ export function WorldImplementationView() {
     setViewTab("map")
   }, [])
 
-  const jumpToEcosystemModel = useCallback((modelId: MarketEcosystemModelId) => {
-    setEcosystemModelId(modelId)
-    setViewTab("ecosystem")
+  const preserveSelectedCountryCode = useCallback((country: CountryPvDetail) => {
+    setHighlightCountryCodes([String(country.code).toUpperCase()])
   }, [])
+
+  const jumpToEcosystemModel = useCallback(
+    (modelId: MarketEcosystemModelId, country?: CountryPvDetail | null) => {
+      if (country) preserveSelectedCountryCode(country)
+      setEcosystemModelId(modelId)
+      setViewTab("ecosystem")
+    },
+    [preserveSelectedCountryCode],
+  )
+
+  const jumpToSurfacesTabForCountry = useCallback(
+    (country: CountryPvDetail) => {
+      preserveSelectedCountryCode(country)
+      const config =
+        getCountryArchitectureConfig(country.code) ??
+        getCountryArchitectureConfig(country.id)
+      const firstProfile = config?.profiles[0]
+      if (firstProfile) {
+        setSurfacesPanel({
+          mode: "detail",
+          focus: { countryId: country.id, profileId: firstProfile.id },
+          returnTo: "map",
+        })
+      } else {
+        setSurfacesPanel({ mode: "list" })
+      }
+      setViewTab("surfaces")
+    },
+    [preserveSelectedCountryCode],
+  )
+
+  const jumpToRelatedOrgsTab = useCallback(
+    (tab: "vendors" | "nonprofits", country: CountryPvDetail) => {
+      preserveSelectedCountryCode(country)
+      setViewTab(tab)
+    },
+    [preserveSelectedCountryCode],
+  )
 
   const jumpToOssTools = useCallback((_toolId?: string) => {
     setSelectedId(null)
@@ -595,7 +677,57 @@ export function WorldImplementationView() {
 
   const handleNavigateToCell = useCallback((streamId: PvHistoryStream) => {
     setSelectedCellStream(streamId)
+    setHighlightCellId(solarCellTypeFromHistoryStream(streamId))
     setViewTab("cell-types")
+  }, [])
+
+  const handleNavigateToCellType = useCallback(
+    (cellId: SolarCellTypeId, country?: CountryPvDetail | null) => {
+      if (country) {
+        setHighlightCountryCodes([String(country.code).toUpperCase()])
+      }
+      setSelectedCellStream(cellId)
+      setHighlightCellId(cellId)
+      setViewTab("cell-types")
+    },
+    [],
+  )
+
+  const jumpToCellTypesTabForCountry = useCallback(
+    (country: CountryPvDetail) => {
+      setHighlightCountryCodes([String(country.code).toUpperCase()])
+      const panelLinks =
+        getSolarCellTypesForCountryCode(String(country.code)).length > 0
+          ? getSolarCellTypesForCountryCode(String(country.code))
+          : getSolarCellTypesForRegionId(country.id)
+      if (panelLinks[0]) {
+        setSelectedCellStream(panelLinks[0].id)
+        setHighlightCellId(panelLinks[0].id)
+      } else {
+        setSelectedCellStream(null)
+        setHighlightCellId(null)
+      }
+      setViewTab("cell-types")
+    },
+    [],
+  )
+
+  const handleNavigateToCountryCode = useCallback((countryCode: string) => {
+    const code = countryCode.trim().toUpperCase()
+    const match =
+      WORLD_BALCONY_PV_COUNTRIES.find(
+        (c) => String(c.code).toUpperCase() === code && !c.parentId,
+      ) ??
+      WORLD_BALCONY_PV_COUNTRIES.find(
+        (c) => String(c.code).toUpperCase() === code,
+      )
+    setHighlightCountryCodes([code])
+    setHighlightedFurnitureId(null)
+    setIsRankingOpen(false)
+    setIsMovementHistoryOpen(false)
+    setHistoryPhase(null)
+    setSelectedId(match?.id ?? null)
+    setViewTab("map")
   }, [])
 
   const detailTypology = useMemo(() => {
@@ -808,6 +940,8 @@ export function WorldImplementationView() {
         <div className="flex h-full min-h-0 w-full max-w-full items-center justify-center p-2 sm:p-4">
           <WorldPvMap
             selectedCountryId={selectedId ?? ""}
+            highlightCountryCodes={highlightCountryCodes}
+            onNavigateToSolarCell={handleNavigateToCellType}
             isRankingOpen={isRankingOpen}
             onRankingOpenChange={(open) => {
               setIsRankingOpen(open)
@@ -836,12 +970,14 @@ export function WorldImplementationView() {
                 setSelectedId(country.id)
                 setActorFilter("all")
                 setHighlightedFurnitureId(null)
+                setHighlightCountryCodes([String(country.code).toUpperCase()])
                 setIsRankingOpen(false)
                 setIsMovementHistoryOpen(false)
                 setHistoryPhase(null)
               } else {
                 setSelectedId(null)
                 setHighlightedFurnitureId(null)
+                setHighlightCountryCodes([])
               }
             }}
           />
@@ -851,7 +987,7 @@ export function WorldImplementationView() {
       <Card
         ref={sidebarRef}
         className={cn(
-          "z-30 flex flex-col overflow-hidden border-border/60 bg-card/95 backdrop-blur-md transition-transform duration-300 ease-in-out",
+          "z-30 flex flex-col overflow-hidden border-slate-800 bg-slate-900/95 backdrop-blur-md transition-transform duration-300 ease-in-out lg:bg-slate-900/40",
           // <lg: ボトムシート（マップ上部を常時可視、ピン操作を阻害しない）
           "fixed inset-x-0 bottom-0 h-[45vh] max-h-[50vh] w-full rounded-t-xl shadow-lg",
           // >=lg: 右側絶対配置オーバーレイ（地図を押し縮めない）
@@ -1021,53 +1157,75 @@ export function WorldImplementationView() {
                   value="overview"
                   className="mt-0 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto outline-none"
                 >
-                  {selectedEcosystem && selectedEcosystemModelId && selectedEcosystemAccent && (
-                    <button
-                      type="button"
-                      onClick={() => jumpToEcosystemModel(selectedEcosystemModelId)}
-                      className={cn(
-                        "flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors hover:brightness-110",
-                        selectedEcosystemAccent.badge,
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-slate-100">
+                        {tSidebar("statusSummary")}
+                      </h3>
+                      {selectedEcosystemModelId && (
+                        <SidebarJumpButton
+                          label={tSidebar("jumpOpen")}
+                          aria-label={tSidebar("jump.ecosystem")}
+                          onClick={() =>
+                            jumpToEcosystemModel(selectedEcosystemModelId, selectedCountry)
+                          }
+                        />
                       )}
-                    >
-                      <span className="min-w-0 flex-1">
-                        ⚡{" "}
-                        {isEn ? "Power topology: " : "採用給電モデル: "}
-                        {isEn ? selectedEcosystem.badgeEn : selectedEcosystem.badgeJa}
-                      </span>
-                      <span aria-hidden className="shrink-0 opacity-80">
-                        ↗
-                      </span>
-                    </button>
-                  )}
-                  <div className="flex flex-col gap-2">
-                    {SIDEBAR_SPEC_FIELDS.map(({ key, labelKey }) => {
-                      const isPlugInEase = key === "plugInEase"
-                      const value = isPlugInEase
-                        ? plugInEaseSpec
-                          ? tSidebar(plugInEaseSpec.msgKey)
-                          : ""
-                        : key === "excessPower"
-                          ? excessPowerKey
-                            ? tSidebar(excessPowerKey)
-                            : ""
-                          : sidebarRuleSummary()
-                      return (
-                        <div key={key} className="flex flex-col gap-0.5 rounded-lg bg-muted/50 px-3 py-2">
-                          <span className="text-xs font-semibold text-slate-400">{tSidebar(labelKey)}</span>
-                          <span
-                            className={cn(
-                              "break-words text-sm",
-                              isPlugInEase && plugInEaseSpec
-                                ? OUTLET_TONE_CLASS[plugInEaseSpec.tone]
-                                : "font-medium text-slate-100",
-                            )}
-                          >
-                            {value}
-                          </span>
-                        </div>
-                      )
-                    })}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg border border-border/50 bg-slate-900/60 p-2.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          {tSidebar("statusCard.powerModel")}
+                        </span>
+                        <p
+                          className={cn(
+                            "mt-1 break-words text-sm font-medium leading-snug",
+                            selectedEcosystemAccent
+                              ? "text-slate-100"
+                              : "text-slate-200",
+                          )}
+                        >
+                          {selectedEcosystem
+                            ? isEn
+                              ? selectedEcosystem.badgeEn
+                              : selectedEcosystem.badgeJa
+                            : isOffgridArch
+                              ? tSidebar("archOffgrid")
+                              : tSidebar("archGrid")}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border/50 bg-slate-900/60 p-2.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          {tSidebar("statusCard.works")}
+                        </span>
+                        <p
+                          className={cn(
+                            "mt-1 break-words text-sm leading-snug",
+                            plugInEaseSpec
+                              ? OUTLET_TONE_CLASS[plugInEaseSpec.tone]
+                              : "font-medium text-slate-100",
+                          )}
+                        >
+                          {plugInEaseSpec ? tSidebar(plugInEaseSpec.msgKey) : "—"}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border/50 bg-slate-900/60 p-2.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          {tSidebar("statusCard.excess")}
+                        </span>
+                        <p className="mt-1 break-words text-sm font-medium leading-snug text-slate-100">
+                          {excessPowerKey ? tSidebar(excessPowerKey) : "—"}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border/50 bg-slate-900/60 p-2.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          {tSidebar("statusCard.legal")}
+                        </span>
+                        <p className="mt-1 line-clamp-3 break-words text-sm font-medium leading-snug text-slate-100">
+                          {sidebarRuleSummary() || "—"}
+                        </p>
+                      </div>
+                    </div>
                     <p className="text-sm leading-relaxed text-slate-300">
                       {countryMsg(
                         "summary",
@@ -1095,14 +1253,61 @@ export function WorldImplementationView() {
                       highlightedFurnitureId={highlightedFurnitureId}
                       onHighlightFurniture={handleHighlightFurniture}
                       onOpenSurfaceDetail={openSurfaceDetailFromMap}
+                      onJumpToSurfacesTab={() =>
+                        jumpToSurfacesTabForCountry(selectedCountry)
+                      }
+                      jumpToSurfacesLabel={tSidebar("jumpOpen")}
                     />
                   )}
 
+                  {(() => {
+                    const panelLinks =
+                      getSolarCellTypesForCountryCode(
+                        String(selectedCountry.code),
+                      ).length > 0
+                        ? getSolarCellTypesForCountryCode(
+                            String(selectedCountry.code),
+                          )
+                        : getSolarCellTypesForRegionId(selectedCountry.id)
+                    if (panelLinks.length === 0) return null
+                    return (
+                      <div className="mt-1 space-y-2 rounded-xl border border-border/60 bg-muted/30 p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="text-sm font-semibold text-slate-100">
+                            {tSidebar("recommendedCells")}
+                          </h3>
+                          <SidebarJumpButton
+                            label={tSidebar("jumpOpen")}
+                            icon={Layers}
+                            aria-label={tSidebar("jump.cellTypes")}
+                            onClick={() =>
+                              jumpToCellTypesTabForCountry(selectedCountry)
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {panelLinks.map((cell) => (
+                            <button
+                              key={cell.id}
+                              type="button"
+                              onClick={() =>
+                                handleNavigateToCellType(cell.id, selectedCountry)
+                              }
+                              className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                            >
+                              {isEn ? cell.categoryBadgeEn : cell.categoryBadgeJa}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
                   {selectedCountry.keyDrivers && selectedCountry.keyDrivers.length > 0 && (
                     <div className="space-y-1.5 border-t border-slate-800 pt-2">
-                      <div className="text-sm font-semibold text-emerald-400">
+                      <h3 className="text-sm font-semibold text-emerald-400">
                         {tSidebar("drivers")}
-                      </div>
+                      </h3>
                       <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
                         {selectedCountry.keyDrivers.map((driver, idx) => {
                           const enList = (selectedCountry as { keyDriversEn?: string[] }).keyDriversEn
@@ -1117,9 +1322,9 @@ export function WorldImplementationView() {
                   )}
                   {selectedCountry.bottlenecks && selectedCountry.bottlenecks.length > 0 && (
                     <div className="space-y-1.5 border-t border-slate-800 pt-2">
-                      <div className="text-sm font-semibold text-rose-400">
+                      <h3 className="text-sm font-semibold text-rose-400">
                         {tSidebar("bottlenecks")}
-                      </div>
+                      </h3>
                       <ul className="list-inside list-disc space-y-1 text-sm leading-relaxed text-slate-200">
                         {selectedCountry.bottlenecks.map((bottle, idx) => {
                           const enList = (selectedCountry as { bottlenecksEn?: string[] }).bottlenecksEn
@@ -1134,7 +1339,29 @@ export function WorldImplementationView() {
                   )}
 
                   <div className="flex flex-col gap-3">
-                    <p className="text-xs font-medium text-muted-foreground">{tSidebar("relatedOrgs")}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-slate-100">
+                        {tSidebar("relatedOrgs")}
+                      </h3>
+                      <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                        <SidebarJumpButton
+                          label={tSidebar("jumpOpen")}
+                          icon={Building2}
+                          aria-label={tSidebar("jump.vendors")}
+                          onClick={() =>
+                            jumpToRelatedOrgsTab("vendors", selectedCountry)
+                          }
+                        />
+                        <SidebarJumpButton
+                          label={tSidebar("jumpOpen")}
+                          icon={Users}
+                          aria-label={tSidebar("jump.nonprofits")}
+                          onClick={() =>
+                            jumpToRelatedOrgsTab("nonprofits", selectedCountry)
+                          }
+                        />
+                      </div>
+                    </div>
                     <ToggleGroup
                       value={[actorFilter]}
                       onValueChange={(v) => v[0] && setActorFilter(v[0] as EcosystemActorFilter)}
@@ -1237,10 +1464,10 @@ export function WorldImplementationView() {
         value="oss"
         className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
       >
-        <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto bg-slate-950/80 p-3 sm:p-4">
-          <div className="shrink-0 space-y-1 rounded-xl border border-border/50 bg-black/60 p-3 sm:p-4">
-            <h2 className="text-sm font-semibold text-foreground">{t("oss.title")}</h2>
-            <p className="text-xs text-muted-foreground">{t("oss.lead")}</p>
+        <div className="flex h-full min-h-0 flex-col space-y-8 overflow-y-auto bg-slate-950 p-5 sm:p-6 md:p-8">
+          <div className="shrink-0 space-y-2 rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+            <h2 className="text-base font-semibold text-slate-100">{t("oss.title")}</h2>
+            <p className="text-sm leading-relaxed text-slate-400">{t("oss.lead")}</p>
           </div>
           <CountryPvOssTools isEn={isEn} />
         </div>
@@ -1250,11 +1477,12 @@ export function WorldImplementationView() {
         value="ecosystem"
         className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
       >
-        <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto bg-slate-950/80 p-3 sm:p-4">
-          <div className="shrink-0 space-y-1 rounded-xl border border-border/50 bg-black/60 p-3 sm:p-4">
-            <h2 className="text-sm font-semibold text-foreground">{t("ecosystem.title")}</h2>
-            <p className="text-xs text-muted-foreground">{t("ecosystem.lead")}</p>
-          </div>
+        <div className="flex h-full min-h-0 flex-col space-y-8 overflow-y-auto bg-slate-950 p-5 sm:p-6 md:p-8">
+          <div className="mb-8 shrink-0 space-y-4 rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+            <div className="space-y-2">
+              <h2 className="text-base font-semibold text-slate-100">{t("ecosystem.title")}</h2>
+              <p className="text-sm leading-relaxed text-slate-400">{t("ecosystem.lead")}</p>
+            </div>
 
           <div className="flex flex-wrap gap-2">
             {MARKET_ECOSYSTEM_TOPOLOGIES.map((topo) => {
@@ -1277,8 +1505,8 @@ export function WorldImplementationView() {
             })}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <p className="text-[10px] font-medium text-muted-foreground">
+          <div className="flex flex-col gap-2 border-t border-slate-800/60 pt-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
               {t("ecosystem.viewMode.label")}
             </p>
             <ToggleGroup
@@ -1309,18 +1537,18 @@ export function WorldImplementationView() {
 
           <div
             className={cn(
-              "shrink-0 space-y-2 rounded-xl border bg-black/40 p-3 sm:p-4",
+              "space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-5",
               ecosystemAccent.panel,
             )}
           >
-            <p className="text-xs font-medium text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               {isEn
                 ? "🌍 Main countries & regions using this power model"
                 : "🌍 この給電モデルを採用している主な国・地域"}
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {ecosystemAdopterCountries.length === 0 ? (
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-slate-400">
                   {isEn ? "No countries listed" : "該当国なし"}
                 </span>
               ) : (
@@ -1330,7 +1558,7 @@ export function WorldImplementationView() {
                     type="button"
                     onClick={() => jumpToMapCountry(country.id)}
                     className={cn(
-                      "rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                      "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
                       ecosystemAccent.chip,
                     )}
                   >
@@ -1339,6 +1567,7 @@ export function WorldImplementationView() {
                 ))
               )}
             </div>
+          </div>
           </div>
 
           {/* Hide inner ①②③ tabs — parent owns model selection for chip sync.
@@ -1358,7 +1587,7 @@ export function WorldImplementationView() {
           </div>
 
           {/* Hardware wiring specs only — software overlays live on the SVG above */}
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {ECOSYSTEM_WIRING_STEPS.map((stepKey) => {
               const flow = resolveMarketEcosystemWiringFlow(
                 activeEcosystemTopology,
@@ -1369,16 +1598,16 @@ export function WorldImplementationView() {
                 <div
                   key={stepKey}
                   className={cn(
-                    "flex flex-col gap-1.5 rounded-lg border border-border/40 bg-slate-950/50 px-3 py-2",
-                    isConsumption && "min-h-[7.5rem] gap-1 sm:col-span-2 lg:col-span-1",
+                    "flex flex-col space-y-2 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6",
+                    isConsumption && "min-h-[7.5rem] sm:col-span-2 lg:col-span-1",
                   )}
                 >
-                  <p className="text-[10px] font-medium text-muted-foreground">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                     {isConsumption
                       ? consumptionNodeTitle(ecosystemModelId, isEn)
                       : t(`ecosystem.wiringSteps.${stepKey}`)}
                   </p>
-                  <p className="text-xs leading-relaxed break-words text-slate-200">
+                  <p className="text-sm leading-relaxed break-words text-slate-200">
                     {flow[stepKey]}
                   </p>
                   {isConsumption && (
@@ -1447,41 +1676,42 @@ export function WorldImplementationView() {
             </div>
           </div>
         ) : (
-          <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto px-3 py-3 sm:px-4">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">
+          <div className="flex h-full min-h-0 flex-col space-y-8 overflow-y-auto bg-slate-950 p-5 sm:p-6 md:p-8">
+            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
+              <h2 className="text-base font-semibold text-slate-100">
                 {tArch("surface3d.listTitle")}
               </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
                 {tArch("surface3d.listLead")}
               </p>
+
+              <Tabs
+                value={surfaceCategoryFilter}
+                onValueChange={(value) => {
+                  if (value === "all" || value === "balcony" || value === "roof") {
+                    setSurfaceCategoryFilter(value)
+                  }
+                }}
+                className="mt-4"
+              >
+                <TabsList
+                  className="h-auto w-full flex-wrap justify-start gap-2 sm:w-fit"
+                  aria-label={tArch("surface3d.surfaceTabsAria")}
+                >
+                  <TabsTrigger value="all" className="px-3 py-1.5 text-xs sm:text-sm">
+                    {tPv("filter.all")} ({surfaceFilterCounts.all})
+                  </TabsTrigger>
+                  <TabsTrigger value="balcony" className="px-3 py-1.5 text-xs sm:text-sm">
+                    {tPv("filter.balcony")} ({surfaceFilterCounts.balcony})
+                  </TabsTrigger>
+                  <TabsTrigger value="roof" className="px-3 py-1.5 text-xs sm:text-sm">
+                    {tPv("filter.roof")} ({surfaceFilterCounts.roof})
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
-            <Tabs
-              value={surfaceCategoryFilter}
-              onValueChange={(value) => {
-                if (value === "all" || value === "balcony" || value === "roof") {
-                  setSurfaceCategoryFilter(value)
-                }
-              }}
-            >
-              <TabsList
-                className="h-auto w-full flex-wrap justify-start gap-1 sm:w-fit"
-                aria-label={tArch("surface3d.surfaceTabsAria")}
-              >
-                <TabsTrigger value="all" className="px-3 py-1.5 text-xs sm:text-sm">
-                  {tPv("filter.all")} ({surfaceFilterCounts.all})
-                </TabsTrigger>
-                <TabsTrigger value="balcony" className="px-3 py-1.5 text-xs sm:text-sm">
-                  {tPv("filter.balcony")} ({surfaceFilterCounts.balcony})
-                </TabsTrigger>
-                <TabsTrigger value="roof" className="px-3 py-1.5 text-xs sm:text-sm">
-                  {tPv("filter.roof")} ({surfaceFilterCounts.roof})
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {filteredArchitectureCatalog.map(({ countryId, profile, typology }) => {
                 const TypeIcon = ARCH_TYPE_ICON[profile.type]
                 const opticalLabel = tArch(`opticalProfile.${typology.opticalProfile}`)
@@ -1505,22 +1735,22 @@ export function WorldImplementationView() {
                           })
                         }
                       }}
-                      className="flex w-full cursor-pointer flex-col gap-2 rounded-xl border border-border/50 bg-card/80 p-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+                      className="flex w-full cursor-pointer flex-col space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 text-left transition-all duration-200 hover:border-slate-700/80 hover:bg-slate-800/80 md:p-6"
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="min-w-0 text-sm font-semibold leading-snug text-foreground">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="min-w-0 text-base font-semibold leading-snug text-slate-100">
                           {tArch(profile.nameKey)}
                         </p>
-                        <div className="flex shrink-0 flex-col items-end gap-1">
+                        <div className="flex shrink-0 flex-col items-end gap-1.5">
                           <Badge
                             variant="outline"
-                            className="font-mono text-[10px] text-amber-300/90"
+                            className="font-mono text-xs text-amber-300/90"
                           >
                             {profile.tiltAngle}
                           </Badge>
                           <Badge
                             variant="outline"
-                            className="text-[10px] font-normal text-muted-foreground"
+                            className="text-xs font-normal text-slate-400"
                           >
                             {opticalLabel}
                           </Badge>
@@ -1529,18 +1759,18 @@ export function WorldImplementationView() {
 
                       <SurfaceCountryTags typology={typology} />
 
-                      <div className="relative overflow-hidden rounded-lg border border-border/40">
+                      <div className="relative overflow-hidden rounded-lg border border-slate-800">
                         <Surface3DViewer profileId={profile.model3dId} />
-                        <div className="pointer-events-none absolute right-2 top-2 flex flex-col items-end gap-1">
-                          <span className="rounded-md bg-background/85 px-2 py-0.5 font-mono text-xs text-foreground shadow-sm ring-1 ring-border/50">
+                        <div className="pointer-events-none absolute right-2 top-2 flex flex-col items-end gap-1.5">
+                          <span className="rounded-md bg-slate-950/85 px-2 py-0.5 font-mono text-xs text-slate-100 shadow-sm ring-1 ring-slate-700/50">
                             {profile.tiltAngle}
                           </span>
-                          <span className="rounded-md bg-background/85 px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm ring-1 ring-border/50">
+                          <span className="rounded-md bg-slate-950/85 px-2 py-0.5 text-xs text-slate-400 shadow-sm ring-1 ring-slate-700/50">
                             {opticalLabel}
                           </span>
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           onClick={(e) => {
@@ -1548,7 +1778,7 @@ export function WorldImplementationView() {
                             handleNavigateToCell(typology.recommendedCellStream)
                           }}
                           className={cn(
-                            "rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors",
+                            "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
                             CELL_STREAM_BADGE_CLASS[typology.recommendedCellStream],
                           )}
                         >
@@ -1556,7 +1786,7 @@ export function WorldImplementationView() {
                         </button>
                         <Badge
                           variant="secondary"
-                          className="inline-flex items-center gap-1 text-[10px] font-medium"
+                          className="inline-flex items-center gap-1 text-xs font-medium"
                         >
                           <TypeIcon className="size-3" />
                           {tArch(`types.${profile.type}`)}
@@ -1565,7 +1795,7 @@ export function WorldImplementationView() {
                           <Badge
                             key={region}
                             variant="outline"
-                            className="text-[10px] font-normal text-muted-foreground/90"
+                            className="text-xs font-normal text-slate-400"
                           >
                             {tArch(`regions.${region}`)}
                           </Badge>
@@ -1574,10 +1804,10 @@ export function WorldImplementationView() {
 
                       <SurfaceMountJobBadges typology={typology} />
 
-                      <p className="line-clamp-2 text-xs leading-relaxed text-slate-300">
+                      <p className="line-clamp-2 text-sm leading-relaxed text-slate-300">
                         {tArch(profile.constraintsKey)}
                       </p>
-                      <p className="line-clamp-2 text-[10px] leading-relaxed text-muted-foreground/80">
+                      <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">
                         {tArch(
                           profileRegionContextKey(
                             profile.constraintsKey,
@@ -1601,7 +1831,9 @@ export function WorldImplementationView() {
           key={selectedCellStream ?? "cell-list"}
           isEn={isEn}
           initialSelectedStream={selectedCellStream}
+          highlightCellId={highlightCellId}
           onSelectTypology={jumpToTypologyFromHistory}
+          onNavigateToCountry={handleNavigateToCountryCode}
         />
       </TabsContent>
     </Tabs>
