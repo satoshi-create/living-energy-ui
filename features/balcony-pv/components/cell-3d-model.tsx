@@ -1,7 +1,7 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Line, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Group } from 'three'
@@ -13,8 +13,20 @@ export type Cell3DModelProps = {
   type: SolarCellTypeId
   interactive?: boolean
   className?: string
-  /** 観察角度プリセット（度）。未指定時は一覧用の自動回転。 */
+  /** 観察角度プリセット（度）。未指定時は表面30°の静止表示。 */
   viewAngle?: CellViewAngle
+}
+
+/** Panels face +Z; camera stays in the +Z hemisphere so the cell face stays readable. */
+const CAMERA_TARGET: [number, number, number] = [0, 0.1, 0]
+const CAMERA_BY_ANGLE: Record<
+  CellViewAngle,
+  { position: [number, number, number] }
+> = {
+  0: { position: [0, 1.1, 4.4] },
+  /** Oblique front overview — list cards and detail default. */
+  30: { position: [2.2, 1.7, 3.8] },
+  90: { position: [4.0, 1.5, 1.2] },
 }
 
 /** Si主流：アルミフレームの頑丈さと約35mm厚の重厚感を強調 */
@@ -31,8 +43,8 @@ function SiliconPanel() {
   const frameBezel = 0.1
 
   return (
-    /* Y軸 180° 補正: 青いセル・バスバーがカメラ正面を向く */
-    <group rotation={[0, Math.PI, 0]}>
+    /* Cell face on +Z toward the default camera. */
+    <group>
       {/* Aluminum frame — thick glossy structural extrusion */}
       <mesh position={[0, 0, -frameDepth / 2]} castShadow receiveShadow>
         <boxGeometry
@@ -187,7 +199,7 @@ function CompoundThinFilmPanel() {
 }
 
 /** ペロブスカイト：1mm未満の剛体折り紙ヒンジ + 折り畳み／展開の動的変形 */
-function PerovskiteFilmPanel() {
+function PerovskiteFilmPanel({ animateFold = false }: { animateFold?: boolean }) {
   const leftWing = useRef<Group>(null)
   const rightWing = useRef<Group>(null)
   const phase = useRef(0)
@@ -208,6 +220,12 @@ function PerovskiteFilmPanel() {
   const panelW = 0.48
 
   useFrame((_, delta) => {
+    if (!animateFold) {
+      const fold = 0.55
+      if (leftWing.current) leftWing.current.rotation.y = fold
+      if (rightWing.current) rightWing.current.rotation.y = -fold
+      return
+    }
     phase.current += delta * 0.55
     // 0 → 展開、π → 畳み：正弦で往復
     const t = (Math.sin(phase.current) + 1) / 2
@@ -225,7 +243,7 @@ function PerovskiteFilmPanel() {
       </mesh>
 
       {/* 左翼 — 山折りヒンジ（動的） */}
-      <group ref={leftWing} position={[-panelW / 2, 0, 0]}>
+      <group ref={leftWing} position={[-panelW / 2, 0, 0]} rotation={[0, animateFold ? 0 : 0.55, 0]}>
         <mesh position={[-panelW / 2, 0, 0]} castShadow>
           <boxGeometry args={[panelW, panelH, thickness]} />
           <meshStandardMaterial {...filmMat} color="#34d399" />
@@ -233,7 +251,7 @@ function PerovskiteFilmPanel() {
       </group>
 
       {/* 右翼 — 谷折り反対側（動的） */}
-      <group ref={rightWing} position={[panelW / 2, 0, 0]}>
+      <group ref={rightWing} position={[panelW / 2, 0, 0]} rotation={[0, animateFold ? 0 : -0.55, 0]}>
         <mesh position={[panelW / 2, 0, 0]} castShadow>
           <boxGeometry args={[panelW, panelH, thickness]} />
           <meshStandardMaterial {...filmMat} color="#a78bfa" />
@@ -279,8 +297,8 @@ function EtfeFlexiblePanel() {
   ]
 
   return (
-    <group rotation={[0, Math.PI, 0]}>
-      {/* ETFE fluoropolymer sheet — thin translucent shell */}
+    <group>
+      {/* ETFE fluoropolymer sheet — thin translucent shell; cells face +Z. */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[w, h, thickness]} />
         <meshPhysicalMaterial
@@ -295,7 +313,7 @@ function EtfeFlexiblePanel() {
           clearcoatRoughness={0.2}
         />
       </mesh>
-      {/* Mono-Si cell lattice under the sheet */}
+      {/* Mono-Si cell lattice under the sheet (toward camera / +Z) */}
       {Array.from({ length: 3 }).map((_, r) =>
         Array.from({ length: 5 }).map((_, c) => {
           const cw = 0.26
@@ -304,7 +322,7 @@ function EtfeFlexiblePanel() {
           const x = -((5 - 1) * (cw + gap)) / 2 + c * (cw + gap)
           const y = ((3 - 1) * (ch + gap)) / 2 - r * (ch + gap)
           return (
-            <mesh key={`${r}-${c}`} position={[x, y, -0.002]} castShadow>
+            <mesh key={`${r}-${c}`} position={[x, y, 0.002]} castShadow>
               <boxGeometry args={[cw, ch, 0.006]} />
               <meshStandardMaterial
                 color="#1d4ed8"
@@ -347,7 +365,13 @@ function EtfeFlexiblePanel() {
   )
 }
 
-function CellMesh({ type }: { type: SolarCellTypeId }) {
+function CellMesh({
+  type,
+  animateFold,
+}: {
+  type: SolarCellTypeId
+  animateFold: boolean
+}) {
   switch (type) {
     case 'rigid_silicon':
       return <SiliconPanel />
@@ -356,18 +380,7 @@ function CellMesh({ type }: { type: SolarCellTypeId }) {
     case 'etfe_flexible_silicon':
       return <EtfeFlexiblePanel />
     case 'origami_perovskite':
-      return <PerovskiteFilmPanel />
-  }
-}
-
-function angleToRotation(viewAngle: CellViewAngle): [number, number, number] {
-  switch (viewAngle) {
-    case 0:
-      return [0.15, 0, 0]
-    case 30:
-      return [0.35, 0.45, 0]
-    case 90:
-      return [0.05, Math.PI / 2, 0]
+      return <PerovskiteFilmPanel animateFold={animateFold} />
   }
 }
 
@@ -430,36 +443,46 @@ function DisplayPedestal() {
   )
 }
 
-function CellStageGroup({
-  type,
-  autoRotate,
+function CameraFraming({
   viewAngle,
+  interactive,
 }: {
-  type: SolarCellTypeId
-  autoRotate: boolean
-  viewAngle?: CellViewAngle
+  viewAngle: CellViewAngle
+  interactive: boolean
 }) {
-  const ref = useRef<Group>(null)
+  const { camera } = useThree()
 
-  useEffect(() => {
-    if (!ref.current || viewAngle === undefined) return
-    const [rx, ry, rz] = angleToRotation(viewAngle)
-    ref.current.rotation.set(rx, ry, rz)
-  }, [viewAngle])
+  useLayoutEffect(() => {
+    const { position } = CAMERA_BY_ANGLE[viewAngle]
+    camera.position.set(...position)
+    camera.lookAt(...CAMERA_TARGET)
+    camera.updateProjectionMatrix()
+  }, [viewAngle, camera])
 
-  useFrame((_, delta) => {
-    if (!autoRotate || !ref.current || viewAngle !== undefined) return
-    ref.current.rotation.y += delta * 0.35
-  })
-
-  const initial =
-    viewAngle !== undefined
-      ? angleToRotation(viewAngle)
-      : ([0.35, 0.4, 0] as [number, number, number])
+  if (!interactive) return null
 
   return (
-    <group ref={ref} rotation={initial} position={[0, 0.15, 0]}>
-      <CellMesh type={type} />
+    <OrbitControls
+      makeDefault
+      enablePan={false}
+      minDistance={2.8}
+      maxDistance={8}
+      maxPolarAngle={Math.PI / 2.05}
+      target={CAMERA_TARGET}
+    />
+  )
+}
+
+function CellStageGroup({
+  type,
+  animateFold,
+}: {
+  type: SolarCellTypeId
+  animateFold: boolean
+}) {
+  return (
+    <group position={[0, 0.15, 0]}>
+      <CellMesh type={type} animateFold={animateFold} />
     </group>
   )
 }
@@ -478,9 +501,9 @@ export function Cell3DModel({
     return () => cancelAnimationFrame(id)
   }, [])
 
-  const camera = interactive
-    ? { position: [0, 0.8, 2.4] as [number, number, number], fov: 42 }
-    : { position: [0, 0.6, 2.8] as [number, number, number], fov: 45 }
+  // List cards: static front 30°. Detail: sidebar angle (default 30°).
+  const resolvedAngle: CellViewAngle = viewAngle ?? 30
+  const cam = CAMERA_BY_ANGLE[resolvedAngle]
 
   if (!isMounted) {
     return (
@@ -499,8 +522,13 @@ export function Cell3DModel({
     <div className={className ?? 'relative h-full w-full'}>
       {/* No key on Canvas — remounting mid-render races React 19; type changes via CellStageGroup. */}
       <Canvas
-        camera={camera}
-        dpr={[1, 1.5]}
+        camera={{
+          position: cam.position,
+          fov: interactive ? 42 : 40,
+          near: 0.1,
+          far: 50,
+        }}
+        dpr={[1, interactive ? 2 : 1.5]}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
         shadows
@@ -513,19 +541,8 @@ export function Cell3DModel({
         <Suspense fallback={null}>
           <DisplayPedestal />
           <EgressPathwayGuide />
-          <CellStageGroup
-            type={type}
-            autoRotate={!interactive && viewAngle === undefined}
-            viewAngle={viewAngle}
-          />
-          {interactive && (
-            <OrbitControls
-              enablePan={false}
-              minDistance={1.4}
-              maxDistance={4.5}
-              target={[0, 0.1, 0]}
-            />
-          )}
+          <CellStageGroup type={type} animateFold={interactive} />
+          <CameraFraming viewAngle={resolvedAngle} interactive={interactive} />
         </Suspense>
       </Canvas>
     </div>

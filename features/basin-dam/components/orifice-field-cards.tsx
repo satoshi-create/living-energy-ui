@@ -35,7 +35,7 @@ export function OrificeFieldCards({ fields, onOrificeChange }: OrificeFieldCards
               className={cn(
                 "rounded px-2 py-0.5 text-xs font-medium",
                 field.tone === "watch" && "bg-amber-500/15 text-amber-400",
-                field.tone === "done" && "bg-sky-500/15 text-sky-300",
+                field.tone === "done" && "bg-emerald-500/10 text-emerald-400",
                 field.tone === "normal" && "bg-primary/15 text-primary"
               )}
             >

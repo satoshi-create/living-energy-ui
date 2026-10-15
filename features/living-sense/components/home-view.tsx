@@ -30,16 +30,16 @@ export function HomeView() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="gap-1.5 border border-slate-700/60 bg-slate-900/80 py-1.5 text-slate-200">
-                <Leaf className="size-3.5 text-primary" />
+              <Badge variant="secondary" className="gap-1.5 rounded-md py-1.5">
+                <Leaf className="size-3.5 text-emerald-400" />
                 {t("co2Saved", { kg: LIVE_STATUS.co2SavedKg })}
               </Badge>
-              <Badge className="gap-1.5 bg-emerald-600 py-1.5 text-white">
+              <Badge className="gap-1.5 rounded-md border-emerald-500/40 bg-emerald-500/10 py-1.5 text-emerald-400">
                 <PiggyBank className="size-3.5" />
                 {t("monthlySavings", { yen: LIVE_STATUS.monthlySavingsYen.toLocaleString() })}
               </Badge>
-              <Badge variant="secondary" className="gap-1.5 border border-slate-700/60 bg-slate-900/80 py-1.5 text-slate-200">
-                <ShieldCheck className="size-3.5 text-primary" />
+              <Badge variant="secondary" className="gap-1.5 rounded-md py-1.5">
+                <ShieldCheck className="size-3.5 text-emerald-400" />
                 {t("basinBadge", { system: t(FLOOD_STATUS.systemKey) })}
               </Badge>
             </div>

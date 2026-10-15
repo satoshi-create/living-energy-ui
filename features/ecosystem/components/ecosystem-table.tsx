@@ -12,19 +12,21 @@ const CATEGORY_BADGE: Record<
   EcosystemActor['category'],
   string
 > = {
-  corporate: 'border-slate-600 bg-slate-800/80 text-slate-200',
-  coop: 'border-emerald-700/60 bg-emerald-950/50 text-emerald-300',
-  npo: 'border-cyan-700/60 bg-cyan-950/50 text-cyan-300',
-  ecosystem: 'border-violet-700/60 bg-violet-950/50 text-violet-300',
+  corporate:
+    'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  coop: 'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  npo: 'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  ecosystem:
+    'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
 }
 
 const FIT_BADGE: Record<
   NonNullable<EcosystemActor['fundamental']>['decentralizedFit'],
   string
 > = {
-  High: 'border-emerald-600/50 bg-emerald-950/60 text-emerald-300',
-  Mid: 'border-amber-600/50 bg-amber-950/50 text-amber-300',
-  Low: 'border-slate-600 bg-slate-800/70 text-slate-400',
+  High: 'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  Mid: 'rounded-md border-slate-700/60 bg-slate-900/80 text-slate-300',
+  Low: 'rounded-md border-slate-700/60 bg-slate-900/80 text-slate-400',
 }
 
 export function EcosystemTable({ actors }: EcosystemTableProps) {
@@ -77,14 +79,14 @@ export function EcosystemTable({ actors }: EcosystemTableProps) {
                         {t(`actors.${actor.id}.name`)}
                       </span>
                       {f?.ticker && (
-                        <span className="font-mono text-[10px] text-slate-500">
+                        <span className="font-mono text-xs text-slate-400">
                           {f.ticker}
                         </span>
                       )}
                     </div>
                     <span
                       className={cn(
-                        'w-fit rounded border px-1.5 py-0.5 text-[10px] font-medium',
+                        'w-fit border px-2 py-0.5 text-xs font-medium',
                         CATEGORY_BADGE[actor.category]
                       )}
                     >
@@ -96,10 +98,10 @@ export function EcosystemTable({ actors }: EcosystemTableProps) {
                   {f && (
                     <span
                       className={cn(
-                        'inline-flex w-fit items-center rounded border px-1.5 py-0.5 text-[11px] font-medium',
+                        'inline-flex w-fit items-center rounded-md border px-2 py-0.5 text-xs font-medium',
                         f.innovationType === 'disruptive'
-                          ? 'border-cyan-600/50 bg-emerald-950/50 text-cyan-300'
-                          : 'border-slate-600 bg-slate-800/80 text-slate-400'
+                          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                          : 'border-slate-700/60 bg-slate-900/80 text-slate-300'
                       )}
                     >
                       {f.innovationType === 'disruptive'
@@ -115,7 +117,7 @@ export function EcosystemTable({ actors }: EcosystemTableProps) {
                   {f && (
                     <span
                       className={cn(
-                        'inline-flex rounded border px-1.5 py-0.5 text-[11px] font-medium',
+                        'inline-flex border px-2 py-0.5 text-xs font-medium',
                         FIT_BADGE[f.decentralizedFit]
                       )}
                     >
@@ -130,11 +132,11 @@ export function EcosystemTable({ actors }: EcosystemTableProps) {
                   {f?.financialHealth ?? '—'}
                 </td>
                 <td className="px-3 py-3 align-top">
-                  <div className="flex flex-wrap gap-1">
-                    <span className="rounded border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-[10px] text-slate-300">
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="rounded-md border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 text-xs text-slate-300">
                       {t(`filters.region.${actor.region}`)}
                     </span>
-                    <span className="rounded border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-[10px] text-slate-300">
+                    <span className="rounded-md border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 text-xs text-slate-300">
                       {t(
                         `filters.formFactor.${
                           actor.formFactor === 'non-balcony'

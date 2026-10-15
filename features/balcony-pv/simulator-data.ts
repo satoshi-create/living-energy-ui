@@ -233,35 +233,35 @@ export interface TiltMetric {
 export const TILT_METRICS: Record<PanelTiltMode, TiltMetric> = {
   optimal_tilt: {
     annualEfficiencyPct: 100,
-    winterAdvantage: '年間ピーク',
-    windRisk: '中',
+    winterAdvantage: 'Annual peak',
+    windRisk: 'Medium',
     summary:
-      '緯度相当の傾斜で年間発電のピークを狙う。生活動線と風圧のバランスが取りやすい基準姿勢。',
-    efficiencyNote: '年間基準',
+      'Latitude-matched tilt for peak annual yield—balanced living path and wind load.',
+    efficiencyNote: 'Annual baseline',
   },
   horizontal: {
     annualEfficiencyPct: 84,
-    winterAdvantage: '散乱光・平置き',
-    windRisk: '注意（下からの風圧大）',
+    winterAdvantage: 'Diffuse / flat lay',
+    windRisk: 'Caution (uplift from below)',
     summary:
-      '床置き・家具型に向く平置き。曇天の散乱光は拾いやすいが、下からの風圧と避難動線の占有に注意。',
-    efficiencyNote: '散乱光向き',
+      'Flat lay for floor / furniture mounts. Picks up overcast diffuse light, but watch uplift and egress occupancy.',
+    efficiencyNote: 'Diffuse-friendly',
   },
   vertical: {
     annualEfficiencyPct: 72,
-    winterAdvantage: '冬季・朝夕に強い',
-    windRisk: '安全（風を受け流す）',
+    winterAdvantage: 'Strong in winter mornings/evenings',
+    windRisk: 'Safer (sheds wind)',
     summary:
-      '垂直設置は風を壁面で受け流し、冬の低い太陽光を効率的に捉えます。',
-    efficiencyNote: '冬期は90%超',
+      'Vertical mounts shed wind along the wall and catch low winter sun efficiently.',
+    efficiencyNote: 'Winter often >90%',
   },
   retracted: {
     annualEfficiencyPct: 0,
-    winterAdvantage: '外力回避',
-    windRisk: '完全回避',
+    winterAdvantage: 'Avoids external loads',
+    windRisk: 'Fully avoided',
     summary:
-      '出仕舞いで発電は止める代わりに、台風・突風時の外力と避難路を完全に優先する退避姿勢。',
-    efficiencyNote: '発電オフ',
+      'Stow posture stops generation to prioritize typhoon / gust loads and a clear escape path.',
+    efficiencyNote: 'Generation off',
   },
 }
 
@@ -455,6 +455,8 @@ export interface SurfaceTypologyDetail {
   recommendedCellStream: PvHistoryStream
   /** Display badge for the recommended cell (JA). */
   recommendedCellBadgeJa: string
+  /** Display badge for the recommended cell (EN). */
+  recommendedCellBadgeEn: string
 }
 
 /** Resolve supported tilt modes with geometry-aware fallback. */
@@ -513,6 +515,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'optimal_tilt',
     recommendedCellStream: 'organic_perovskite',
     recommendedCellBadgeJa: '🌿 ペロブスカイト（出仕舞い家具）',
+    recommendedCellBadgeEn: '🌿 Perovskite (stow furniture)',
   },
   {
     id: 'precast_parapet',
@@ -545,6 +548,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'vertical',
     recommendedCellStream: 'cigs_cdte',
     recommendedCellBadgeJa: '🛡️ 化合物薄膜（垂直腰壁）',
+    recommendedCellBadgeEn: '🛡️ Compound thin-film (vertical parapet)',
   },
   {
     id: 'recessed_loggia',
@@ -579,6 +583,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'horizontal',
     recommendedCellStream: 'organic_perovskite',
     recommendedCellBadgeJa: '🌿 ペロブスカイト（散乱光特化）',
+    recommendedCellBadgeEn: '🌿 Perovskite (diffuse-optimized)',
   },
   {
     id: 'glass_railing',
@@ -615,6 +620,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'vertical',
     recommendedCellStream: 'organic_perovskite',
     recommendedCellBadgeJa: '🌿 ペロブスカイト（超軽量フィルム）',
+    recommendedCellBadgeEn: '🌿 Perovskite (ultralight film)',
   },
   {
     id: 'access_gallery',
@@ -648,6 +654,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'horizontal',
     recommendedCellStream: 'organic_perovskite',
     recommendedCellBadgeJa: '🌿 ペロブスカイト（出仕舞い家具）',
+    recommendedCellBadgeEn: '🌿 Perovskite (stow furniture)',
   },
   {
     id: 'mansard_dormer',
@@ -681,6 +688,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'optimal_tilt',
     recommendedCellStream: 'organic_perovskite',
     recommendedCellBadgeJa: '🌿 ペロブスカイト（曲面・軽量追従）',
+    recommendedCellBadgeEn: '🌿 Perovskite (curved / light conform)',
   },
   {
     id: 'japanese_tiled_roof',
@@ -710,6 +718,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'optimal_tilt',
     recommendedCellStream: 'silicon_mainstream',
     recommendedCellBadgeJa: '🏋️ Si主流系（高出力・瓦固定）',
+    recommendedCellBadgeEn: '🏋️ Silicon mainstream (high-output tile-mount)',
   },
   {
     id: 'flat_roof_terrace',
@@ -743,6 +752,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'horizontal',
     recommendedCellStream: 'silicon_mainstream',
     recommendedCellBadgeJa: '🏋️ Si主流系（日除けパーゴラ）',
+    recommendedCellBadgeEn: '🏋️ Silicon mainstream (shade pergola)',
   },
   {
     id: 'pitched_gable_terrace',
@@ -776,6 +786,7 @@ export const SURFACE_TYPOLOGIES: readonly SurfaceTypologyDetail[] = [
     defaultTiltMode: 'optimal_tilt',
     recommendedCellStream: 'silicon_mainstream',
     recommendedCellBadgeJa: '🏋️ Si主流系（高出力スラブ）',
+    recommendedCellBadgeEn: '🏋️ Silicon mainstream (high-output slab)',
   },
 ] as const
 
@@ -908,10 +919,10 @@ export function computeBalconyLifeCompliance(
 }
 
 export function scoreLabel(score: number): string {
-  if (score >= 85) return '最高適性'
-  if (score >= 70) return '高適性'
-  if (score >= 50) return '標準適性'
-  return '要検討'
+  if (score >= 85) return 'Excellent'
+  if (score >= 70) return 'Good'
+  if (score >= 50) return 'Fair'
+  return 'Needs review'
 }
 
 export function recommendedKit(score: number): { panel: KitPanelKey; battery: KitStorageKey } {

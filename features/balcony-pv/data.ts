@@ -895,35 +895,23 @@ export function resolveEcosystemNodeTools(
   })
 }
 
-/** Shared emerald / amber / violet accents for ①②③ (map badge ↔ power-flow tabs). */
+/** Shared emerald / slate accents for ①②③ (map badge ↔ power-flow tabs). */
+const MARKET_ECOSYSTEM_ACCENT_ACTIVE = {
+  badge: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium',
+  chip: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:border-emerald-500/60 hover:bg-emerald-500/20',
+  tab: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium',
+  tabIdle:
+    'border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80',
+  panel: 'border-slate-800',
+} as const
+
 export const MARKET_ECOSYSTEM_UI_ACCENT: Record<
   MarketEcosystemModelId,
   { badge: string; chip: string; tab: string; tabIdle: string; panel: string }
 > = {
-  grid_plugin_allowed: {
-    badge: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
-    chip: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200 hover:border-emerald-400/60 hover:bg-emerald-500/20',
-    tab: 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40',
-    tabIdle:
-      'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-emerald-500/40 hover:text-emerald-200',
-    panel: 'border-emerald-500/40',
-  },
-  grid_plugin_prohibited: {
-    badge: 'border-amber-500/40 bg-amber-500/15 text-amber-300',
-    chip: 'border-amber-500/40 bg-amber-500/10 text-amber-200 hover:border-amber-400/60 hover:bg-amber-500/20',
-    tab: 'border-amber-500/50 bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40',
-    tabIdle:
-      'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-amber-500/40 hover:text-amber-200',
-    panel: 'border-amber-500/40',
-  },
-  offgrid_leapfrog: {
-    badge: 'border-violet-500/40 bg-violet-500/15 text-violet-300',
-    chip: 'border-violet-500/40 bg-violet-500/10 text-violet-200 hover:border-violet-400/60 hover:bg-violet-500/20',
-    tab: 'border-violet-500/50 bg-violet-500/20 text-violet-300 ring-1 ring-violet-500/40',
-    tabIdle:
-      'border-slate-700 bg-slate-900/60 text-slate-400 hover:border-violet-500/40 hover:text-violet-200',
-    panel: 'border-violet-500/40',
-  },
+  grid_plugin_allowed: { ...MARKET_ECOSYSTEM_ACCENT_ACTIVE },
+  grid_plugin_prohibited: { ...MARKET_ECOSYSTEM_ACCENT_ACTIVE },
+  offgrid_leapfrog: { ...MARKET_ECOSYSTEM_ACCENT_ACTIVE },
 }
 
 /** ISO 3166-1 alpha-2 (or longer codes) → flag emoji. */
@@ -5670,6 +5658,17 @@ export function getArchitectureProfilesForCountry(
   return getCountryArchitectureConfig(countryCodeOrRegionId)?.profiles ?? []
 }
 
+/** 建築形態一覧カードの「主な実装国」表示対象（原則 JP / DE のみ） */
+const SURFACE_DISPLAY_COUNTRY_CODES = new Set(['JP', 'DE'])
+
+function filterSurfaceDisplayCountries<T extends { code: string }>(
+  countries: readonly T[],
+): T[] {
+  return countries.filter((c) =>
+    SURFACE_DISPLAY_COUNTRY_CODES.has(String(c.code).toUpperCase()),
+  )
+}
+
 /**
  * Flat catalog for the full-screen 3D architectural surface explorer.
  * One row per SurfaceTypology（同一類型の国別プロファイルは先頭代表のみ）。
@@ -5697,12 +5696,21 @@ export function listArchitectureCatalog(): {
     for (const profile of cfg.profiles) {
       const typologyId = resolveProfileTypology(profile)
       if (byTypology.has(typologyId)) continue
+      const detail = getSurfaceTypologyDetail(typologyId)
       byTypology.set(typologyId, {
         countryId,
         countryCode: cfg.countryCode,
         profile,
         typologyId,
-        typology: getSurfaceTypologyDetail(typologyId),
+        typology: {
+          ...detail,
+          prevalentCountries: filterSurfaceDisplayCountries(
+            detail.prevalentCountries,
+          ),
+          // List cards bind `recommendedCellBadgeJa` in both locales; prefer EN badge.
+          recommendedCellBadgeJa: detail.recommendedCellBadgeEn,
+          recommendedCellBadgeEn: detail.recommendedCellBadgeEn,
+        },
       })
     }
   }
@@ -5794,9 +5802,9 @@ export interface SolarCellTypology {
   nameJa: string
   categoryBadgeJa: string
   suitableSurfaceIds: string[]
-  /** 適した3Dサーフェイス（一覧カード表示） */
-  suitableSurfaceLabels: { id: string; labelJa: string }[]
-  /** 主な実装国（一覧カード表示） */
+  /** Suitable 3D surfaces (list-card chips). */
+  suitableSurfaceLabels: { id: string; labelJa: string; labelEn: string }[]
+  /** Key deployment countries (list-card chips). */
   representativeCountryCodes: string[]
   weightDescription: string
   thicknessDescription: string
@@ -5804,22 +5812,43 @@ export interface SolarCellTypology {
   lightAbsorptionJa: string
 }
 
+/** Consumer-facing surface titles aligned with renewed 3D form names (JA). */
 const SURFACE_LABEL_JA: Record<SurfaceTypology, string> = {
-  egress_cantilever: '避難動線付き片持ちベランダ',
-  precast_parapet: 'プレキャスト手すり腰壁',
-  recessed_loggia: '窪み型ロッジア',
-  glass_railing: 'ガラス手すり',
-  access_gallery: '共用廊下ガレリア',
-  mansard_dormer: 'マンサード＋ドーマー',
-  japanese_tiled_roof: '和瓦屋根',
-  flat_roof_terrace: '陸屋根テラス',
-  pitched_gable_terrace: '切妻傾斜屋根',
+  egress_cantilever: '一般的なマンションのベランダ',
+  precast_parapet: 'コンクリート腰壁のあるベランダ',
+  recessed_loggia: 'くぼんだ形のバルコニー',
+  glass_railing: 'ガラス手すりのあるベランダ',
+  access_gallery: 'マンションの共用廊下',
+  mansard_dormer: 'ヨーロッパ風の急勾配屋根',
+  japanese_tiled_roof: '日本の戸建ての瓦屋根',
+  flat_roof_terrace: '平らな屋上（テラス付き）',
+  pitched_gable_terrace: '連棟住宅の勾配屋根',
+}
+
+/** Consumer-facing surface titles aligned with `messages/en.json` typologies (EN). */
+const SURFACE_LABEL_EN: Record<SurfaceTypology, string> = {
+  egress_cantilever: 'Typical apartment balcony',
+  precast_parapet: 'Balcony with a concrete waist wall',
+  recessed_loggia: 'Recessed balcony (set into the building)',
+  glass_railing: 'Balcony with a glass railing',
+  access_gallery: 'Shared corridor of an apartment building',
+  mansard_dormer: 'Steep European-style roof',
+  japanese_tiled_roof: 'Japanese house tile roof',
+  flat_roof_terrace: 'Flat rooftop with a terrace',
+  pitched_gable_terrace: 'Pitched roof of a terraced house',
 }
 
 function surfaceLinkLabels(
   ids: readonly SurfaceTypology[],
-): { id: string; labelJa: string }[] {
-  return ids.map((id) => ({ id, labelJa: SURFACE_LABEL_JA[id] }))
+): { id: string; labelJa: string; labelEn: string }[] {
+  // List cards currently bind `labelJa` in both locales; put EN there so
+  // English UI is not left with Japanese chips. `SURFACE_LABEL_JA` kept for
+  // locale-aware callers once UI switches to `labelEn` / `labelJa` properly.
+  return ids.map((id) => ({
+    id,
+    labelJa: SURFACE_LABEL_EN[id] ?? SURFACE_LABEL_JA[id],
+    labelEn: SURFACE_LABEL_EN[id] ?? SURFACE_LABEL_JA[id],
+  }))
 }
 
 export interface SolarCellTypeDetail extends SolarCellTypology {
@@ -5878,8 +5907,8 @@ export const SOLAR_CELL_TYPE_IDS: readonly SolarCellTypeId[] = [
 export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
   rigid_silicon: {
     id: 'rigid_silicon',
-    nameJa: '屋根用・重厚リジッド型（c-Si）',
-    nameEn: 'Heavy rigid rooftop (c-Si)',
+    nameJa: '高出力・瓦固定パネル',
+    nameEn: 'High-output tile-mount panel',
     categoryBadgeJa: '屋根・剛体架台用',
     categoryBadgeEn: 'Roof / rigid rack',
     suitableSurfaceIds: [
@@ -5894,7 +5923,7 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     ]),
     representativeCountryCodes: ['DE', 'AU', 'US'],
     weightDescription: '21.0kg',
-    thicknessDescription: '約35mm',
+    thicknessDescription: '~35mm',
     retractionMechanismJa: '出仕舞い不可（固定式）',
     retractionMechanismEn: 'No stow-away (fixed mount)',
     lightAbsorptionJa: '30° 直達光主体',
@@ -5914,21 +5943,21 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     firedElementEn: 'Fires fuel-resupply / remote power constraints',
     shortBadgeJa: '重量級高出力',
     shortBadgeEn: 'Heavy yield',
-    roleTitleJa: '屋根用・重厚リジッド型（c-Si）',
-    roleTitleEn: 'Heavy rigid rooftop (c-Si)',
+    roleTitleJa: '高出力・瓦固定パネル',
+    roleTitleEn: 'High-output tile-mount panel',
     roleSubtitleJa: '固定架台・耐風圧の大黒柱',
     roleSubtitleEn: 'Fixed-rack wind-load workhorse',
     generationShortJa: '第1世代',
     generationShortEn: 'Gen 1',
-    thicknessMm: '約35mm（ガラス・フレーム込）',
+    thicknessMm: '~35mm (glass + frame)',
     flexibility: 'rigid',
     lightBadgeJa: '30° 直達光主体',
     lightBadgeEn: '30° Direct beam',
     useCaseJa: '勾配屋根・野立て',
     useCaseEn: 'Pitched roof / ground mount',
     badgeClass:
-      'border-rose-500/40 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25',
-    accentBorderClass: 'border-rose-500/50',
+      'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20',
+    accentBorderClass: 'border-emerald-500/40',
     viewAngleLabels: ['正面セル格子', '斜めフレーム厚', '側面35mm断面'],
     viewAngleLabelsEn: ['Front cell grid', 'Angled frame depth', '35mm side cut'],
     environmentalFitJa: '直達光・耐風圧前提の屋外定置',
@@ -5945,15 +5974,15 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
   },
   bipv_thin_film: {
     id: 'bipv_thin_film',
-    nameJa: '酷暑耐性・BIPVガラス建材（CIGS/CdTe）',
-    nameEn: 'Heat-tough BIPV glass (CIGS/CdTe)',
+    nameJa: '手すり一体の発電ガラスパネル',
+    nameEn: 'Rail-integrated glass panel',
     categoryBadgeJa: '建材一体ガラス',
     categoryBadgeEn: 'Building-integrated glass',
     suitableSurfaceIds: ['precast_parapet', 'glass_railing'],
     suitableSurfaceLabels: surfaceLinkLabels(['precast_parapet', 'glass_railing']),
     representativeCountryCodes: ['DE', 'FR', 'CH'],
-    weightDescription: '重厚ガラス建材',
-    thicknessDescription: '約3〜5mm',
+    weightDescription: 'Heavy glass BIPV',
+    thicknessDescription: '~3–5mm',
     retractionMechanismJa: '常設建材（取り外し不可）',
     retractionMechanismEn: 'Permanent fabric (not removable)',
     lightAbsorptionJa: '垂直壁面受光',
@@ -5973,20 +6002,21 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     firedElementEn: 'Fires thick-Si limits on hot vertical façades',
     shortBadgeJa: '酷暑耐性',
     shortBadgeEn: 'Heat-tough',
-    roleTitleJa: '酷暑耐性・BIPVガラス建材（CIGS/CdTe）',
-    roleTitleEn: 'Heat-tough BIPV glass (CIGS/CdTe)',
+    roleTitleJa: '手すり一体の発電ガラスパネル',
+    roleTitleEn: 'Rail-integrated glass panel',
     roleSubtitleJa: '手すり／ファサード建材型',
     roleSubtitleEn: 'Rail / façade building fabric',
     generationShortJa: '第2世代',
     generationShortEn: 'Gen 2',
-    thicknessMm: '約3〜5mm（ガラス一体）',
+    thicknessMm: '~3–5mm (glass-integrated)',
     flexibility: 'semi-rigid',
     lightBadgeJa: '垂直壁面受光',
     lightBadgeEn: 'Vertical façade capture',
     useCaseJa: '新築手すり・腰壁建材',
     useCaseEn: 'New-build rail / parapet BIPV',
-    badgeClass: 'border-amber-500/40 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25',
-    accentBorderClass: 'border-amber-500/50',
+    badgeClass:
+      'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20',
+    accentBorderClass: 'border-emerald-500/40',
     viewAngleLabels: ['正面鏡面ガラス', '斜めスペキュラ', 'ガラス切断面'],
     viewAngleLabelsEn: ['Front mirror glass', 'Angled specular', 'Glass cut edge'],
     environmentalFitJa: '酷暑・垂直ファサードでも落ちにくい',
@@ -5999,8 +6029,8 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
   },
   etfe_flexible_silicon: {
     id: 'etfe_flexible_silicon',
-    nameJa: '超軽量ETFEフレキシブル（単結晶Si）',
-    nameEn: 'Ultralight ETFE flexible (mono-Si)',
+    nameJa: '超軽量フレキシブルパネル',
+    nameEn: 'Ultralight flexible panel',
     categoryBadgeJa: '超軽量フッ素シート',
     categoryBadgeEn: 'Ultralight fluoropolymer sheet',
     suitableSurfaceIds: [
@@ -6015,7 +6045,7 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     ]),
     representativeCountryCodes: ['JP', 'DE', 'NL'],
     weightDescription: '2.5kg',
-    thicknessDescription: '約2〜3mm',
+    thicknessDescription: '~2–3mm',
     retractionMechanismJa: '手動取り外し退避',
     retractionMechanismEn: 'Manual detach & stow',
     lightAbsorptionJa: '手すり密着・直達+散乱',
@@ -6035,20 +6065,21 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     firedElementEn: 'Fires tempered glass, Al frame & heavy racks',
     shortBadgeJa: '現行Good Enough',
     shortBadgeEn: 'Good Enough now',
-    roleTitleJa: '超軽量ETFEフレキシブル（単結晶Si）',
-    roleTitleEn: 'Ultralight ETFE flexible (mono-Si)',
+    roleTitleJa: '超軽量フレキシブルパネル',
+    roleTitleEn: 'Ultralight flexible panel',
     roleSubtitleJa: '2〜3kg・避難動線保持・熱ダレ許容',
     roleSubtitleEn: '2–3kg · egress kept · heat-sag trade-off',
     generationShortJa: '現行解',
     generationShortEn: 'Current',
-    thicknessMm: '約2〜3mm（ETFEシート）',
+    thicknessMm: '~2–3mm (ETFE sheet)',
     flexibility: 'flexible-etfe',
     lightBadgeJa: '手すり密着・直達+散乱',
     lightBadgeEn: 'Rail-flush · beam + diffuse',
     useCaseJa: '既存ベランダ手すり格子',
     useCaseEn: 'Existing balcony rail grid',
-    badgeClass: 'border-sky-500/40 bg-sky-500/15 text-sky-300 hover:bg-sky-500/25',
-    accentBorderClass: 'border-sky-500/50',
+    badgeClass:
+      'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20',
+    accentBorderClass: 'border-emerald-500/40',
     viewAngleLabels: ['正面ETFEシート', '斜めハトメ固定', '薄型2mm断面'],
     viewAngleLabelsEn: ['Front ETFE sheet', 'Angled grommet mount', '2mm thin section'],
     environmentalFitJa: '軽量密着・熱ダレを許容する現行解',
@@ -6065,8 +6096,8 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
   },
   origami_perovskite: {
     id: 'origami_perovskite',
-    nameJa: '超軽量・剛体折り紙出仕舞い（ペロブスカイト）',
-    nameEn: 'Ultralight rigid-origami stow (perovskite)',
+    nameJa: '折りたためる超軽量パネル',
+    nameEn: 'Fold-away ultralight panel',
     categoryBadgeJa: '自律出仕舞い家具',
     categoryBadgeEn: 'Self-stowing furniture',
     suitableSurfaceIds: [
@@ -6080,8 +6111,8 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
       'mansard_dormer',
     ]),
     representativeCountryCodes: ['JP', 'CN', 'DE'],
-    weightDescription: '1.0kg未満',
-    thicknessDescription: '1mm未満',
+    weightDescription: '<1.0kg',
+    thicknessDescription: '<1mm',
     retractionMechanismJa: '剛体折り紙完全退避',
     retractionMechanismEn: 'Rigid-origami full stow',
     lightAbsorptionJa: '可変 散乱光適応',
@@ -6101,21 +6132,21 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     firedElementEn: 'Fires heavy glass, metal racks & roof-only rules',
     shortBadgeJa: '出仕舞い家具',
     shortBadgeEn: 'Stow furniture',
-    roleTitleJa: '超軽量・剛体折り紙出仕舞い（ペロブスカイト）',
-    roleTitleEn: 'Ultralight rigid-origami stow (perovskite)',
+    roleTitleJa: '折りたためる超軽量パネル',
+    roleTitleEn: 'Fold-away ultralight panel',
     roleSubtitleJa: '次世代・避難動線即時開放',
     roleSubtitleEn: 'Next-gen · instant egress release',
     generationShortJa: '次世代',
     generationShortEn: 'Next-gen',
-    thicknessMm: '1mm未満（フィルム）',
+    thicknessMm: '<1mm (film)',
     flexibility: 'flexible-origami',
     lightBadgeJa: '可変 散乱光適応',
     lightBadgeEn: 'Variable · diffuse adaptive',
     useCaseJa: 'ベランダ・手すり家具',
     useCaseEn: 'Balcony / rail furniture',
     badgeClass:
-      'border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25',
-    accentBorderClass: 'border-emerald-500/50',
+      'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20',
+    accentBorderClass: 'border-emerald-500/40',
     viewAngleLabels: ['正面展開面', '斜めヒンジ', '折り畳み断面'],
     viewAngleLabelsEn: ['Front unfolded', 'Angled hinge', 'Folded cross-section'],
     environmentalFitJa: '散乱光・出仕舞い退避で耐風',

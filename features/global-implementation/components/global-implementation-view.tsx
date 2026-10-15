@@ -60,8 +60,8 @@ function FilterChip({
       className={cn(
         "rounded-md border px-2 py-1 text-xs font-medium transition-colors",
         active
-          ? "border-emerald-500 bg-emerald-600 text-white"
-          : "border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80 hover:text-slate-100",
+          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+          : "border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80 hover:text-slate-100",
       )}
     >
       {label}
@@ -373,39 +373,33 @@ function KeyActorCard({ actor }: { actor: MilestoneKeyActor }) {
   const barrier = isEn && actor.barrierEn ? actor.barrierEn : actor.barrier
   const achievement = isEn && actor.achievementEn ? actor.achievementEn : actor.achievement
   return (
-    <div
-      className={
-        isCompany
-          ? "mt-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5"
-          : "mt-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5"
-      }
-    >
+    <div className="mt-2 rounded-xl border border-slate-800 bg-slate-900/80 p-5">
       <div className="flex flex-wrap items-center gap-2">
         {isCompany ? (
-          <Building2 className="size-3.5 shrink-0 text-amber-400" />
+          <Building2 className="size-3.5 shrink-0 text-emerald-400" />
         ) : (
-          <Shield className="size-3.5 shrink-0 text-primary" />
+          <Shield className="size-3.5 shrink-0 text-emerald-400" />
         )}
-        <p className="text-xs font-semibold text-foreground">{name}</p>
+        <p className="text-sm font-medium text-slate-200">{name}</p>
         <Badge
           variant="outline"
-          className={
-            isCompany
-              ? "border-amber-500/40 text-[10px] text-amber-300"
-              : "border-primary/40 text-[10px] text-primary"
-          }
+          className="rounded-md border-emerald-500/40 bg-emerald-500/10 text-xs font-medium text-emerald-400"
         >
           {isCompany ? t("company") : t("organization")} · {roleBadge}
         </Badge>
       </div>
-      <dl className="mt-2 space-y-1.5 text-[11px] leading-relaxed">
+      <dl className="mt-3 space-y-2 text-xs leading-relaxed">
         <div>
-          <dt className="text-muted-foreground">{t("barrierOvercome")}</dt>
-          <dd className="text-foreground/90">{barrier}</dd>
+          <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            {t("barrierOvercome")}
+          </dt>
+          <dd className="mt-1 text-sm font-medium text-slate-200">{barrier}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">{t("keyMilestone")}</dt>
-          <dd className="text-foreground/90">{achievement}</dd>
+          <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            {t("keyMilestone")}
+          </dt>
+          <dd className="mt-1 text-sm font-medium text-slate-200">{achievement}</dd>
         </div>
       </dl>
       {actor.url ? (
@@ -413,11 +407,7 @@ function KeyActorCard({ actor }: { actor: MilestoneKeyActor }) {
           href={actor.url}
           target="_blank"
           rel="noopener noreferrer"
-          className={
-            isCompany
-              ? "mt-2 inline-flex items-center gap-1 text-[11px] text-amber-300/90 underline-offset-2 hover:underline"
-              : "mt-2 inline-flex items-center gap-1 text-[11px] text-primary underline-offset-2 hover:underline"
-          }
+          className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-emerald-400 underline-offset-2 hover:underline"
         >
           {t("externalLink")}
           <ExternalLink className="size-3" />
@@ -434,8 +424,8 @@ function MilestoneItem({ milestone }: { milestone: MovementMilestone }) {
   const summary = isEn && milestone.summaryEn ? milestone.summaryEn : milestone.summary
   return (
     <li className="relative pb-5 last:pb-0">
-      <span className="absolute -left-[1.625rem] top-1 size-2.5 rounded-full bg-primary ring-4 ring-background" />
-      <p className="font-mono text-xs text-primary">{milestone.date}</p>
+      <span className="absolute -left-[1.625rem] top-1 size-2.5 rounded-md bg-emerald-500 ring-4 ring-[#0B0F17]" />
+      <p className="font-mono text-xs text-emerald-400">{milestone.date}</p>
       <p className="mt-0.5 text-sm font-medium text-foreground">
         {regionName}
         <span className="ml-2 text-xs font-normal text-muted-foreground">{summary}</span>
@@ -716,7 +706,7 @@ export function GlobalImplementationView({
                   <MapPin className="size-3" />
                   {isEn ? item.regionEn : item.region}
                 </Badge>
-                <Badge className="bg-emerald-600 text-xs text-white">
+                <Badge className="rounded-md border-emerald-500/40 bg-emerald-500/10 text-xs font-medium text-emerald-400">
                   {isEn ? item.badgeEn : item.badge}
                 </Badge>
               </div>

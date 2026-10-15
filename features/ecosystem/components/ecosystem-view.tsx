@@ -73,7 +73,7 @@ export function EcosystemView({ initialCountryCode }: EcosystemViewProps) {
         <button
           type="button"
           onClick={() => setSelectedCountryCode(null)}
-          className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+          className="inline-flex w-fit items-center gap-1.5 rounded-md border border-slate-700/60 bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-800/80"
         >
           {COUNTRY_LABELS[selectedCountryCode]}({selectedCountryCode}) 関連組織
           <X className="size-3" />

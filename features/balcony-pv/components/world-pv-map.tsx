@@ -648,7 +648,7 @@ export function CountryPvOssTools({ country, isEn }: CountryPvOssToolsProps) {
               onClick={() => setSelectedOssCategory(tab.id)}
               className={
                 active
-                  ? 'bg-emerald-600 text-white border border-emerald-500 px-3 py-1.5 rounded-md text-sm font-medium'
+                  ? 'border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 rounded-md text-sm font-medium text-emerald-400'
                   : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60 px-3 py-1.5 rounded-md text-sm font-medium transition-colors'
               }
             >
@@ -1480,7 +1480,7 @@ export function CountryPvEcosystem({
               onClick={() => setSelectedModelId(t.modelId)}
               className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
                 active
-                  ? 'border-emerald-500 bg-emerald-600 text-white'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
                   : 'border-slate-700/60 bg-slate-900/80 text-slate-300 hover:bg-slate-800'
               }`}
             >

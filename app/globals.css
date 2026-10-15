@@ -85,7 +85,8 @@
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.16 0.012 260);
+  /* Canvas: #0B0F17 — dark navy × emerald brand base */
+  --background: #0b0f17;
   --foreground: oklch(0.96 0.006 260);
   --card: oklch(0.205 0.014 260);
   --card-foreground: oklch(0.96 0.006 260);
@@ -97,18 +98,18 @@
   --secondary-foreground: oklch(0.94 0.006 260);
   --muted: oklch(0.235 0.014 260);
   --muted-foreground: oklch(0.63 0.02 260);
-  --accent: oklch(0.72 0.15 200);
-  --accent-foreground: oklch(0.16 0.03 200);
+  --accent: oklch(0.72 0.19 152);
+  --accent-foreground: oklch(0.16 0.03 152);
   --destructive: oklch(0.64 0.2 25);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.72 0.19 152 / 50%);
   --chart-1: oklch(0.72 0.19 152);
-  --chart-2: oklch(0.72 0.15 200);
-  --chart-3: oklch(0.78 0.17 90);
-  --chart-4: oklch(0.62 0.02 260);
+  --chart-2: oklch(0.68 0.16 152);
+  --chart-3: oklch(0.62 0.02 260);
+  --chart-4: oklch(0.5 0.02 260);
   --chart-5: oklch(0.4 0.02 260);
-  --sidebar: oklch(0.14 0.012 260);
+  --sidebar: #0b0f17;
   --sidebar-foreground: oklch(0.96 0.006 260);
   --sidebar-primary: oklch(0.72 0.19 152);
   --sidebar-primary-foreground: oklch(0.16 0.03 152);
@@ -122,8 +123,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#0B0F17] text-foreground;
+  }
+  .dark body {
+    background-color: #0b0f17;
   }
 }
 

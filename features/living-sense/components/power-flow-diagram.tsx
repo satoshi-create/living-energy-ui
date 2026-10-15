@@ -22,11 +22,11 @@ export function PowerFlowDiagram({ nodes }: { nodes: FlowNode[] }) {
         return (
           <div key={node.id} className="flex flex-1 flex-col items-center sm:flex-row">
             <div className="flex w-full flex-col items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-5 text-center md:px-5 md:py-6">
-              <div className="flex size-11 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <div className="flex size-11 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
                 <Icon className="size-5" />
               </div>
               <p className="text-sm font-medium text-slate-200">{t(`flow.${node.id}.label`)}</p>
-              <p className="text-xs tabular-nums text-primary">{t(`flow.${node.id}.sublabel`)}</p>
+              <p className="text-xs tabular-nums text-emerald-400">{t(`flow.${node.id}.sublabel`)}</p>
             </div>
             {!isLast && (
               <div

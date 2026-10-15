@@ -74,7 +74,7 @@ export function RankingView() {
                 <span className="font-mono text-xs text-muted-foreground">
                   ({country.code})
                 </span>
-                <Badge className="px-1.5 py-0 font-mono text-[10px]" variant="outline">
+                <Badge className="rounded-md px-2 py-0.5 font-mono text-xs" variant="outline">
                   {countryText('statusLabel')}
                 </Badge>
               </div>
@@ -93,10 +93,10 @@ export function RankingView() {
               defaultValue="regulation"
             >
               <TabsList className="grid h-8 w-full shrink-0 grid-cols-2 bg-muted/60 p-0.5">
-                <TabsTrigger className="py-1 text-[11px]" value="regulation">
+                <TabsTrigger className="py-1 text-xs" value="regulation">
                   制度・規格
                 </TabsTrigger>
-                <TabsTrigger className="py-1 text-[11px]" value="actors">
+                <TabsTrigger className="py-1 text-xs" value="actors">
                   関連組織 ({countryActors.length})
                 </TabsTrigger>
               </TabsList>
@@ -109,8 +109,8 @@ export function RankingView() {
                   <div className="flex flex-col gap-3 text-xs">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-muted-foreground">{t('detail.progress')}</span>
-                        <span className="text-sm font-bold tracking-wider text-amber-400">
+                        <span className="text-xs text-slate-400">{t('detail.progress')}</span>
+                        <span className="text-sm font-bold tracking-wider text-emerald-400">
                           {country.rating}
                         </span>
                       </div>
@@ -132,83 +132,83 @@ export function RankingView() {
 
                     <Tabs className="flex w-full flex-col gap-2" defaultValue="reg">
                       <TabsList className="grid h-7 w-full shrink-0 grid-cols-3 bg-muted/60 p-0.5">
-                        <TabsTrigger className="py-1 text-[11px]" value="reg">
+                        <TabsTrigger className="py-1 text-xs" value="reg">
                           {t('detail.tabPolicy')}
                         </TabsTrigger>
-                        <TabsTrigger className="py-1 text-[11px]" value="eco">
+                        <TabsTrigger className="py-1 text-xs" value="eco">
                           {t('detail.tabLife')}
                         </TabsTrigger>
-                        <TabsTrigger className="py-1 text-[11px]" value="safe">
+                        <TabsTrigger className="py-1 text-xs" value="safe">
                           {t('detail.tabSafety')}
                         </TabsTrigger>
                       </TabsList>
 
                       <TabsContent
-                        className="mt-0 flex flex-col gap-2.5 text-[11px] leading-relaxed data-[hidden]:hidden"
+                        className="mt-0 flex flex-col gap-2.5 text-xs leading-relaxed data-[hidden]:hidden"
                         value="reg"
                       >
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.connectionMethod')}</span>
-                          <span className="font-medium text-foreground">{countryText('connectionMethod')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.connectionMethod')}</span>
+                          <span className="text-sm font-medium text-slate-200">{countryText('connectionMethod')}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.tenantRights')}</span>
-                          <span className="font-medium text-foreground">{countryText('tenantRights')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.tenantRights')}</span>
+                          <span className="text-sm font-medium text-slate-200">{countryText('tenantRights')}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.regulation')}</span>
-                          <span className="font-mono text-[10px] leading-relaxed text-foreground">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.regulation')}</span>
+                          <span className="font-mono text-xs leading-relaxed text-slate-200">
                             {country.regulation}
                           </span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.meterRequirement')}</span>
-                          <span className="leading-relaxed text-foreground">{countryText('meterRequirement')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.meterRequirement')}</span>
+                          <span className="text-sm font-medium leading-relaxed text-slate-200">{countryText('meterRequirement')}</span>
                         </div>
                       </TabsContent>
 
                       <TabsContent
-                        className="mt-0 flex flex-col gap-2.5 text-[11px] leading-relaxed data-[hidden]:hidden"
+                        className="mt-0 flex flex-col gap-2.5 text-xs leading-relaxed data-[hidden]:hidden"
                         value="eco"
                       >
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.costRange')}</span>
-                          <span className="font-medium text-foreground">{countryText('costRange')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.costRange')}</span>
+                          <span className="text-sm font-medium text-slate-200">{countryText('costRange')}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.baseLoadCoverage')}</span>
-                          <span className="font-medium text-foreground">{countryText('baseLoadCoverage')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.baseLoadCoverage')}</span>
+                          <span className="text-sm font-medium text-slate-200">{countryText('baseLoadCoverage')}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.incentives')}</span>
-                          <span className="leading-relaxed text-foreground">{countryText('incentives')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.incentives')}</span>
+                          <span className="text-sm font-medium leading-relaxed text-slate-200">{countryText('incentives')}</span>
                         </div>
                       </TabsContent>
 
                       <TabsContent
-                        className="mt-0 flex flex-col gap-2.5 text-[11px] leading-relaxed data-[hidden]:hidden"
+                        className="mt-0 flex flex-col gap-2.5 text-xs leading-relaxed data-[hidden]:hidden"
                         value="safe"
                       >
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.windSafety')}</span>
-                          <span className="font-medium text-foreground">{countryText('windSafety')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.windSafety')}</span>
+                          <span className="text-sm font-medium text-slate-200">{countryText('windSafety')}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.antiIslanding')}</span>
-                          <span className="font-mono text-[10px] leading-relaxed text-foreground">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.antiIslanding')}</span>
+                          <span className="font-mono text-xs leading-relaxed text-slate-200">
                             {countryText('antiIslanding')}
                           </span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground">{t('detail.mountingRules')}</span>
-                          <span className="leading-relaxed text-foreground">{countryText('mountingRules')}</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t('detail.mountingRules')}</span>
+                          <span className="text-sm font-medium leading-relaxed text-slate-200">{countryText('mountingRules')}</span>
                         </div>
                       </TabsContent>
                     </Tabs>
 
-                    <div className="flex flex-col gap-1 rounded border border-border/30 bg-muted/30 p-2 text-[11px] text-muted-foreground">
-                      <p className="leading-relaxed">{countryText('summary')}</p>
-                      <div className="text-right text-[9px] text-muted-foreground/70">
+                    <div className="flex flex-col gap-1 rounded-xl border border-slate-800 bg-slate-900/80 p-5 text-xs text-slate-400">
+                      <p className="leading-relaxed text-sm text-slate-200">{countryText('summary')}</p>
+                      <div className="text-right text-xs text-slate-400">
                         {t('detail.lastUpdated')}: {country.lastUpdated}
                       </div>
                     </div>

@@ -692,7 +692,6 @@ export type SurfaceCountryTagsProps = {
 
 /** Prevalent-country tags shared by typology cards and world-impl surfaces list. */
 export function SurfaceCountryTags({ typology }: SurfaceCountryTagsProps) {
-  const tPv = useTranslations("balconyPv")
   if (typology.prevalentCountries.length === 0) return null
   return (
     <div className="flex flex-wrap items-center gap-1.5">
@@ -700,9 +699,9 @@ export function SurfaceCountryTags({ typology }: SurfaceCountryTagsProps) {
         <Badge
           key={country.code}
           variant="outline"
-          className="rounded-md border border-slate-700/50 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/50 hover:bg-slate-700"
+          className="rounded-md border border-slate-700/60 bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-300 transition-colors hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-400"
         >
-          {country.code} {tPv(country.nameKey)}
+          {country.code}
         </Badge>
       ))}
     </div>
@@ -722,7 +721,7 @@ export function SurfaceMountJobBadges({ typology }: SurfaceMountJobBadgesProps) 
         <Badge
           key={opt.mountMethod}
           variant="secondary"
-          className="rounded-md border border-slate-700/60 bg-slate-800/80 px-3 py-1 text-xs font-medium text-slate-300"
+          className="rounded-md border border-slate-700/60 bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-300"
         >
           🔧 {tPv(opt.labelKey)}
         </Badge>
@@ -731,8 +730,8 @@ export function SurfaceMountJobBadges({ typology }: SurfaceMountJobBadgesProps) 
         variant="outline"
         className={
           typology.requiresDeShimai
-            ? "rounded-md border border-emerald-500/30 bg-emerald-950/40 px-3 py-1 text-xs font-medium text-emerald-300"
-            : "rounded-md border border-slate-700 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-400"
+            ? "rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400"
+            : "rounded-md border border-slate-700/60 bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-300"
         }
       >
         {typology.requiresDeShimai

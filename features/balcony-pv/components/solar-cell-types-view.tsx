@@ -249,10 +249,10 @@ export function SolarCellTypesView({
                 <h2 className="text-sm font-semibold text-foreground">
                   {isEn ? selectedMeta.nameEn : selectedMeta.nameJa}
                 </h2>
-                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <p className="text-xs leading-relaxed text-slate-400">
                   {isEn
-                    ? 'Light physics & living-furniture solar — drag to orbit'
-                    : '受光物理と生活家具型ソーラーの解説 — ドラッグで回転'}
+                    ? 'Light physics & living-furniture solar'
+                    : '受光物理と生活家具型ソーラーの解説'}
                 </p>
               </div>
               <button
@@ -304,10 +304,10 @@ export function SolarCellTypesView({
                         type="button"
                         onClick={() => setViewAngle(angle)}
                         className={cn(
-                          'rounded-lg border px-3 py-1.5 font-mono text-xs font-medium transition-colors',
+                          'rounded-md border px-3 py-1.5 font-mono text-xs font-medium transition-colors',
                           viewAngle === angle
-                            ? 'border-primary/60 bg-primary/15 text-primary'
-                            : 'border-border/40 bg-muted/30 text-muted-foreground hover:border-primary/40 hover:text-foreground',
+                            ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                            : 'border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80',
                         )}
                       >
                         {angle}°
@@ -326,7 +326,7 @@ export function SolarCellTypesView({
                   <TradeoffMeter
                     label={isEn ? 'Peak generation' : 'ピーク発電力'}
                     pct={selectedMeta.peakPowerScore}
-                    barClass="bg-amber-500"
+                    barClass="bg-emerald-500"
                   />
                   <TradeoffMeter
                     label={
@@ -335,7 +335,7 @@ export function SolarCellTypesView({
                         : '生活・避難動線適応'
                     }
                     pct={selectedMeta.egressClearanceScore}
-                    barClass="bg-sky-500"
+                    barClass="bg-emerald-400"
                   />
                 </section>
 
@@ -392,25 +392,25 @@ export function SolarCellTypesView({
                             : selectedMeta.cellStructureJa}
                         </p>
                       </div>
-                      <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5">
-                        <p className="mb-1 text-xs font-semibold text-rose-300">
+                      <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-5">
+                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-emerald-400">
                           {isEn
                             ? 'Constraints fired (Fire)'
                             : '解消した制約（Fire）'}
                         </p>
-                        <p className="text-xs leading-relaxed text-rose-200">
+                        <p className="text-sm font-medium leading-relaxed text-slate-200">
                           {isEn
                             ? selectedMeta.firedElementEn
                             : selectedMeta.firedElementJa}
                         </p>
                       </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="rounded-full border border-border/40 bg-muted/50 px-2.5 py-1 font-mono text-xs text-amber-300/90">
+                      <div className="flex flex-wrap gap-2">
+                        <span className="rounded-md border border-slate-700/60 bg-slate-900/80 px-2.5 py-1 font-mono text-xs text-slate-300">
                           {isEn
                             ? selectedMeta.weightThicknessEn
                             : selectedMeta.weightThicknessJa}
                         </span>
-                        <span className="rounded-full border border-border/40 bg-muted/50 px-2.5 py-1 text-xs text-slate-300">
+                        <span className="rounded-md border border-slate-700/60 bg-slate-900/80 px-2.5 py-1 text-xs text-slate-300">
                           {isEn
                             ? FLEX_LABEL[selectedMeta.flexibility].en
                             : FLEX_LABEL[selectedMeta.flexibility].ja}
@@ -438,7 +438,7 @@ export function SolarCellTypesView({
                             <button
                               type="button"
                               onClick={() => handleTypology(tid)}
-                              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-500/25"
+                              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
                             >
                               {isEn ? 'View in 3D ↗' : '3Dで見る ↗'}
                               <ExternalLink className="size-3" aria-hidden />
@@ -463,7 +463,7 @@ export function SolarCellTypesView({
                               ? 'Open development history timeline'
                               : '開発史・タイムラインを開く'}
                           </span>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-xs text-slate-400">
                             {isEn
                               ? 'Browse the four living typologies & history streams'
                               : '4大タイポロジーと開発史を大画面で確認'}
@@ -555,7 +555,11 @@ export function SolarCellTypesView({
                       {isEn ? meta.roleSubtitleEn : meta.roleSubtitleJa}
                     </p>
                     <div className="relative h-[220px] w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
-                      <Cell3DModel type={id} className="h-full w-full" />
+                      <Cell3DModel
+                        type={id}
+                        viewAngle={30}
+                        className="h-full w-full"
+                      />
                     </div>
                     <div className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -578,7 +582,7 @@ export function SolarCellTypesView({
                                 handleTypology(surf.id as SurfaceTypology)
                               }
                             }}
-                            className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-200 transition-colors hover:bg-emerald-500/20"
+                            className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
                           >
                             {surf.labelJa}
                           </span>

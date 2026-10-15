@@ -12,10 +12,12 @@ import { cn } from '@/lib/utils'
 import type { ActorCategory, EcosystemActor } from '../data'
 
 const CATEGORY_BADGE_CLASS: Record<ActorCategory, string> = {
-  corporate: 'border-sky-500/40 bg-sky-500/15 text-sky-300',
-  npo: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300',
-  coop: 'border-amber-500/40 bg-amber-500/15 text-amber-300',
-  ecosystem: 'border-violet-500/40 bg-violet-500/15 text-violet-300',
+  corporate:
+    'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  npo: 'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  coop: 'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  ecosystem:
+    'rounded-md border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
 }
 
 type ActorCardProps = {
@@ -36,10 +38,10 @@ export function ActorCard({ actor }: ActorCardProps) {
             {t(`categoryLabels.${actor.categoryLabel}` as Parameters<typeof t>[0])}
           </Badge>
           <div className="flex flex-wrap gap-1.5">
-            <Badge variant="secondary" className="border border-slate-700/60 bg-slate-900/80 text-slate-300">
+            <Badge variant="secondary" className="rounded-md">
               {t(`regionBadge.${actor.region}`)}
             </Badge>
-            <Badge variant="secondary" className="border border-slate-700/60 bg-slate-900/80 text-slate-300">
+            <Badge variant="secondary" className="rounded-md">
               {t(
                 `formFactorBadge.${actor.formFactor === 'balcony' ? 'balcony' : 'nonBalcony'}`
               )}
@@ -64,7 +66,7 @@ export function ActorCard({ actor }: ActorCardProps) {
               <Badge
                 key={tag}
                 variant="outline"
-                className="border-slate-700/50 bg-transparent text-xs text-slate-400"
+                className="rounded-md border-slate-700/60 bg-slate-900/80 text-xs text-slate-300"
               >
                 {t(`tags.${tag}` as Parameters<typeof t>[0])}
               </Badge>

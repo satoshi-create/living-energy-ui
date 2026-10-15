@@ -133,7 +133,7 @@
       "vertical_rail_hook": "Vertical rail hook",
       "louver_hanger": "Window-louver hanger",
       "tile_hook": "Tile-insert hook",
-      "deshimai_required": "De-shimai (stow) required",
+      "deshimai_required": "Stow required",
       "deshimai_optional": "Permanent OK"
     },
     "countries": {
@@ -170,66 +170,66 @@
         "rental_facades": "Rental façades"
       },
       "egress_cantilever": {
-        "name": "Cantilever egress balcony (public-housing type)",
+        "name": "Typical apartment balcony",
         "feature": "Cantilever slab with party walls and escape hatches—laundry space shared with fire egress. Standard-depth floor, aluminum rail.",
         "constraints": "Keep the floor path clear; wind loads require full stow / retreat with portable fold-away mounts.",
-        "regionContext": "※ Typical contexts: multifamily (egress kept clear), typhoon / high-wind belts",
-        "mechanism": "Nastic / origami endai and sudare screens—full indoor de-shimai before typhoons."
+        "regionContext": "Note: Typical contexts — multifamily (egress kept clear), typhoon / high-wind belts",
+        "mechanism": "Nastic / origami bench and shade screens—full indoor stow before typhoons."
       },
       "precast_parapet": {
-        "name": "RC precast parapet balcony",
+        "name": "Balcony with a concrete waist wall",
         "feature": "Thick RC precast waist walls / parapets acting as a near-vertical receiving plane for clamp mounts.",
         "constraints": "Through-bolts are structurally difficult. Fall-risk control and no-drill sandwich clamps are required.",
-        "regionContext": "※ Typical contexts: Central European multifamily stock, thick-parapet multifamily general",
+        "regionContext": "Note: Typical contexts — Central European multifamily stock, thick-parapet multifamily general",
         "mechanism": "Heavy-duty clamp mounts that sandwich the parapet—no through-drilling."
       },
       "recessed_loggia": {
-        "name": "Recessed inner loggia",
+        "name": "Recessed balcony (set into the building)",
         "feature": "Side-walled recessed / loggia volume—more diffuse light than direct beam by geometry.",
         "constraints": "Side walls and soffits cut direct irradiance. Keep living paths clear; portable table or clamp forms are realistic.",
-        "regionContext": "※ Typical contexts: multifamily stock (general), European urban recessed balconies",
+        "regionContext": "Note: Typical contexts — multifamily stock (general), European urban recessed balconies",
         "mechanism": "Clamp / table portable mounts suited to diffuse-heavy recessed floors."
       },
       "glass_railing": {
-        "name": "Modern glass-railing balcony",
+        "name": "Balcony with a glass railing",
         "feature": "Glass or metal rail as the primary vertical harvest plane—shallow deck or opening-mounted contemporary multifamily form.",
         "constraints": "Thin deck depth rejects conventional racks. No-drill clamps or vertical hooks on the rail / glazing are required.",
-        "regionContext": "※ Typical contexts: rental façades, multifamily glass-rail stock",
+        "regionContext": "Note: Typical contexts — rental façades, multifamily glass-rail stock",
         "mechanism": "Flexible film / clamps along the rail and glazing—no drilling."
       },
       "access_gallery": {
-        "name": "Shared access gallery / service deck",
+        "name": "Shared corridor of an apartment building",
         "feature": "Open corridor along dwelling fronts—long horizontal slab and rail shared for circulation and services.",
         "constraints": "Keep egress and traffic clear. Portable freestanding mounts plus wind stow are mandatory; follow shared-area rules.",
-        "regionContext": "※ Typical contexts: multifamily (egress kept clear), gallery-access blocks",
-        "mechanism": "Origami / endai freestanding furniture—keep the walkway open; full indoor de-shimai in high wind."
+        "regionContext": "Note: Typical contexts — multifamily (egress kept clear), gallery-access blocks",
+        "mechanism": "Origami / bench freestanding furniture—keep the walkway open; full indoor stow in high wind."
       },
       "mansard_dormer": {
-        "name": "Mansard roof (steep pitch + dormer)",
+        "name": "Steep European-style roof",
         "feature": "Two-pitch mansard with a steep lower face and dormer windows; harvest beside the dormer cheeks.",
         "constraints": "Steep faces reject heavy racks—adapt beside dormers or on the shallow upper pitch with light no-drill film mounts.",
-        "regionContext": "※ Typical contexts: historic districts (façade protection), steep zinc / mansard stock",
+        "regionContext": "Note: Typical contexts — historic districts (façade protection), steep zinc / mansard stock",
         "mechanism": "Flexible thin-film along steep pitches and dormer cheeks; no heavy racks."
       },
       "japanese_tiled_roof": {
-        "name": "Pitched tile roof (gable / hip)",
+        "name": "Japanese house tile roof",
         "feature": "~30° gable or hip tile roofs where lightweight panels ride on roof-edge brackets along the pitch.",
         "constraints": "Tile damage and leak risk rule out heavy racks—light along-pitch hook mounts only.",
-        "regionContext": "※ Typical contexts: pitched tile-roof belts",
+        "regionContext": "Note: Typical contexts — pitched tile-roof belts",
         "mechanism": "Catenary / hook-style light brackets that hang panels along the tile plane."
       },
       "flat_roof_terrace": {
-        "name": "Flat roof (deck / pergola)",
+        "name": "Flat rooftop with a terrace",
         "feature": "Flat-slab roof terraces used for evening cool-down, laundry, and daily circulation—shade-pergola racks for living-furniture PV.",
         "constraints": "Must weather high wind and stay freestanding/portable so terrace living paths stay clear—no deck drilling.",
-        "regionContext": "※ Typical contexts: flat-deck roof belts, multifamily rooftop terraces",
-        "mechanism": "Origami / pergola freestanding furniture with fold-away de-shimai in high wind."
+        "regionContext": "Note: Typical contexts — flat-deck roof belts, multifamily rooftop terraces",
+        "mechanism": "Origami / pergola freestanding furniture with fold-away stow in high wind."
       },
       "pitched_gable_terrace": {
-        "name": "Pitched gable roof (terraced run)",
+        "name": "Pitched roof of a terraced house",
         "feature": "~40–45° slate or clay gable roofs typical of terraced runs.",
         "constraints": "Tile/slate damage and leak risk; heavy racks are out—light clamps or window-plane adaptations instead.",
-        "regionContext": "※ Typical contexts: terraced pitched-roof belts, pitched tile-roof belts",
+        "regionContext": "Note: Typical contexts — terraced pitched-roof belts, pitched tile-roof belts",
         "mechanism": "Light clamps and window-louver adaptations along the pitch."
       }
     }
@@ -614,7 +614,7 @@
         "models": {
           "haussmann-balconet": "Ultra-shallow stone floor + ornate iron rail; window louvers as the harvest plane.",
           "concrete-parapet": "Thick parapet with clamp mounts for a near-vertical panel.",
-          "japanese-evacuation-balcony": "Standard-depth floor + aluminum rail, kick-out panel, and stowable endai.",
+          "japanese-evacuation-balcony": "Standard-depth floor + aluminum rail, kick-out panel, and stowable bench.",
           "japanese-kawara-roof": "~30° tile roof with bracket-mounted panels along the pitch.",
           "french-mansard-roof": "Two-pitch mansard in zinc with dormer; harvest beside the dormer face.",
           "flat-concrete-roof": "Flat concrete slab with shade-pergola rack for living-furniture PV.",
@@ -641,82 +641,82 @@
       },
       "profiles": {
         "haussmann-balconet": {
-          "name": "Decorative iron balconet (shallow opening)",
+          "name": "Shallow European-style balcony (iron rail)",
           "description": "Ornate iron rail with only tens of centimeters of depth—more vertical opening than living deck.",
           "constraints": "No-drill vertical mounts only",
-          "regionContext": "※ Typical contexts: historic districts (façade protection), European urban shallow openings"
+          "regionContext": "Note: Typical contexts — historic districts (façade protection), European urban shallow openings"
         },
         "concrete-parapet": {
-          "name": "Exposed concrete parapet (vertical waist wall)",
+          "name": "Balcony with a concrete waist wall",
           "description": "Thick exposed-concrete waist walls / parapets acting as a near-vertical receiving plane.",
           "constraints": "No-drill clamp required",
-          "regionContext": "※ Typical contexts: Central European multifamily stock, thick-parapet multifamily general"
+          "regionContext": "Note: Typical contexts — Central European multifamily stock, thick-parapet multifamily general"
         },
         "japanese-evacuation-balcony": {
-          "name": "Cantilever balcony with escape partition",
+          "name": "Typical apartment balcony",
           "description": "Cantilever slab with party walls and escape hatches—laundry space shared with fire egress.",
           "constraints": "Portable / full stow required",
-          "regionContext": "※ Typical contexts: multifamily (egress kept clear), typhoon / high-wind belts"
+          "regionContext": "Note: Typical contexts — multifamily (egress kept clear), typhoon / high-wind belts"
         },
         "access-gallery": {
-          "name": "Shared access gallery / service deck",
+          "name": "Shared corridor of an apartment building",
           "description": "Open corridor along dwelling fronts—long horizontal slab and rail shared for circulation and services.",
           "constraints": "Keep path clear; portable only",
-          "regionContext": "※ Typical contexts: multifamily (egress kept clear), gallery-access blocks"
+          "regionContext": "Note: Typical contexts — multifamily (egress kept clear), gallery-access blocks"
         },
         "japanese-kawara-roof": {
-          "name": "Pitched tile roof (gable / hip)",
+          "name": "Japanese house tile roof",
           "description": "~30° gable or hip tile roofs where lightweight panels ride on roof-edge brackets.",
           "constraints": "Light hook mounts only",
-          "regionContext": "※ Typical contexts: pitched tile-roof belts"
+          "regionContext": "Note: Typical contexts — pitched tile-roof belts"
         },
         "french-mansard-roof": {
-          "name": "Mansard roof (steep pitch + dormer)",
+          "name": "Steep European-style roof",
           "description": "Two-pitch mansard with a steep lower face and dormer windows; harvest beside the dormer cheeks.",
           "constraints": "Light film adaptation",
-          "regionContext": "※ Typical contexts: historic districts (façade protection), steep zinc / mansard stock"
+          "regionContext": "Note: Typical contexts — historic districts (façade protection), steep zinc / mansard stock"
         },
         "flat-concrete-roof": {
-          "name": "Flat roof (deck / pergola)",
+          "name": "Flat rooftop with a terrace",
           "description": "Flat-slab roof terraces used for evening cool-down, laundry, and daily circulation.",
           "constraints": "Portable, no deck drilling",
-          "regionContext": "※ Typical contexts: flat-deck roof belts, multifamily rooftop terraces"
+          "regionContext": "Note: Typical contexts — flat-deck roof belts, multifamily rooftop terraces"
         },
         "rooftop-terrace": {
           "name": "Flat rooftop terrace",
           "description": "Flat rooftop shared/private terraces used for evening cool-down, laundry, and daily circulation.",
           "constraints": "Portable, no deck drilling",
-          "regionContext": "※ Typical contexts: flat-deck roof belts"
+          "regionContext": "Note: Typical contexts — flat-deck roof belts"
         },
         "uk-juliet-balcony": {
-          "name": "Juliet rail (no-deck opening)",
+          "name": "Window-rail balcony (no floor deck)",
           "description": "No deck depth—French doors plus rail or glass. The façade plane itself is the vertical harvest surface.",
           "constraints": "Vertical no-drill only",
-          "regionContext": "※ Typical contexts: rental façades, historic districts (façade protection)"
+          "regionContext": "Note: Typical contexts — rental façades, historic districts (façade protection)"
         },
         "uk-recessed-balcony": {
-          "name": "Recessed loggia balcony (concave volume)",
+          "name": "Recessed balcony (set into the building)",
           "description": "Side-walled recessed / loggia volume—more diffuse light than direct beam by geometry.",
           "constraints": "Portable table / clamp",
-          "regionContext": "※ Typical contexts: multifamily stock (general), European urban recessed balconies"
+          "regionContext": "Note: Typical contexts — multifamily stock (general), European urban recessed balconies"
         },
         "uk-roof-terrace": {
-          "name": "Flat roof slab (deck)",
+          "name": "Flat rooftop deck",
           "description": "Flat roof or high-rise shared/private terraces where pergola or table solar can stand freestanding on a wide deck.",
           "constraints": "Furniture form, no drilling",
-          "regionContext": "※ Typical contexts: flat-deck roof belts, multifamily stock (general)"
+          "regionContext": "Note: Typical contexts — flat-deck roof belts, multifamily stock (general)"
         },
         "uk-pitched-gable": {
-          "name": "Pitched gable roof (terraced run)",
+          "name": "Pitched roof of a terraced house",
           "description": "~40–45° slate or clay gable roofs typical of terraced runs.",
           "constraints": "Light clamp adaptation",
-          "regionContext": "※ Typical contexts: terraced pitched-roof belts, pitched tile-roof belts"
+          "regionContext": "Note: Typical contexts — terraced pitched-roof belts, pitched tile-roof belts"
         },
         "uk-pitched-mansard-dormer": {
-          "name": "Mansard roof (steep pitch + dormer)",
+          "name": "Steep European-style roof (with dormer window)",
           "description": "Steep outer pitch with dormer windows—cheeks and flanks as harvest candidates.",
           "constraints": "Film beside dormers",
-          "regionContext": "※ Typical contexts: historic districts (façade protection), steep urban residential stock"
+          "regionContext": "Note: Typical contexts — historic districts (façade protection), steep urban residential stock"
         }
       },
       "furniture": {
@@ -737,15 +737,15 @@
           "adaptation": "Furniture-form set on the parapet—easy to move and stow."
         },
         "solar-endai-bench": {
-          "name": "Stowable endai-bench solar",
+          "name": "Stowable bench solar",
           "adaptation": "Keeps egress clear; fully retreats indoors in typhoons."
         },
         "solar-sudare-screen": {
-          "name": "Roll-up sudare perovskite screen",
+          "name": "Roll-up shade perovskite screen",
           "adaptation": "Lightweight screen along party walls; rolls up to clear escape hatches."
         },
         "origami-byobu-solar": {
-          "name": "Freestanding origami byobu solar",
+          "name": "Freestanding origami screen solar",
           "adaptation": "Stands on rooftop terraces; folds away for monsoon storms."
         },
         "solar-pergola": {

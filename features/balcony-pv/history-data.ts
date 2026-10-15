@@ -177,8 +177,8 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
     ],
     keyMilestoneYears: ['1954年', '1980年', '1990年'],
     badgeClass:
-      'border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25',
-    accentBorderClass: 'border-emerald-500/50',
+      'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20',
+    accentBorderClass: 'border-emerald-500/40',
     cell3d: {
       cellStructureJa: '単結晶Siウェハ + 強化ガラス + アルミフレーム',
       cellStructureEn: 'Mono-Si wafer + tempered glass + aluminum frame',
@@ -238,8 +238,9 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
     primaryTypologyId: 'precast_parapet',
     recommendedTypologyIds: ['precast_parapet'],
     keyMilestoneYears: ['1960年', '1974年', '2009年'],
-    badgeClass: 'border-sky-500/40 bg-sky-500/15 text-sky-300 hover:bg-sky-500/25',
-    accentBorderClass: 'border-sky-500/50',
+    badgeClass:
+      'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20',
+    accentBorderClass: 'border-emerald-500/40',
     cell3d: {
       cellStructureJa: 'ガラス一体型化合物薄膜（CdTe / CIGS）・フレームレス',
       cellStructureEn: 'Glass-integrated compound thin film (CdTe / CIGS), frameless',
@@ -304,8 +305,8 @@ export const PV_HISTORY_STREAMS: Record<PvHistoryStream, PvStreamSummary> = {
     ],
     keyMilestoneYears: ['1977年', '2009年', '2026年'],
     badgeClass:
-      'border-purple-500/40 bg-purple-500/15 text-purple-300 hover:bg-purple-500/25',
-    accentBorderClass: 'border-purple-500/50',
+      'border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium hover:bg-emerald-500/20',
+    accentBorderClass: 'border-emerald-500/40',
     cell3d: {
       cellStructureJa: 'ペロブスカイト薄膜フィルム（剛体折り紙ヒンジ可）',
       cellStructureEn: 'Perovskite thin-film foil (rigid-origami hinge capable)',

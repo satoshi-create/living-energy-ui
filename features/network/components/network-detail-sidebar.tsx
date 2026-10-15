@@ -22,7 +22,6 @@ import { cn } from "@/lib/utils"
 import {
   NETWORK_MODELS,
   caseStatusKey,
-  categoryColor,
   energyTypeFilterKey,
   localizedMapSite,
   localizedModel,
@@ -68,12 +67,12 @@ function FlowConnector({ mode }: { mode: FlowMode }) {
   const Arrow = mode === "day" ? ArrowDown : ArrowUp
   return (
     <div className="flex flex-col items-center gap-0.5 py-1" aria-hidden>
-      <div className="h-3 w-px border-l border-dashed border-cyan-500/40" />
-      <span className="relative flex size-6 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/10">
-        <span className="absolute inset-0 animate-ping rounded-full bg-cyan-400/20" />
-        <Arrow className="relative size-3.5 text-cyan-400" />
+      <div className="h-3 w-px border-l border-dashed border-emerald-500/40" />
+      <span className="relative flex size-6 items-center justify-center rounded-md border border-emerald-500/40 bg-emerald-500/10">
+        <span className="absolute inset-0 animate-ping rounded-md bg-emerald-400/20" />
+        <Arrow className="relative size-3.5 text-emerald-400" />
       </span>
-      <div className="h-3 w-px border-l border-dashed border-cyan-500/40" />
+      <div className="h-3 w-px border-l border-dashed border-emerald-500/40" />
     </div>
   )
 }
@@ -100,7 +99,7 @@ function StageSection({
               key={node.id}
               className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 transition-colors hover:border-slate-700 hover:bg-slate-800/80"
             >
-              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-400">
+              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
                 <Icon className="size-3.5" />
               </span>
               <div className="min-w-0 flex-1">
@@ -109,7 +108,7 @@ function StageSection({
                 {node.kind === "convert" ? (
                   <Badge
                     variant="outline"
-                    className="mt-1.5 w-fit border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0 text-[10px] font-normal text-cyan-300"
+                    className="mt-1.5 w-fit rounded-md border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400"
                   >
                     {uiText("kindConvert", locale)}
                   </Badge>
@@ -225,46 +224,35 @@ export function NetworkDetailSidebar({
           <CardHeader className="flex shrink-0 flex-col gap-4 space-y-0 px-5 pt-5">
             <div className="flex min-w-0 flex-col gap-1">
               <CardTitle className="text-xl font-bold text-white">{copy.label}</CardTitle>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <Badge
-                  className="w-fit border px-2 py-0.5 text-xs font-medium"
-                  style={{
-                    borderColor: `${categoryColor(config.modelCategory)}66`,
-                    backgroundColor: `${categoryColor(config.modelCategory)}33`,
-                    color: categoryColor(config.modelCategory),
-                  }}
-                >
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="w-fit rounded-md border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
                   {categoryLabel}
                 </Badge>
-                <Badge variant="secondary" className="w-fit text-[10px] font-normal">
+                <Badge variant="secondary" className="w-fit rounded-md text-xs font-normal">
                   {copy.regionName}
                 </Badge>
-                <Badge variant="outline" className="w-fit font-mono text-[10px]">
+                <Badge variant="outline" className="w-fit rounded-md font-mono text-xs">
                   {copy.scaleLabel}
                 </Badge>
               </div>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <div className="mt-1 flex flex-wrap items-center gap-2">
                 <Badge
                   variant="outline"
-                  className="w-fit border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300"
+                  className="w-fit rounded-md border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400"
                 >
                   {uiText(caseStatusKey(config.caseStatus), locale)}
                 </Badge>
                 <Badge
-                  variant="outline"
-                  className="w-fit border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-normal text-slate-300"
+                  variant="secondary"
+                  className="w-fit rounded-md px-2.5 py-0.5 text-xs font-normal"
                 >
                   {uiText(networkMethodKey(config.modelCategory), locale)}
                 </Badge>
                 {config.energyTypes.map((type) => (
                   <Badge
                     key={type}
-                    variant="outline"
-                    className="w-fit px-2 py-0.5 text-[10px] font-normal"
-                    style={{
-                      borderColor: `${categoryColor(type)}66`,
-                      color: categoryColor(type),
-                    }}
+                    variant="secondary"
+                    className="w-fit rounded-md px-2.5 py-0.5 text-xs font-normal"
                   >
                     {uiText(energyTypeFilterKey(type), locale)}
                   </Badge>
@@ -272,7 +260,7 @@ export function NetworkDetailSidebar({
                 {typeof config.selfSufficiencyPct === "number" ? (
                   <Badge
                     variant="outline"
-                    className="w-fit border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300"
+                    className="w-fit rounded-md border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400"
                   >
                     {uiText("selfSufficiency", locale)} {config.selfSufficiencyPct}%
                   </Badge>
@@ -291,14 +279,14 @@ export function NetworkDetailSidebar({
                 type="button"
                 onClick={() => setFlowMode("day")}
                 className={cn(
-                  "flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors",
+                  "flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
                   flowMode === "day"
-                    ? "bg-cyan-500/20 text-cyan-300"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                    : "text-slate-400 hover:text-slate-200",
                 )}
               >
                 <span className="block">{uiText("dayMode", locale)}</span>
-                <span className="mt-0.5 block text-[9px] font-normal opacity-70">
+                <span className="mt-0.5 block text-xs font-normal opacity-70">
                   {uiText("dayModeHint", locale)}
                 </span>
               </button>
@@ -306,14 +294,14 @@ export function NetworkDetailSidebar({
                 type="button"
                 onClick={() => setFlowMode("night")}
                 className={cn(
-                  "flex-1 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors",
+                  "flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
                   flowMode === "night"
-                    ? "bg-amber-500/20 text-amber-300"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                    : "text-slate-400 hover:text-slate-200",
                 )}
               >
                 <span className="block">{uiText("nightMode", locale)}</span>
-                <span className="mt-0.5 block text-[9px] font-normal opacity-70">
+                <span className="mt-0.5 block text-xs font-normal opacity-70">
                   {uiText("nightModeHint", locale)}
                 </span>
               </button>
@@ -325,7 +313,7 @@ export function NetworkDetailSidebar({
 
             {paradigmText ? (
               <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-                <p className="text-[10px] font-semibold tracking-wider text-emerald-400 uppercase">
+                <p className="text-xs font-semibold tracking-wider text-emerald-400 uppercase">
                   {uiText("caseParadigm", locale)}
                 </p>
                 <p className="mt-1.5 leading-relaxed text-slate-200">{paradigmText}</p>
@@ -350,7 +338,7 @@ export function NetworkDetailSidebar({
                   href={config.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1 inline-block break-all text-sm text-cyan-400 underline-offset-2 hover:underline"
+                  className="mt-1 inline-block break-all text-sm text-emerald-400 underline-offset-2 hover:underline"
                 >
                   {config.sourceUrl}
                 </a>

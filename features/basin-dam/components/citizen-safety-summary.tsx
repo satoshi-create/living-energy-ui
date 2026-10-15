@@ -15,7 +15,7 @@ export function CitizenSafetySummary({ safety }: CitizenSafetySummaryProps) {
     <Card className="rounded-2xl border border-slate-800/80 bg-slate-900/40">
       <CardContent className="flex flex-col gap-6 p-5 sm:p-6 md:p-8">
         <div>
-          <Badge className="gap-1.5 bg-emerald-600 py-1.5 text-white">
+          <Badge className="gap-1.5 rounded-md border-emerald-500/40 bg-emerald-500/10 py-1.5 text-emerald-400">
             <ShieldCheck className="size-3.5" />
             公開情報
           </Badge>

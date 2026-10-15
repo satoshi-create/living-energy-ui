@@ -198,8 +198,8 @@ export function AppShell() {
                 type="button"
                 onClick={() => selectView(item.id)}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium transition-colors sm:px-2 sm:text-[11px]",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  "flex flex-1 flex-col items-center gap-1 px-1 py-2.5 text-xs font-medium transition-colors sm:px-2",
+                  isActive ? "text-emerald-400" : "text-slate-400"
                 )}
               >
                 <Icon className="size-5" />

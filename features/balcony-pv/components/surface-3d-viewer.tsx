@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, Suspense, useContext, useEffect, useMemo } from 'react'
+import { createContext, Suspense, useContext, useLayoutEffect, useMemo } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { MathUtils } from 'three'
@@ -538,13 +538,30 @@ function UkPitchedMansardDormer() {
   )
 }
 
-const CAMERA_PRESETS: Record<
+/** Shared look-at for card preview and full detail (model mid-height). */
+const CAMERA_TARGET: [number, number, number] = [0, 0.7, 0]
+
+/** Compact card-list framing. */
+const CAMERA_PRESETS_PREVIEW: Record<
   Surface3DCameraPreset,
   { position: [number, number, number] }
 > = {
   '0°': { position: [0, 1.6, 3.6] },
   '30°': { position: [2.4, 1.8, 2.8] },
   '90°': { position: [3.6, 1.5, 0.2] },
+}
+
+/**
+ * Full detail framing — same angles as preview, pulled back so wall / roof
+ * apex and floor stay inside the large viewport with padding.
+ */
+const CAMERA_PRESETS_FULL: Record<
+  Surface3DCameraPreset,
+  { position: [number, number, number] }
+> = {
+  '0°': { position: [0, 2.4, 5.6] },
+  '30°': { position: [3.8, 2.9, 4.4] },
+  '90°': { position: [5.6, 2.5, 0.35] },
 }
 
 function CameraPresetController({
@@ -556,11 +573,11 @@ function CameraPresetController({
 }) {
   const { camera } = useThree()
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) return
-    const { position } = CAMERA_PRESETS[preset]
+    const { position } = CAMERA_PRESETS_FULL[preset]
     camera.position.set(...position)
-    camera.lookAt(0, 0.6, 0)
+    camera.lookAt(...CAMERA_TARGET)
     camera.updateProjectionMatrix()
   }, [preset, enabled, camera])
 
@@ -568,13 +585,26 @@ function CameraPresetController({
 
   return (
     <OrbitControls
+      makeDefault
       enablePan
-      minDistance={2.0}
-      maxDistance={10}
+      minDistance={3.2}
+      maxDistance={12}
       maxPolarAngle={Math.PI / 2.05}
-      target={[0, 0.6, 0]}
+      target={CAMERA_TARGET}
     />
   )
+}
+
+/** Aim preview camera at the same target as OrbitControls (avoid origin look-at). */
+function PreviewCameraAim() {
+  const { camera } = useThree()
+
+  useLayoutEffect(() => {
+    camera.lookAt(...CAMERA_TARGET)
+    camera.updateProjectionMatrix()
+  }, [camera])
+
+  return null
 }
 
 function SurfaceScene({
@@ -637,13 +667,17 @@ function SurfaceScene({
       </mesh>
       <CameraPresetController preset={cameraPreset} enabled={full} />
       {!full && (
-        <OrbitControls
-          enablePan={false}
-          minDistance={2.2}
-          maxDistance={7}
-          maxPolarAngle={Math.PI / 2.05}
-          target={[0, 0.6, 0]}
-        />
+        <>
+          <PreviewCameraAim />
+          <OrbitControls
+            makeDefault
+            enablePan={false}
+            minDistance={2.2}
+            maxDistance={7}
+            maxPolarAngle={Math.PI / 2.05}
+            target={CAMERA_TARGET}
+          />
+        </>
       )}
     </PanelTiltContext.Provider>
   )
@@ -659,7 +693,7 @@ export function Surface3DViewer({
 }: Surface3DViewerProps) {
   const t = useTranslations('worldPv.architecture.surface3d')
   const full = variant === 'full'
-  const cam = CAMERA_PRESETS[cameraPreset]
+  const cam = (full ? CAMERA_PRESETS_FULL : CAMERA_PRESETS_PREVIEW)[cameraPreset]
 
   return (
     <div
@@ -674,7 +708,7 @@ export function Surface3DViewer({
       <div className={cn(full ? 'min-h-0 flex-1' : 'h-44 w-full sm:h-48')}>
         <Suspense
           fallback={
-            <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
+            <div className="flex h-full items-center justify-center text-xs text-slate-400">
               …
             </div>
           }
@@ -684,9 +718,9 @@ export function Surface3DViewer({
             dpr={[1, full ? 2 : 1.5]}
             camera={{
               position: cam.position,
-              fov: full ? 38 : 42,
+              fov: 42,
               near: 0.1,
-              far: 40,
+              far: 50,
             }}
             gl={{
               antialias: true,
@@ -704,14 +738,6 @@ export function Surface3DViewer({
           </Canvas>
         </Suspense>
       </div>
-      {!full && (
-        <>
-          <p className="border-t border-border/40 px-2.5 py-1.5 text-[10px] leading-snug text-muted-foreground">
-            {t(`models.${profileId}`)}
-          </p>
-          <p className="px-2.5 pb-2 text-[10px] text-slate-500">{t('hint')}</p>
-        </>
-      )}
     </div>
   )
 }

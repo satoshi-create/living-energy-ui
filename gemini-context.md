@@ -1,6 +1,6 @@
 # 本日のセッション前提コンテキスト
 
-- **実行日時（JST）**: 2026/10/14(水) 12:53:08
+- **実行日時（JST）**: 2026/10/15(木) 13:44:37
 - **プロジェクト**: my-project
 - **用途**: Gemini 新規スレッド開始時に貼るコード地図（特定タスクの出力強制ではない）
 - **ダンプ方針**: パス選定用にスリム化。AppShell 到達可能のみ。未接続 feature / PDF 研究資産 / ネスト別アプリは本文ダンプしない。巨大 TSX はプレビューのみ。
@@ -262,9 +262,9 @@ Cursor は必ず実ファイルを Read すること。
 | --- | ---: | ---: | --- |
 | `features/shell/components/app-shell.tsx` | 215 | 7446 | full |
 | `features/balcony-pv/components/balcony-view.tsx` | 256 | 11385 | preview |
-| `features/balcony-pv/components/world-implementation-view.tsx` | 1689 | 69586 | preview |
+| `features/balcony-pv/components/world-implementation-view.tsx` | 1612 | 63192 | preview |
 | `features/balcony-pv/simulator-data.ts` | 922 | 30696 | preview |
-| `features/balcony-pv/data.ts` | 6143 | 263036 | preview |
+| `features/balcony-pv/data.ts` | 6198 | 265114 | preview |
 | `features/living-sense/data.ts` | 110 | 2861 | preview |
 | `features/network/components/network-view.tsx` | 58 | 1654 | full |
 | `features/network/data.ts` | 1506 | 52000 | preview |
@@ -567,7 +567,7 @@ export function BalconyView() {
 /* … preview only (11385 bytes, 256 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
-### `features/balcony-pv/components/world-implementation-view.tsx` (preview, 1689 lines)
+### `features/balcony-pv/components/world-implementation-view.tsx` (preview, 1612 lines)
 
 ```tsx
 "use client"
@@ -587,12 +587,11 @@ import {
   Landmark,
   Refrigerator,
   Smartphone,
-  Sofa,
   type LucideIcon,
-  Users,
   Wifi,
   X,
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -652,10 +651,9 @@ const CountryPvOssTools = dynamic(
   { ssr: false, loading: () => <HeavyChunkLoading /> },
 )
 
-const CountryPvTimeline = dynamic(
-  () => import("./
+const CountryPvTimelin
 
-/* … preview only (69586 bytes, 1689 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (63192 bytes, 1612 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
 ### `features/balcony-pv/simulator-data.ts` (preview, 922 lines)
@@ -742,7 +740,7 @@ export const BALCONY_TYPES: readonly BalconyTypePreset[] = [
 /* … preview only (30696 bytes, 922 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
-### `features/balcony-pv/data.ts` (preview, 6143 lines)
+### `features/balcony-pv/data.ts` (preview, 6198 lines)
 
 ```typescript
 // World-map / ecosystem / architecture mock for balcony-plug-in-pv.
@@ -779,80 +777,50 @@ export type SystemModelType =
 
 /**
  * Parent infrastructure category (locale-independent).
- * ① grid_plug_in — grid present, plug-in authorized
- * ② grid_no_plug — grid present, plug-in banned (storage / licensed work)
- * ③ no_grid_leapfrog — weak/absent grid, solar leapfrog
+ * ① grid_plug_in — outlet plug-in (EU, CA/UT, AU, SG, Cape Town, …)
+ * ② grid_hybrid_storage — export-restricted storage hybrid (JP/TW/CN/VN/ID/PH, US-TX/FL/NY, …)
+ * ③ grid_blackout_defense — unstable-grid / blackout self-defense (ZA, NG, KE, RW)
+ * ④ no_grid_leapfrog — unelectrified / independent power (ET, SN, TZ, UG, IN, …)
  */
-export type GridCategory = 'grid_plug_in' | 'grid_no_plug' | 'no_grid_leapfrog'
+export type GridCategory =
+  | 'grid_plug_in'
+  | 'grid_hybrid_storage'
+  | 'grid_blackout_defense'
+  | 'no_grid_leapfrog'
 
-/** systemModel → parent gridCategory */
+/** Flat map-header filter ids (all + 4 market models). */
+export const WORLD_PV_MODEL_FILTER_OPTIONS = [
+  'all',
+  'grid_plug_in',
+  'grid_hybrid_storage',
+  'grid_blackout_defense',
+  'no_grid_leapfrog',
+] as const
+
+export type WorldPvModelFilterOption = (typeof WORLD_PV_MODEL_FILTER_OPTIONS)[number]
+
+/** systemModel → parent gridCategory (code-level overrides in resolveGridCategory). */
 export const SYSTEM_MODEL_GRID_CATEGORY: Record<SystemModelType, GridCategory> = {
   plug_800w: 'grid_plug_in',
   plug_1200w: 'grid_plug_in',
   plug_600w: 'grid_plug_in',
   net_metering: 'grid_plug_in',
-  offgrid_storage: 'grid_no_plug',
-  nec_strict: 'grid_no_plug',
+  offgrid_storage: 'grid_hybrid_storage',
+  nec_strict: 'grid_hybrid_storage',
   productive_offgrid: 'no_grid_leapfrog',
   micro_solar_kit: 'no_grid_leapfrog',
 }
 
-/** Authorization / deployment status shown on the world map. */
-export type CountryPvStatusKind =
-  | 'legal_plug'
-  | 'appliance_notified'
-  | 'storage_only'
-  | 'strict_code'
-  | 'plug_exemption'
-  | 'productive_offgrid'
-  | 'micro_solar_kit'
+/** ISO / subnational code → GridCategory (splits Africa urban blackout vs Asia hybrid). */
+const GRID_CATEGORY_BY_CODE: Partial<Record<string, GridCategory>> = {
+  ZA: 'grid_blackout_defense',
+  NG: 'grid_blackout_defense',
+  KE: 'grid_blackout_defense',
+  RW: 'grid_blackout_defense',
+  JP: 'grid_hybrid_storage',
+  TW: 'grid_hyb
 
-/** ISO country or US-state / subnational code used on the map. */
-export type PvRegionCode =
-  | CountryCode
-  | 'NG'
-  | 'ET'
-  | 'KE'
-  | 'ZA'
-  | 'RW'
-  | 'TZ'
-  | 'UG'
-  | 'SN'
-  | 'AU'
-  | 'VN'
-  | 'IN'
-  | 'SG'
-  | 'ID'
-  | 'PH'
-  | 'TW'
-  | 'US-UT'
-  | 'US-CA'
-  | 'US-CO'
-  | 'US-WA'
-  | 'US-OR'
-  | 'US-AZ'
-  | 'US-ME'
-  | 'US-MN'
-  | 'US-TX'
-  | 'US-FL'
-  | 'US-NY'
-  | 'NZ'
-  | 'ZA-CPT'
-  | 'BR'
-
-/** Global / widely distributed equipment vendor IDs (locale-independent). */
-export type AdoptedVendorId =
-  | 'enphase'
-  | 'hoymiles'
-  | 'anker-solix'
-  | 'ecoflow'
-  | 'jackery'
-  | 'tesla-energy'
-  | 'mkopa'
-  | 'sun-king'
-  
-
-/* … preview only (263036 bytes, 6143 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (265114 bytes, 6198 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
 ### `features/living-sense/data.ts` (preview, 110 lines)

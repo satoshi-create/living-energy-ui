@@ -167,10 +167,10 @@ export function PvHistoryTimeline({
                     type="button"
                     onClick={() => setStreamFilter('all')}
                     className={cn(
-                      'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                      'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
                       active
-                        ? 'border-primary/50 bg-primary/20 text-primary'
-                        : 'border-border/50 bg-muted/30 text-muted-foreground hover:border-border hover:text-foreground',
+                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                        : 'border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80',
                     )}
                   >
                     {isEn ? 'Browse all history (All)' : '全歴史を通覧 (All)'}
@@ -184,10 +184,10 @@ export function PvHistoryTimeline({
                   type="button"
                   onClick={() => setStreamFilter(id)}
                   className={cn(
-                    'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                    'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
                     active
-                      ? meta.badgeClass
-                      : 'border-border/50 bg-muted/30 text-muted-foreground hover:border-border hover:text-foreground',
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                      : 'border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80',
                   )}
                 >
                   {isEn ? meta.labelEn : meta.labelJa}
@@ -249,12 +249,12 @@ export function PvHistoryTimeline({
                       className={cn(
                         'absolute left-6 top-4 z-10 -translate-x-1/2 transition-transform',
                         isDisruptive
-                          ? 'flex size-5 items-center justify-center rounded-full border-2 border-amber-400 bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.5)]'
-                          : 'size-3 rounded-full border-2 border-background bg-slate-600',
+                          ? 'flex size-5 items-center justify-center rounded-md border-2 border-emerald-500 bg-emerald-500/20'
+                          : 'size-3 rounded-md border-2 border-slate-800 bg-slate-600',
                       )}
                     >
                       {isDisruptive && (
-                        <Zap className="size-2.5 text-amber-300" />
+                        <Zap className="size-2.5 text-emerald-400" />
                       )}
                     </span>
 
@@ -264,27 +264,27 @@ export function PvHistoryTimeline({
                       className={cn(
                         'group flex w-full flex-col text-left transition-all duration-200',
                         isDisruptive
-                          ? 'gap-2 rounded-xl border-2 border-amber-500/50 bg-gradient-to-br from-amber-500/10 via-purple-500/5 to-transparent px-4 py-4 shadow-md hover:scale-[1.015] hover:border-amber-400/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]'
-                          : 'gap-1.5 rounded-lg border border-border/40 bg-card/40 px-3 py-2.5 hover:scale-[1.01] hover:border-primary/40 hover:bg-muted/40 hover:ring-1 hover:ring-primary/30',
+                          ? 'gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-5 hover:border-emerald-500/60 hover:bg-emerald-500/15'
+                          : 'gap-1.5 rounded-xl border border-slate-800 bg-slate-900/80 px-5 py-4 hover:border-slate-700 hover:bg-slate-800/80',
                       )}
                     >
                       <div className="flex flex-wrap items-center gap-1.5">
                         <Badge
                           variant="outline"
-                          className="px-2.5 py-1 font-mono text-sm font-bold text-amber-300/90"
+                          className="rounded-md px-2.5 py-1 font-mono text-sm font-bold text-emerald-400"
                         >
                           {m.year}
                         </Badge>
                         <Badge
                           variant="secondary"
-                          className={cn('text-xs font-medium', meta.badgeClass)}
+                          className="rounded-md text-xs font-medium"
                         >
                           {isEn ? meta.labelEn : meta.labelJa}
                         </Badge>
                         {isDisruptive && (
                           <Badge
                             variant="outline"
-                            className="inline-flex items-center gap-1 border-amber-400/60 bg-amber-500/15 text-xs font-semibold text-amber-300"
+                            className="inline-flex items-center gap-1 rounded-md border-emerald-500/40 bg-emerald-500/10 text-xs font-semibold text-emerald-400"
                           >
                             <Sparkles className="size-3" aria-hidden />
                             {isEn
@@ -503,7 +503,7 @@ export function PvHistoryTimeline({
               </section>
 
               <section className="space-y-2 border-t border-border/40 pt-4">
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-sky-400">
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-400">
                   <Building2 className="size-3.5" aria-hidden />
                   {isEn
                     ? 'Related vendors & solutions'
@@ -540,7 +540,7 @@ export function PvHistoryTimeline({
                           <button
                             type="button"
                             onClick={() => handleVendor(vid)}
-                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-sky-500/40 bg-sky-500/15 px-2.5 py-1 text-xs font-medium text-sky-300 transition-colors hover:bg-sky-500/25"
+                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
                           >
                             {isEn ? 'Open vendors' : '企業一覧へ'}
                             <ExternalLink className="size-3" aria-hidden />

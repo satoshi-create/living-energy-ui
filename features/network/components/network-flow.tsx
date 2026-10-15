@@ -180,7 +180,7 @@ export function NetworkFlow({
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-card-foreground">{copy.label}</span>
                         {watching && (
-                          <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
+                          <span className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
                             {uiText("watch", locale)}
                           </span>
                         )}

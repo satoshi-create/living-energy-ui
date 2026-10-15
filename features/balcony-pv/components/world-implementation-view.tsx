@@ -4,7 +4,6 @@ import dynamic from "next/dynamic"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
-  ArrowRight,
   Building2,
   Droplets,
   ExternalLink,
@@ -13,6 +12,8 @@ import {
   Layers,
   Lightbulb,
   Landmark,
+  PanelRightClose,
+  PanelRightOpen,
   Refrigerator,
   Smartphone,
   type LucideIcon,
@@ -25,10 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import {
-  SurfaceCountryTags,
-  SurfaceMountJobBadges,
-} from "./balcony-illustration"
+import { SurfaceCountryTags } from "./balcony-illustration"
 import type { Surface3DFocus } from "./surface-3d-full-view"
 import type { PvHistoryStream } from "../history-data"
 import type {
@@ -103,7 +101,6 @@ const NonProfitOrgsListView = dynamic(
 import {
   ECOSYSTEM_ACTOR_FILTERS,
   MARKET_ECOSYSTEM_TOPOLOGIES,
-  MARKET_ECOSYSTEM_UI_ACCENT,
   WORLD_BALCONY_PV_COUNTRIES,
   formatMarketEcosystemCountryChip,
   getCountriesByMarketEcosystemModel,
@@ -172,20 +169,20 @@ function PoweredApplianceChips({
           return (
             <span
               key={`${app.icon}-${app.nameJa}`}
-              className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] leading-tight text-emerald-200"
+              className="inline-flex max-w-full items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-xs leading-tight text-emerald-400"
             >
-              <Icon className="size-2.5 shrink-0 opacity-80" aria-hidden />
+              <Icon className="size-3 shrink-0 opacity-80" aria-hidden />
               <span className="truncate font-medium">
                 {isEn ? app.nameEn : app.nameJa}
               </span>
-              <span className="shrink-0 font-mono text-[9px] text-emerald-300/80">
+              <span className="shrink-0 font-mono text-xs text-emerald-400/80">
                 {app.wattage}
               </span>
             </span>
           )
         })}
       </div>
-      <p className="text-[9px] leading-snug text-muted-foreground/90">{note}</p>
+      <p className="text-xs leading-snug text-slate-400">{note}</p>
     </div>
   )
 }
@@ -198,10 +195,6 @@ const ECOSYSTEM_WIRING_STEPS: readonly EcosystemWiringStepKey[] = [
   "consumption",
 ] as const
 
-function profileRegionContextKey(constraintsKey: string): string {
-  return constraintsKey.replace(/\.constraints$/, ".regionContext")
-}
-
 const SIDEBAR_DEFAULT_WIDTH = 384
 const SIDEBAR_MIN_WIDTH = 320
 const SIDEBAR_MAX_WIDTH = 700
@@ -212,34 +205,23 @@ const OFFGRID_STATUSES = new Set<CountryPvDetail["status"]>([
   "micro_solar_kit",
 ])
 
-type OutletPlugTone = "emerald" | "cyan" | "amber" | "rose" | "purple"
-
-const OUTLET_TONE_CLASS: Record<OutletPlugTone, string> = {
-  emerald: "text-emerald-400 font-semibold",
-  cyan: "text-cyan-400 font-semibold",
-  amber: "text-amber-400 font-semibold",
-  rose: "text-rose-400 font-semibold",
-  purple: "text-purple-400 font-semibold",
-}
-
 function plugInEaseFromModel(model: SystemModelType): {
   msgKey: "outlet.plugOk" | "outlet.netMetering" | "outlet.offgridStorage" | "outlet.necStrict" | "outlet.standalone"
-  tone: OutletPlugTone
 } {
   switch (model) {
     case "plug_800w":
     case "plug_1200w":
     case "plug_600w":
-      return { msgKey: "outlet.plugOk", tone: "emerald" }
+      return { msgKey: "outlet.plugOk" }
     case "net_metering":
-      return { msgKey: "outlet.netMetering", tone: "cyan" }
+      return { msgKey: "outlet.netMetering" }
     case "offgrid_storage":
-      return { msgKey: "outlet.offgridStorage", tone: "amber" }
+      return { msgKey: "outlet.offgridStorage" }
     case "nec_strict":
-      return { msgKey: "outlet.necStrict", tone: "rose" }
+      return { msgKey: "outlet.necStrict" }
     case "productive_offgrid":
     case "micro_solar_kit":
-      return { msgKey: "outlet.standalone", tone: "purple" }
+      return { msgKey: "outlet.standalone" }
   }
 }
 
@@ -460,14 +442,6 @@ type WorldImplTab =
 
 type SurfaceCategoryFilter = "all" | "balcony" | "roof"
 
-const CELL_STREAM_BADGE_CLASS: Record<PvHistoryStream, string> = {
-  silicon_mainstream:
-    "border-blue-500/50 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20",
-  cigs_cdte: "border-cyan-500/50 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20",
-  organic_perovskite:
-    "border-emerald-500/50 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20",
-}
-
 /** surfaces タブ内: 一覧 / 大画面詳細（戻り先は一覧 or マップ） */
 type SurfacesPanelState =
   | { mode: "list" }
@@ -493,6 +467,7 @@ export function WorldImplementationView() {
   setMarketEcosystemUiLocale(isEn)
   const [viewTab, setViewTab] = useState<WorldImplTab>("map")
   const [surfacesPanel, setSurfacesPanel] = useState<SurfacesPanelState>({ mode: "list" })
+  const [surfaceSidebarOpen, setSurfaceSidebarOpen] = useState(true)
   const [surfaceCategoryFilter, setSurfaceCategoryFilter] =
     useState<SurfaceCategoryFilter>("all")
   const [selectedId, setSelectedId] = useState<string | null>("germany")
@@ -521,8 +496,6 @@ export function WorldImplementationView() {
     () => getCountriesByMarketEcosystemModel(ecosystemModelId),
     [ecosystemModelId],
   )
-  const ecosystemAccent = MARKET_ECOSYSTEM_UI_ACCENT[ecosystemModelId]
-
   const jumpToMapCountry = useCallback((countryId: string) => {
     setSelectedId(countryId)
     setActorFilter("all")
@@ -651,22 +624,21 @@ export function WorldImplementationView() {
     setViewTab("map")
   }, [])
 
-  const detailTypology = useMemo(() => {
+  const detailCatalogItem = useMemo(() => {
     if (surfacesPanel.mode !== "detail") return null
-    const match = architectureCatalog.find(
-      (item) =>
-        item.countryId === surfacesPanel.focus.countryId &&
-        item.profile.id === surfacesPanel.focus.profileId,
+    return (
+      architectureCatalog.find(
+        (item) =>
+          item.countryId === surfacesPanel.focus.countryId &&
+          item.profile.id === surfacesPanel.focus.profileId,
+      ) ?? null
     )
-    return match?.typology ?? null
   }, [surfacesPanel, architectureCatalog])
 
   const backFromSurfaceDetail = useCallback(() => {
-    if (surfacesPanel.mode === "detail" && surfacesPanel.returnTo === "map") {
-      setViewTab("map")
-    }
+    setViewTab("surfaces")
     setSurfacesPanel({ mode: "list" })
-  }, [surfacesPanel])
+  }, [])
 
   const selectedCountry = useMemo(
     () => WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === selectedId) ?? null,
@@ -934,7 +906,7 @@ export function WorldImplementationView() {
 
         {isRankingOpen ? (
           <CardContent className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pl-5 text-sm">
-            <p className="text-[11px] font-medium text-muted-foreground">
+            <p className="text-xs font-medium text-slate-400">
               {t("map.rankingTitle")}
             </p>
             <ul className="flex flex-col gap-1.5">
@@ -977,7 +949,7 @@ export function WorldImplementationView() {
                     >
                       <span
                         className={cn(
-                          "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md font-mono text-[11px] font-semibold",
+                          "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md font-mono text-xs font-semibold",
                           index < 3
                             ? "bg-primary/20 text-primary"
                             : "bg-muted text-muted-foreground",
@@ -990,11 +962,11 @@ export function WorldImplementationView() {
                           <span className="truncate text-sm font-medium text-foreground">
                             {regionName}
                           </span>
-                          <span className="font-mono text-xs text-amber-400">★{score}</span>
+                          <span className="font-mono text-xs text-emerald-400">★{score}</span>
                         </span>
                         <Badge
                           variant="secondary"
-                          className="mt-1 max-w-full truncate text-[10px] font-normal"
+                          className="mt-1 max-w-full truncate rounded-md text-xs font-normal"
                         >
                           {regionStatus}
                         </Badge>
@@ -1022,9 +994,9 @@ export function WorldImplementationView() {
                     </span>
                   </CardTitle>
                   {selectedGridCategory ? (
-                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border/40 bg-muted/20 px-2 py-0.5 text-[11px] font-normal text-muted-foreground">
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 text-xs font-normal text-slate-300">
                       <span
-                        className="size-1 rounded-full bg-muted-foreground/40"
+                        className="size-1.5 rounded-md bg-emerald-500/60"
                         aria-hidden
                       />
                       {marketModelBadgeLabel(
@@ -1084,14 +1056,7 @@ export function WorldImplementationView() {
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                           {tSidebar("statusCard.works")}
                         </span>
-                        <p
-                          className={cn(
-                            "mt-1 line-clamp-1 break-words text-sm leading-snug",
-                            plugInEaseSpec
-                              ? OUTLET_TONE_CLASS[plugInEaseSpec.tone]
-                              : "font-medium text-slate-100",
-                          )}
-                        >
+                        <p className="mt-1 line-clamp-1 break-words text-sm font-medium leading-snug text-emerald-400">
                           {plugInEaseSpec ? tSidebar(plugInEaseSpec.msgKey) : "—"}
                         </p>
                       </div>
@@ -1256,7 +1221,6 @@ export function WorldImplementationView() {
           <div className="flex flex-wrap gap-2">
             {MARKET_ECOSYSTEM_TOPOLOGIES.map((topo) => {
               const id = topo.modelId as MarketEcosystemModelId
-              const accent = MARKET_ECOSYSTEM_UI_ACCENT[id]
               const active = id === ecosystemModelId
               return (
                 <button
@@ -1264,8 +1228,10 @@ export function WorldImplementationView() {
                   type="button"
                   onClick={() => setEcosystemModelId(id)}
                   className={cn(
-                    "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                    active ? accent.tab : accent.tabIdle,
+                    "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
+                    active
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                      : "border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80",
                   )}
                 >
                   {t(`ecosystem.models.${id}`)}
@@ -1304,12 +1270,7 @@ export function WorldImplementationView() {
             </ToggleGroup>
           </div>
 
-          <div
-            className={cn(
-              "space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-5",
-              ecosystemAccent.panel,
-            )}
-          >
+          <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               {isEn
                 ? "🌍 Main countries & regions using this power model"
@@ -1326,10 +1287,7 @@ export function WorldImplementationView() {
                     key={country.id}
                     type="button"
                     onClick={() => jumpToMapCountry(country.id)}
-                    className={cn(
-                      "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
-                      ecosystemAccent.chip,
-                    )}
+                    className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/20"
                   >
                     {formatMarketEcosystemCountryChip(country, isEn)}
                   </button>
@@ -1403,44 +1361,50 @@ export function WorldImplementationView() {
       >
         {surfacesPanel.mode === "detail" ? (
           <div className="flex h-full min-h-0 flex-col gap-2 px-2 pb-2 pt-1 sm:px-3">
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <div className="flex shrink-0 items-start justify-between gap-2">
+              <div className="flex min-w-0 flex-col gap-1.5">
+                <button
+                  type="button"
+                  onClick={backFromSurfaceDetail}
+                  className="inline-flex w-fit items-center rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-muted/70 hover:text-primary"
+                >
+                  {tArch("surface3d.backToList")}
+                </button>
+                {detailCatalogItem ? (
+                  <h2 className="truncate text-base font-semibold text-slate-100">
+                    {tArch(detailCatalogItem.profile.nameKey)}
+                  </h2>
+                ) : null}
+              </div>
               <button
                 type="button"
-                onClick={backFromSurfaceDetail}
-                className="inline-flex items-center rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-muted/70 hover:text-primary"
+                onClick={() => setSurfaceSidebarOpen((v) => !v)}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-foreground transition-colors hover:bg-muted/70"
+                aria-label={
+                  surfaceSidebarOpen
+                    ? isEn
+                      ? "Collapse sidebar"
+                      : "サイドバーを閉じる"
+                    : isEn
+                      ? "Expand sidebar"
+                      : "サイドバーを開く"
+                }
               >
-                {surfacesPanel.returnTo === "map"
-                  ? tArch("surface3d.backToMap")
-                  : tArch("surface3d.backToList")}
+                {surfaceSidebarOpen ? (
+                  <PanelRightClose className="size-4" aria-hidden />
+                ) : (
+                  <PanelRightOpen className="size-4" aria-hidden />
+                )}
               </button>
-              {detailTypology && (
-                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 rounded-xl border border-border/80 bg-muted/30 p-3 sm:max-w-md sm:flex-none">
-                  <div className="flex min-w-0 flex-col">
-                    <span className="text-[11px] font-medium text-muted-foreground">
-                      この建築部位に最適なセル
-                    </span>
-                    <span className="mt-0.5 truncate text-xs font-bold text-foreground">
-                      {detailTypology.recommendedCellBadgeJa}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleNavigateToCell(detailTypology.recommendedCellStream)
-                    }
-                    className="flex shrink-0 items-center gap-1 rounded-lg bg-primary/15 px-2.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/25"
-                  >
-                    <span>セル3Dを見る</span>
-                    <ArrowRight className="size-3" />
-                  </button>
-                </div>
-              )}
             </div>
             <div className="min-h-0 flex-1">
               <Surface3DFullView
                 key={`${surfacesPanel.focus.countryId}:${surfacesPanel.focus.profileId}`}
                 initialFocus={surfacesPanel.focus}
                 className="h-full min-h-0"
+                sidebarOpen={surfaceSidebarOpen}
+                onSidebarOpenChange={setSurfaceSidebarOpen}
+                hideSidebarToggle
               />
             </div>
           </div>
@@ -1483,7 +1447,6 @@ export function WorldImplementationView() {
             <ul className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {filteredArchitectureCatalog.map(({ countryId, profile, typology }) => {
                 const TypeIcon = ARCH_TYPE_ICON[profile.type]
-                const opticalLabel = tArch(`opticalProfile.${typology.opticalProfile}`)
                 return (
                   <li key={`${countryId}:${profile.id}`}>
                     <div
@@ -1504,85 +1467,46 @@ export function WorldImplementationView() {
                           })
                         }
                       }}
-                      className="flex w-full cursor-pointer flex-col space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 text-left transition-all duration-200 hover:border-slate-700/80 hover:bg-slate-800/80 md:p-6"
+                      className="flex w-full cursor-pointer flex-col space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 text-left transition-all duration-200 hover:border-slate-700 hover:bg-slate-800/80 md:p-6"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="min-w-0 text-base font-semibold leading-snug text-slate-100">
-                          {tArch(profile.nameKey)}
-                        </p>
-                        <div className="flex shrink-0 flex-col items-end gap-1.5">
-                          <Badge
-                            variant="outline"
-                            className="font-mono text-xs text-amber-300/90"
-                          >
-                            {profile.tiltAngle}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="text-xs font-normal text-slate-400"
-                          >
-                            {opticalLabel}
-                          </Badge>
-                        </div>
-                      </div>
+                      <p className="min-w-0 text-base font-semibold leading-relaxed text-slate-100">
+                        {tArch(profile.nameKey)}
+                      </p>
 
-                      <SurfaceCountryTags typology={typology} />
-
-                      <div className="relative overflow-hidden rounded-lg border border-slate-800">
+                      <div className="overflow-hidden rounded-lg border border-slate-800 [&_.text-muted-foreground]:hidden [&_p]:hidden">
                         <Surface3DViewer profileId={profile.model3dId} />
-                        <div className="pointer-events-none absolute right-2 top-2 flex flex-col items-end gap-1.5">
-                          <span className="rounded-md bg-slate-950/85 px-2 py-0.5 font-mono text-xs text-slate-100 shadow-sm ring-1 ring-slate-700/50">
-                            {profile.tiltAngle}
+                      </div>
+
+                      <div className="flex flex-col gap-3 border-t border-slate-800/60 pt-4">
+                        <div className="flex flex-wrap content-start gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/60 bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-slate-300">
+                            <TypeIcon className="size-3 shrink-0 text-slate-400" aria-hidden />
+                            {tArch(`types.${profile.type}`)}
                           </span>
-                          <span className="rounded-md bg-slate-950/85 px-2 py-0.5 text-xs text-slate-400 shadow-sm ring-1 ring-slate-700/50">
-                            {opticalLabel}
-                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleNavigateToCell(typology.recommendedCellStream)
+                            }}
+                            className="inline-flex items-center rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/20"
+                          >
+                            {typology.recommendedCellBadgeJa}
+                          </button>
+                        </div>
+                        <div>
+                          <SurfaceCountryTags
+                            typology={{
+                              ...typology,
+                              prevalentCountries:
+                                typology.prevalentCountries.filter((c) => {
+                                  const code = String(c.code).toUpperCase()
+                                  return code === "JP" || code === "DE"
+                                }),
+                            }}
+                          />
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleNavigateToCell(typology.recommendedCellStream)
-                          }}
-                          className={cn(
-                            "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
-                            CELL_STREAM_BADGE_CLASS[typology.recommendedCellStream],
-                          )}
-                        >
-                          {typology.recommendedCellBadgeJa}
-                        </button>
-                        <Badge
-                          variant="secondary"
-                          className="inline-flex items-center gap-1 text-xs font-medium"
-                        >
-                          <TypeIcon className="size-3" />
-                          {tArch(`types.${profile.type}`)}
-                        </Badge>
-                        {typology.typicalRegions.map((region) => (
-                          <Badge
-                            key={region}
-                            variant="outline"
-                            className="text-xs font-normal text-slate-400"
-                          >
-                            {tArch(`regions.${region}`)}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <SurfaceMountJobBadges typology={typology} />
-
-                      <p className="line-clamp-2 text-sm leading-relaxed text-slate-300">
-                        {tArch(profile.constraintsKey)}
-                      </p>
-                      <p className="line-clamp-2 text-xs leading-relaxed text-slate-400">
-                        {tArch(
-                          profileRegionContextKey(
-                            profile.constraintsKey,
-                          ) as Parameters<typeof tArch>[0],
-                        )}
-                      </p>
                     </div>
                   </li>
                 )
