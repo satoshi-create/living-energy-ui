@@ -179,7 +179,23 @@ const getLabelOffset = (id: string): { x: number; y: number; textAnchor: 'middle
     case 'us-ca':
       return { x: -14, y: 0, textAnchor: 'end' }; // カリフォルニア: 左横
     case 'us-ut':
-      return { x: 12, y: -12, textAnchor: 'start' }; // ユタ: 右上
+      return { x: -14, y: -12, textAnchor: 'end' }; // ユタ: 左上（COと分離）
+    case 'us-co':
+      return { x: 14, y: 10, textAnchor: 'start' }; // コロラド: 右下
+
+    // 東海岸・ニューイングランド（近接ピンのラベル扇状配置）
+    case 'us-me':
+      return { x: 18, y: -16, textAnchor: 'start' }; // メイン: 右上
+    case 'us-nh':
+      return { x: 20, y: 2, textAnchor: 'start' }; // ニューハンプシャー: 右横
+    case 'us-vt':
+      return { x: -18, y: -12, textAnchor: 'end' }; // バーモント: 左上
+    case 'us-ct':
+      return { x: 16, y: 16, textAnchor: 'start' }; // コネチカット: 右下
+    case 'us-md':
+      return { x: 18, y: -10, textAnchor: 'start' }; // メリーランド: 右上
+    case 'us-va':
+      return { x: -16, y: 14, textAnchor: 'end' }; // バージニア: 左下
 
     default:
       return { x: 0, y: -14, textAnchor: 'middle' };

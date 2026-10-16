@@ -1,6 +1,6 @@
 # 本日のセッション前提コンテキスト
 
-- **実行日時（JST）**: 2026/10/15(木) 13:44:37
+- **実行日時（JST）**: 2026/10/16(金) 11:30:46
 - **プロジェクト**: my-project
 - **用途**: Gemini 新規スレッド開始時に貼るコード地図（特定タスクの出力強制ではない）
 - **ダンプ方針**: パス選定用にスリム化。AppShell 到達可能のみ。未接続 feature / PDF 研究資産 / ネスト別アプリは本文ダンプしない。巨大 TSX はプレビューのみ。
@@ -260,11 +260,11 @@ Cursor は必ず実ファイルを Read すること。
 
 | path | lines | bytes | dump |
 | --- | ---: | ---: | --- |
-| `features/shell/components/app-shell.tsx` | 215 | 7446 | full |
+| `features/shell/components/app-shell.tsx` | 215 | 7424 | full |
 | `features/balcony-pv/components/balcony-view.tsx` | 256 | 11385 | preview |
-| `features/balcony-pv/components/world-implementation-view.tsx` | 1612 | 63192 | preview |
-| `features/balcony-pv/simulator-data.ts` | 922 | 30696 | preview |
-| `features/balcony-pv/data.ts` | 6198 | 265114 | preview |
+| `features/balcony-pv/components/world-implementation-view.tsx` | 1536 | 60163 | preview |
+| `features/balcony-pv/simulator-data.ts` | 933 | 31288 | preview |
+| `features/balcony-pv/data.ts` | 6229 | 266163 | preview |
 | `features/living-sense/data.ts` | 110 | 2861 | preview |
 | `features/network/components/network-view.tsx` | 58 | 1654 | full |
 | `features/network/data.ts` | 1506 | 52000 | preview |
@@ -472,8 +472,8 @@ export function AppShell() {
                 type="button"
                 onClick={() => selectView(item.id)}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium transition-colors sm:px-2 sm:text-[11px]",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  "flex flex-1 flex-col items-center gap-1 px-1 py-2.5 text-xs font-medium transition-colors sm:px-2",
+                  isActive ? "text-emerald-400" : "text-slate-400"
                 )}
               >
                 <Icon className="size-5" />
@@ -567,7 +567,7 @@ export function BalconyView() {
 /* … preview only (11385 bytes, 256 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
-### `features/balcony-pv/components/world-implementation-view.tsx` (preview, 1612 lines)
+### `features/balcony-pv/components/world-implementation-view.tsx` (preview, 1536 lines)
 
 ```tsx
 "use client"
@@ -576,7 +576,6 @@ import dynamic from "next/dynamic"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
-  ArrowRight,
   Building2,
   Droplets,
   ExternalLink,
@@ -585,6 +584,8 @@ import {
   Layers,
   Lightbulb,
   Landmark,
+  PanelRightClose,
+  PanelRightOpen,
   Refrigerator,
   Smartphone,
   type LucideIcon,
@@ -597,10 +598,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import {
-  SurfaceCountryTags,
-  SurfaceMountJobBadges,
-} from "./balcony-illustration"
+import { SurfaceCountryTags } from "./balcony-illustration"
 import type { Surface3DFocus } from "./surface-3d-full-view"
 import type { PvHistoryStream } from "../history-data"
 import type {
@@ -651,12 +649,12 @@ const CountryPvOssTools = dynamic(
   { ssr: false, loading: () => <HeavyChunkLoading /> },
 )
 
-const CountryPvTimelin
+const CountryPvTimeline = d
 
-/* … preview only (63192 bytes, 1612 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (60163 bytes, 1536 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
-### `features/balcony-pv/simulator-data.ts` (preview, 922 lines)
+### `features/balcony-pv/simulator-data.ts` (preview, 933 lines)
 
 ```typescript
 // Simulator / surface-typology mock for balcony-plug-in-pv (cold path).
@@ -737,10 +735,10 @@ export const BALCONY_TYPES: readonly BalconyTypePreset[] = [
   {
     // Recessed / loggia: side-wall shading → more diffuse, smaller effec
 
-/* … preview only (30696 bytes, 922 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (31288 bytes, 933 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
-### `features/balcony-pv/data.ts` (preview, 6198 lines)
+### `features/balcony-pv/data.ts` (preview, 6229 lines)
 
 ```typescript
 // World-map / ecosystem / architecture mock for balcony-plug-in-pv.
@@ -820,7 +818,7 @@ const GRID_CATEGORY_BY_CODE: Partial<Record<string, GridCategory>> = {
   JP: 'grid_hybrid_storage',
   TW: 'grid_hyb
 
-/* … preview only (265114 bytes, 6198 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (266163 bytes, 6229 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
 ### `features/living-sense/data.ts` (preview, 110 lines)

@@ -39,40 +39,40 @@ const Cell3DModel = dynamic(
 
 const TYPOLOGY_LABEL: Record<SurfaceTypology, { ja: string; en: string }> = {
   egress_cantilever: {
-    ja: '避難動線付き片持ちベランダ',
-    en: 'Egress cantilever balcony',
+    ja: '一般的なマンションのベランダ',
+    en: 'Typical apartment balcony',
   },
   precast_parapet: {
-    ja: 'プレキャスト手すり腰壁',
-    en: 'Precast parapet railing',
+    ja: 'コンクリート腰壁のあるベランダ',
+    en: 'Balcony with a concrete waist wall',
   },
   recessed_loggia: {
-    ja: '窪み型ロッジア',
-    en: 'Recessed loggia',
+    ja: 'くぼんだ形のバルコニー',
+    en: 'Recessed balcony (set into the building)',
   },
   glass_railing: {
-    ja: 'ガラス手すり',
-    en: 'Glass railing',
+    ja: 'ガラス手すりのあるベランダ',
+    en: 'Balcony with a glass railing',
   },
   access_gallery: {
-    ja: '共用廊下ガレリア',
-    en: 'Access gallery',
+    ja: 'マンションの共用廊下',
+    en: 'Shared corridor of an apartment building',
   },
   mansard_dormer: {
-    ja: 'マンサード＋ドーマー',
-    en: 'Mansard + dormer',
+    ja: 'ヨーロッパ風の急勾配屋根',
+    en: 'Steep European-style roof',
   },
   japanese_tiled_roof: {
-    ja: '和瓦屋根',
-    en: 'Japanese tiled roof',
+    ja: '日本の戸建ての瓦屋根',
+    en: 'Japanese house tile roof',
   },
   flat_roof_terrace: {
-    ja: '陸屋根テラス',
-    en: 'Flat roof terrace',
+    ja: '平らな屋上（テラス付き）',
+    en: 'Flat rooftop with a terrace',
   },
   pitched_gable_terrace: {
-    ja: '切妻傾斜屋根',
-    en: 'Pitched gable roof',
+    ja: '連棟住宅の勾配屋根',
+    en: 'Pitched roof of a terraced house',
   },
 }
 
@@ -563,7 +563,7 @@ export function SolarCellTypesView({
                     </div>
                     <div className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        {isEn ? 'Suitable 3D surfaces' : '適した3Dサーフェイス'}
+                        {isEn ? 'Fitting building forms' : '適した建築形態'}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {meta.suitableSurfaceLabels.map((surf) => (
@@ -584,7 +584,7 @@ export function SolarCellTypesView({
                             }}
                             className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20"
                           >
-                            {surf.labelJa}
+                            {isEn ? surf.labelEn : surf.labelJa}
                           </span>
                         ))}
                       </div>

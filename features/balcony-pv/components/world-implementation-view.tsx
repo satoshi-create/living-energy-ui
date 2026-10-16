@@ -1491,7 +1491,7 @@ export function WorldImplementationView() {
                             }}
                             className="inline-flex items-center rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/20"
                           >
-                            {typology.recommendedCellBadgeJa}
+                            {isEn ? typology.recommendedCellBadgeEn : typology.recommendedCellBadgeJa}
                           </button>
                         </div>
                         <div>
