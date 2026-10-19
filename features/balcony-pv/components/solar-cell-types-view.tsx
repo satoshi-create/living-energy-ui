@@ -589,34 +589,6 @@ export function SolarCellTypesView({
                         ))}
                       </div>
                     </div>
-                    <div className="space-y-2 border-t border-slate-800/60 pt-4">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        {isEn ? 'Key countries' : '主な実装国'}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {meta.representativeCountryCodes.map((code) => (
-                          <span
-                            key={code}
-                            role="link"
-                            tabIndex={0}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onNavigateToCountry?.(code)
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                onNavigateToCountry?.(code)
-                              }
-                            }}
-                            className="rounded-md border border-slate-700/60 bg-slate-900/80 px-2 py-1 font-mono text-xs font-medium text-slate-300 transition-colors hover:border-slate-600"
-                          >
-                            {code}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
                   </button>
                 )
               })}

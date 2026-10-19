@@ -2492,7 +2492,7 @@ export function WorldPvMap({
             maxZoom={MAX_ZOOM}
             onMoveEnd={(pos) => {
               setCenter(pos.coordinates as [number, number]);
-              setZoom(pos.zoom);
+              if (typeof pos.zoom === 'number') setZoom(pos.zoom);
             }}
           >
             <Geographies geography={GEO_URL}>
@@ -2523,7 +2523,7 @@ export function WorldPvMap({
                         strokeWidth: 0.5,
                         outline: 'none',
                       },
-                    }}
+                    } as any}
                   />
                 ))
               }
@@ -2625,7 +2625,7 @@ export function WorldPvMap({
                     hover: { outline: 'none' },
                     pressed: { outline: 'none' },
                     pointerEvents: isMatchFilter ? 'auto' : 'none',
-                  }}
+                  } as any}
                 >
                   <g
                     transform={`scale(${pinScale})`}

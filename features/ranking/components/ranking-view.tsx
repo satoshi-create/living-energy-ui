@@ -10,6 +10,7 @@ import { WorldPvMap } from '@/features/balcony-pv'
 import {
   WORLD_BALCONY_PV_COUNTRIES,
   type CountryPvDetail,
+  type MovementHistoryPhaseId,
 } from '@/features/balcony-pv/data'
 import { ECOSYSTEM_ACTORS, filterActorsByCountry } from '@/features/ecosystem/data'
 import { ActorCard } from '@/features/ecosystem/components/actor-card'
@@ -34,6 +35,9 @@ export function RankingView() {
   const t = useTranslations('worldPv')
   const [selectedCountryId, setSelectedCountryId] = useState<string>('germany')
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true)
+  const [isRankingOpen, setIsRankingOpen] = useState(false)
+  const [isMovementHistoryOpen, setIsMovementHistoryOpen] = useState(false)
+  const [historyPhase, setHistoryPhase] = useState<MovementHistoryPhaseId | null>(null)
 
   const country: CountryPvDetail =
     WORLD_BALCONY_PV_COUNTRIES.find((c) => c.id === selectedCountryId) ||
@@ -44,9 +48,13 @@ export function RankingView() {
   const countryText = (field: CountryCopyKey) =>
     t(`countries.${country.id}.${field}` as Parameters<typeof t>[0])
 
-  const handleSelectCountry = (c: CountryPvDetail) => {
+  const handleSelectCountry = (c: CountryPvDetail | null) => {
+    if (!c) return
     setSelectedCountryId(c.id)
     setIsSidebarOpen(true)
+    setIsRankingOpen(false)
+    setIsMovementHistoryOpen(false)
+    setHistoryPhase(null)
   }
 
   return (
@@ -61,6 +69,26 @@ export function RankingView() {
             <WorldPvMap
               onSelectCountry={handleSelectCountry}
               selectedCountryId={selectedCountryId}
+              isRankingOpen={isRankingOpen}
+              onRankingOpenChange={(open) => {
+                setIsRankingOpen(open)
+                if (open) {
+                  setIsMovementHistoryOpen(false)
+                  setHistoryPhase(null)
+                }
+              }}
+              isMovementHistoryOpen={isMovementHistoryOpen}
+              onMovementHistoryOpenChange={(open) => {
+                setIsMovementHistoryOpen(open)
+                if (open) {
+                  setIsRankingOpen(false)
+                  setHistoryPhase(historyPhase ?? 'guerrilla')
+                } else {
+                  setHistoryPhase(null)
+                }
+              }}
+              historyPhase={historyPhase}
+              onHistoryPhaseChange={setHistoryPhase}
             />
           </div>
         </div>

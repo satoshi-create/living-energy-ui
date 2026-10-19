@@ -77,13 +77,19 @@
       "overcast_tsuyu": "Overcast / rainy season",
       "typhoon_alert": "Typhoon alert"
     },
-    "livingMetrics": {
-      "cardTitle": "Tilt efficiency & living fit",
-      "relativeEfficiency": "Relative yield",
-      "lifeCompliance": "Life & safety fit",
-      "windRisk": "Wind load risk",
-      "typhoonStowHint": "Stow panels for 100% life/safety fit in typhoons"
-    },
+      "livingMetrics": {
+        "cardTitle": "Tilt efficiency & living fit",
+        "relativeEfficiency": "Relative yield",
+        "efficiencyNote": {
+          "optimal_tilt": "(Annual baseline)",
+          "horizontal": "(Diffuse-friendly)",
+          "vertical": "(Winter often >90%)",
+          "retracted": "(Generation off)"
+        },
+        "lifeCompliance": "Life & safety fit",
+        "windRisk": "Wind load risk",
+        "typhoonStowHint": "Stow panels for 100% life/safety fit in typhoons"
+      },
     "railing": {
       "grid": "Steel grille",
       "glass": "Glass",
@@ -169,13 +175,13 @@
         "terrace_house_roofs": "Terraced pitched-roof belts",
         "rental_facades": "Rental façades"
       },
-      "egress_cantilever": {
-        "name": "Typical apartment balcony",
-        "feature": "Cantilever slab with party walls and escape hatches—laundry space shared with fire egress. Standard-depth floor, aluminum rail.",
-        "constraints": "Keep the floor path clear; wind loads require full stow / retreat with portable fold-away mounts.",
-        "regionContext": "Note: Typical contexts — multifamily (egress kept clear), typhoon / high-wind belts",
-        "mechanism": "Nastic / origami bench and shade screens—full indoor stow before typhoons."
-      },
+    "egress_cantilever": {
+      "name": "Standard Apartment / Housing Complex Balcony",
+      "feature": "Cantilever slab with party walls and escape hatches—laundry space shared with fire egress. Standard-depth floor, aluminum rail.",
+      "constraints": "Keep the floor path clear; wind loads require full stow / retreat with portable fold-away mounts.",
+      "regionContext": "Note: Typical contexts — multifamily (egress kept clear), typhoon / high-wind belts",
+      "mechanism": "Stowable bench solar and roll-up shade perovskite screens—folds away indoors before typhoons."
+    },
       "precast_parapet": {
         "name": "Balcony with a concrete waist wall",
         "feature": "Thick RC precast waist walls / parapets acting as a near-vertical receiving plane for clamp mounts.",
@@ -575,6 +581,11 @@
       }
     },
     "architecture": {
+      "japanStandardBalcony": "Japan Standard Balcony",
+      "euStandardBalcony": "EU Standard Balcony",
+      "concreteWaistWall": "Concrete Waist Wall",
+      "recessedLoggia": "Recessed Loggia",
+      "shallowJuliet": "Shallow Juliet",
       "sectionTitle": "Architectural forms",
       "constraintsLabel": "Constraints",
       "adaptedFurnitureLabel": "Adapted living-furniture solutions",
@@ -635,6 +646,17 @@
           "angleNative": "Viewpoint near this form’s primary tilt",
           "angleHint": "Camera azimuth presets (form primary tilt: {tilt})",
           "panelModeLabel": "Detail panel",
+          "tabStructure": "Structure & Safety",
+          "tabLegal": "Rules & Codes",
+          "tabPanels": "Recommended Panels",
+          "structureTitle": "Inside-railing Mounting & Indoor Stow Structure",
+          "structureDesc": "To prevent falling hazards during strong winds or gusts, mounting outside the railing is prohibited. Foldable/portable structures allow quick indoor stow within minutes during typhoons, keeping escape hatches and partition walls permanently clear.",
+          "structureScope": "Note: Scope — Private condos/apartments, public/UR housing (maintain min. 60cm egress clearance)",
+          "legalTitle": "HOA Common Area Rules & Fire Safety Act",
+          "legalDesc": "Because balconies are shared spaces with exclusive use rights, drilling/screwing into the building frame is forbidden (non-destructive or freestanding only). In Japan, unauthorized reverse flow to the grid is banned, requiring safe self-consumption such as charging portable power stations.",
+          "panelsRec1": "Lightweight flexible thin-film (inside-railing mount, reduced wind load)",
+          "panelsRec2": "Foldable & movable furniture-style solar (bench or stand form)",
+          "panelsUnfit": "Note: Heavy rigid glass-mount panels (~20kg) are unsuitable due to fall hazards and condo rule violations",
           "modeConstraints": "Structural constraints",
           "modeFurniture": "Living-furniture solar"
         }
@@ -652,12 +674,12 @@
           "constraints": "No-drill clamp required",
           "regionContext": "Note: Typical contexts — Central European multifamily stock, thick-parapet multifamily general"
         },
-        "japanese-evacuation-balcony": {
-          "name": "Typical apartment balcony",
-          "description": "Cantilever slab with party walls and escape hatches—laundry space shared with fire egress.",
-          "constraints": "Portable / full stow required",
-          "regionContext": "Note: Typical contexts — multifamily (egress kept clear), typhoon / high-wind belts"
-        },
+      "japanese-evacuation-balcony": {
+        "name": "Standard Apartment / Housing Complex Balcony",
+        "description": "Cantilever slab with party walls and escape hatches—laundry space shared with fire egress.",
+        "constraints": "Portable / fold-away stow required",
+        "regionContext": "Note: Typical contexts — multifamily (egress kept clear), typhoon / high-wind belts"
+      },
         "access-gallery": {
           "name": "Shared corridor of an apartment building",
           "description": "Open corridor along dwelling fronts—long horizontal slab and rail shared for circulation and services.",

@@ -198,7 +198,7 @@ export function JapanReMap({
             maxZoom={MAX_ZOOM}
             onMoveEnd={(pos) => {
               setCenter(pos.coordinates as [number, number])
-              setZoom(pos.zoom)
+              if (pos.zoom != null) setZoom(pos.zoom)
             }}
           >
             <Geographies geography={GEO_URL}>
@@ -211,26 +211,28 @@ export function JapanReMap({
                       geography={geo}
                       tabIndex={-1}
                       className="cursor-default select-none focus:outline-none focus:ring-0"
-                      style={{
-                        default: {
-                          fill: "#111827",
-                          stroke: "#1f2937",
-                          strokeWidth: 0.5,
-                          outline: "none",
-                        },
-                        hover: {
-                          fill: "#1e293b",
-                          stroke: "#1f2937",
-                          strokeWidth: 0.5,
-                          outline: "none",
-                        },
-                        pressed: {
-                          fill: "#1e293b",
-                          stroke: "#1f2937",
-                          strokeWidth: 0.5,
-                          outline: "none",
-                        },
-                      }}
+                      style={
+                        {
+                          default: {
+                            fill: "#111827",
+                            stroke: "#1f2937",
+                            strokeWidth: 0.5,
+                            outline: "none",
+                          },
+                          hover: {
+                            fill: "#1e293b",
+                            stroke: "#1f2937",
+                            strokeWidth: 0.5,
+                            outline: "none",
+                          },
+                          pressed: {
+                            fill: "#1e293b",
+                            stroke: "#1f2937",
+                            strokeWidth: 0.5,
+                            outline: "none",
+                          },
+                        } as any
+                      }
                     />
                   ))
               }
@@ -266,12 +268,14 @@ export function JapanReMap({
                   className={`group select-none focus:outline-none focus:ring-0 ${
                     isMatch ? "cursor-pointer" : "pointer-events-none"
                   }`}
-                  style={{
-                    default: { outline: "none" },
-                    hover: { outline: "none" },
-                    pressed: { outline: "none" },
-                    pointerEvents: isMatch ? "auto" : "none",
-                  }}
+                  style={
+                    {
+                      default: { outline: "none" },
+                      hover: { outline: "none" },
+                      pressed: { outline: "none" },
+                      pointerEvents: isMatch ? "auto" : "none",
+                    } as any
+                  }
                 >
                   <g
                     transform={`scale(${pinScale})`}

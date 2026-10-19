@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { PanelRightClose, PanelRightOpen, Sofa } from 'lucide-react'
+import { CheckCircle2, FileText, PanelRightClose, PanelRightOpen, ShieldAlert, Sparkles, XCircle } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
@@ -18,7 +18,6 @@ import {
   type ArchitectureProfile,
   type LivingContext,
   type PanelTiltMode,
-  type SolarFurnitureId,
   type SurfaceTiltAngle,
 } from '../data'
 import { Surface3DViewer } from './surface-3d-viewer'
@@ -45,7 +44,7 @@ export type Surface3DFullViewProps = {
 }
 
 type AnglePreset = '0°' | '30°' | '90°'
-type PanelMode = 'constraints' | 'furniture'
+type PanelMode = 'structure' | 'legal' | 'panels'
 
 function resolveInitialProfile(
   focus: Surface3DFocus | null | undefined,
@@ -101,10 +100,7 @@ export function Surface3DFullView({
   const [profileId, setProfileId] = useState(initial.profile.id)
   // Match card-list preview: always open on the oblique overview (not panel tiltAngle).
   const [angle, setAngle] = useState<AnglePreset>('30°')
-  const [panelMode, setPanelMode] = useState<PanelMode>('constraints')
-  const [furnitureId, setFurnitureId] = useState<SolarFurnitureId | null>(
-    initial.profile.adaptedFurnitureIds[0] ?? null,
-  )
+  const [panelMode, setPanelMode] = useState<PanelMode>('structure')
   const [tiltModeInternal, setTiltModeInternal] = useState<PanelTiltMode>('optimal_tilt')
   const [livingContextInternal, setLivingContextInternal] =
     useState<LivingContext>(DEFAULT_LIVING_CONTEXT)
@@ -244,7 +240,11 @@ export function Surface3DFullView({
               </span>
               <span className="font-mono text-xs tabular-nums text-slate-200">
                 {livingMetrics.displayEfficiencyPct}%
-                {tiltMetric.efficiencyNote ? ` (${tiltMetric.efficiencyNote})` : null}
+                {tPv.has(`livingMetrics.efficiencyNote.${tiltMode}`)
+                  ? ` ${tPv(`livingMetrics.efficiencyNote.${tiltMode}`)}`
+                  : tiltMetric.efficiencyNote
+                    ? ` （${tiltMetric.efficiencyNote}）`
+                    : null}
               </span>
             </div>
             <Progress value={livingMetrics.displayEfficiencyPct} className="h-1.5" />
@@ -262,7 +262,7 @@ export function Surface3DFullView({
           </div>
         </section>
 
-        {/* 3. 解説パネル（構造的制約 / 生活家具型ソーラー） */}
+        {/* 3. 制約・法規制・推奨パネル */}
         <section className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6">
           <ToggleGroup
             value={[panelMode]}
@@ -270,59 +270,135 @@ export function Surface3DFullView({
             variant="outline"
             className="flex w-full"
           >
-            <ToggleGroupItem value="constraints" className="flex-1 text-xs">
-              {tFull('modeConstraints')}
+            <ToggleGroupItem value="structure" className="flex-1 text-xs">
+              {tFull('tabStructure')}
             </ToggleGroupItem>
-            <ToggleGroupItem value="furniture" className="flex-1 text-xs">
-              {tFull('modeFurniture')}
+            <ToggleGroupItem value="legal" className="flex-1 text-xs">
+              {tFull('tabLegal')}
+            </ToggleGroupItem>
+            <ToggleGroupItem value="panels" className="flex-1 text-xs">
+              {tFull('tabPanels')}
             </ToggleGroupItem>
           </ToggleGroup>
 
-          {panelMode === 'constraints' ? (
-            <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                {t('constraintsLabel')}
-              </p>
+          {panelMode === 'structure' ? (
+            <div className="space-y-4">
+              <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                  <ShieldAlert className="size-3.5" />
+                  <span>{tFull('structureTitle')}</span>
+                </div>
+                <p className="text-sm font-medium leading-relaxed text-slate-200">
+                  {tFull('structureDesc')}
+                </p>
+                <p className="text-xs leading-relaxed text-slate-400 border-t border-slate-800/60 pt-2">
+                  {tFull('structureScope')}
+                </p>
+              </div>
+
+              {profile.model3dId === 'japanese-evacuation-balcony' && (
+                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    {isEn ? 'Design Specifications (CAD / Codes)' : '基本設計寸法（CAD / 法規準拠）'}
+                  </div>
+                  <div className="mt-3 divide-y divide-slate-800/60 text-xs">
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Floor Slab (Depth × Width)' : '床スラブ（有効出幅×間口）'}</span>
+                      <span className="font-mono text-slate-200">1,550 × 2,800 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Railing Height (Order Art. 126)' : '手すり天端高（令第126条）'}</span>
+                      <span className="font-mono font-medium text-emerald-400">H = 1,100 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Baluster Pitch (Head Safety)' : '縦格子ピッチ（頭部侵入防止）'}</span>
+                      <span className="font-mono text-slate-200">約 115 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Egress Corridor Clearance' : '消防避難動線（有効幅基準）'}</span>
+                      <span className="font-mono font-medium text-emerald-400">600 mm 以上確保</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Evacuation Hatch Cover' : '避難ハッチ蓋（SUS標準）'}</span>
+                      <span className="font-mono text-slate-200">620 × 620 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Drainage Gutter Step' : '水抜き排水側溝'}</span>
+                      <span className="font-mono text-slate-200">幅 140 mm / 段差 15 mm</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {profile.model3dId === 'concrete-parapet' && (
+                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    {isEn ? 'Design Specifications (DIN / Eurocodes)' : '基本設計寸法（DIN / 欧州法規準拠）'}
+                  </div>
+                  <div className="mt-3 divide-y divide-slate-800/60 text-xs">
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Balcony Slab (DIN 18065)' : '床スラブ有効寸法（DIN 18065）'}</span>
+                      <span className="font-mono text-slate-200">1,650 × 2,700 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Parapet Height (LBO Standard)' : '腰壁天端高（各州建築基準法）'}</span>
+                      <span className="font-mono font-medium text-emerald-400">H = 1,050 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Concrete Parapet Thickness' : 'RC腰壁躯体厚み'}</span>
+                      <span className="font-mono text-slate-200">220 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Capping Flashing (Width)' : '笠木水切り天端幅'}</span>
+                      <span className="font-mono text-slate-200">260 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Roller Shutter (Rollladen Box)' : '外付けシャッター格納箱'}</span>
+                      <span className="font-mono text-slate-200">1,480 × 220 mm</span>
+                    </div>
+                    <div className="flex justify-between py-1.5">
+                      <span className="text-slate-400">{isEn ? 'Inverter Clearance (VDE AR-N 4105)' : 'インバータ設置離隔（VDE規格）'}</span>
+                      <span className="font-mono font-medium text-emerald-400">通風 150 mm 以上</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : panelMode === 'legal' ? (
+            <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                <FileText className="size-3.5" />
+                <span>{tFull('legalTitle')}</span>
+              </div>
               <p className="text-sm font-medium leading-relaxed text-slate-200">
-                {t(profile.constraintsKey)}
-              </p>
-              <p className="text-xs leading-relaxed text-slate-400">
-                {t(
-                  profile.constraintsKey.replace(
-                    /\.constraints$/,
-                    '.regionContext',
-                  ) as Parameters<typeof t>[0],
-                )}
+                {tFull('legalDesc')}
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              <p className="flex items-center gap-1 text-xs font-semibold text-emerald-400">
-                <Sofa className="size-3" />
-                {t('adaptedFurnitureLabel')}
-              </p>
-              <div className="flex flex-col gap-2">
-                {profile.adaptedFurnitureIds.map((fid) => {
-                  const active = furnitureId === fid
-                  return (
-                    <button
-                      key={fid}
-                      type="button"
-                      onClick={() => setFurnitureId(fid)}
-                      className={cn(
-                        'rounded-md border px-2.5 py-2 text-left text-xs transition-colors',
-                        active
-                          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
-                          : 'border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600',
-                      )}
-                    >
-                      <span className="font-medium">{t(`furniture.${fid}.name`)}</span>
-                      <span className="mt-0.5 block text-xs text-slate-400">
-                        {t(`furniture.${fid}.adaptation`)}
-                      </span>
-                    </button>
-                  )
-                })}
+            <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                <Sparkles className="size-3.5" />
+                <span>{tFull('tabPanels')}</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-400 mt-0.5" />
+                  <p className="text-xs font-medium text-emerald-300">
+                    {tFull('panelsRec1')}
+                  </p>
+                </div>
+                <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-400 mt-0.5" />
+                  <p className="text-xs font-medium text-emerald-300">
+                    {tFull('panelsRec2')}
+                  </p>
+                </div>
+                <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5">
+                  <XCircle className="size-4 shrink-0 text-rose-400 mt-0.5" />
+                  <p className="text-xs font-medium text-rose-300">
+                    {tFull('panelsUnfit')}
+                  </p>
+                </div>
               </div>
             </div>
           )}

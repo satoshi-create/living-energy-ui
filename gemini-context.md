@@ -1,6 +1,6 @@
 # 本日のセッション前提コンテキスト
 
-- **実行日時（JST）**: 2026/10/16(金) 11:30:46
+- **実行日時（JST）**: 2026/10/16(金) 18:12:01
 - **プロジェクト**: my-project
 - **用途**: Gemini 新規スレッド開始時に貼るコード地図（特定タスクの出力強制ではない）
 - **ダンプ方針**: パス選定用にスリム化。AppShell 到達可能のみ。未接続 feature / PDF 研究資産 / ネスト別アプリは本文ダンプしない。巨大 TSX はプレビューのみ。
@@ -163,6 +163,7 @@ agri-dam-and-basin-grid/  (ネストされた別アプリ・ダンプ対象外)
 ├── postcss.config.mjs
 ├── proxy.ts
 ├── README.md
+├── repomix-output.xml
 ├── tsconfig.json
 └── tsconfig.tsbuildinfo
 ```
@@ -262,9 +263,9 @@ Cursor は必ず実ファイルを Read すること。
 | --- | ---: | ---: | --- |
 | `features/shell/components/app-shell.tsx` | 215 | 7424 | full |
 | `features/balcony-pv/components/balcony-view.tsx` | 256 | 11385 | preview |
-| `features/balcony-pv/components/world-implementation-view.tsx` | 1536 | 60163 | preview |
-| `features/balcony-pv/simulator-data.ts` | 933 | 31288 | preview |
-| `features/balcony-pv/data.ts` | 6229 | 266163 | preview |
+| `features/balcony-pv/components/world-implementation-view.tsx` | 1536 | 60204 | preview |
+| `features/balcony-pv/simulator-data.ts` | 695 | 22889 | preview |
+| `features/balcony-pv/data.ts` | 6507 | 277828 | preview |
 | `features/living-sense/data.ts` | 110 | 2861 | preview |
 | `features/network/components/network-view.tsx` | 58 | 1654 | full |
 | `features/network/data.ts` | 1506 | 52000 | preview |
@@ -651,10 +652,10 @@ const CountryPvOssTools = dynamic(
 
 const CountryPvTimeline = d
 
-/* … preview only (60163 bytes, 1536 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (60204 bytes, 1536 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
-### `features/balcony-pv/simulator-data.ts` (preview, 933 lines)
+### `features/balcony-pv/simulator-data.ts` (preview, 695 lines)
 
 ```typescript
 // Simulator / surface-typology mock for balcony-plug-in-pv (cold path).
@@ -735,10 +736,10 @@ export const BALCONY_TYPES: readonly BalconyTypePreset[] = [
   {
     // Recessed / loggia: side-wall shading → more diffuse, smaller effec
 
-/* … preview only (31288 bytes, 933 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (22889 bytes, 695 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
-### `features/balcony-pv/data.ts` (preview, 6229 lines)
+### `features/balcony-pv/data.ts` (preview, 6507 lines)
 
 ```typescript
 // World-map / ecosystem / architecture mock for balcony-plug-in-pv.
@@ -818,7 +819,7 @@ const GRID_CATEGORY_BY_CODE: Partial<Record<string, GridCategory>> = {
   JP: 'grid_hybrid_storage',
   TW: 'grid_hyb
 
-/* … preview only (266163 bytes, 6229 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
+/* … preview only (277828 bytes, 6507 lines). Cursor must Read the file; do not treat this snippet as source of truth. … */
 ```
 
 ### `features/living-sense/data.ts` (preview, 110 lines)

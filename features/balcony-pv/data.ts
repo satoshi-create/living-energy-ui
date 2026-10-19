@@ -4350,7 +4350,7 @@ export type MovementHistoryPhaseId =
   | 'usSpread'
 
 /** 壁をこじ開けた非営利団体・民間企業などの突破アクション。 */
-export type MilestoneKeyActorKind = 'npo' | 'company'
+export type MilestoneKeyActorKind = 'npo' | 'company' | 'government'
 
 export type MilestoneKeyActor = {
   name: string
@@ -5949,11 +5949,14 @@ export function getArchitectureProfilesForCountry(
 /** 建築形態一覧カードの「主な実装国」表示対象（原則 JP / DE のみ） */
 const SURFACE_DISPLAY_COUNTRY_CODES = new Set(['JP', 'DE'])
 
-function filterSurfaceDisplayCountries<T extends { code: string }>(
-  countries: readonly T[],
+export function filterSurfaceDisplayCountries<T extends { code: string }>(
+  countries?: readonly T[] | null,
 ): T[] {
+  if (!countries || !Array.isArray(countries)) {
+    return []
+  }
   return countries.filter((c) =>
-    SURFACE_DISPLAY_COUNTRY_CODES.has(String(c.code).toUpperCase()),
+    c && c.code && SURFACE_DISPLAY_COUNTRY_CODES.has(String(c.code).toUpperCase()),
   )
 }
 
@@ -5961,23 +5964,16 @@ function filterSurfaceDisplayCountries<T extends { code: string }>(
  * Flat catalog for the full-screen 3D architectural surface explorer.
  * One row per SurfaceTypology（同一類型の国別プロファイルは先頭代表のみ）。
  */
-export function listArchitectureCatalog(): {
+export type ArchitectureCatalogEntry = {
   countryId: string
   countryCode: string
   profile: ArchitectureProfile
   typologyId: SurfaceTypology
   typology: SurfaceTypologyDetail
-}[] {
-  const byTypology = new Map<
-    SurfaceTypology,
-    {
-      countryId: string
-      countryCode: string
-      profile: ArchitectureProfile
-      typologyId: SurfaceTypology
-      typology: SurfaceTypologyDetail
-    }
-  >()
+}
+
+export function listArchitectureCatalog(): ArchitectureCatalogEntry[] {
+  const byTypology = new Map<SurfaceTypology, ArchitectureCatalogEntry>()
 
   for (const cfg of COUNTRY_ARCHITECTURE_CONFIGS) {
     const countryId = cfg.regionIds[0] ?? cfg.countryCode.toLowerCase()
@@ -6102,7 +6098,7 @@ export interface SolarCellTypology {
 
 /** Consumer-facing surface titles aligned with renewed 3D form names (JA). */
 const SURFACE_LABEL_JA: Record<SurfaceTypology, string> = {
-  egress_cantilever: '一般的なマンションのベランダ',
+  egress_cantilever: '一般的な集合住宅のベランダ（マンション・団地）',
   precast_parapet: 'コンクリート腰壁のあるベランダ',
   recessed_loggia: 'くぼんだ形のバルコニー',
   glass_railing: 'ガラス手すりのあるベランダ',
@@ -6115,7 +6111,7 @@ const SURFACE_LABEL_JA: Record<SurfaceTypology, string> = {
 
 /** Consumer-facing surface titles aligned with `messages/en.json` typologies (EN). */
 const SURFACE_LABEL_EN: Record<SurfaceTypology, string> = {
-  egress_cantilever: 'Typical apartment balcony',
+  egress_cantilever: 'Standard Apartment / Housing Complex Balcony',
   precast_parapet: 'Balcony with a concrete waist wall',
   recessed_loggia: 'Recessed balcony (set into the building)',
   glass_railing: 'Balcony with a glass railing',
@@ -6199,12 +6195,10 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     suitableSurfaceIds: [
       'japanese_tiled_roof',
       'pitched_gable_terrace',
-      'flat_roof_terrace',
     ],
     suitableSurfaceLabels: surfaceLinkLabels([
       'japanese_tiled_roof',
       'pitched_gable_terrace',
-      'flat_roof_terrace',
     ]),
     representativeCountryCodes: ['DE', 'AU', 'US'],
     weightDescription: '21.0kg',
@@ -6253,7 +6247,6 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     recommendedTypologyIds: [
       'japanese_tiled_roof',
       'pitched_gable_terrace',
-      'flat_roof_terrace',
     ],
     historyStreamId: 'silicon_mainstream',
   },
@@ -6263,8 +6256,8 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     nameEn: 'Rail-integrated glass panel',
     categoryBadgeJa: '建材一体ガラス',
     categoryBadgeEn: 'Building-integrated glass',
-    suitableSurfaceIds: ['precast_parapet', 'glass_railing'],
-    suitableSurfaceLabels: surfaceLinkLabels(['precast_parapet', 'glass_railing']),
+    suitableSurfaceIds: ['egress_cantilever', 'glass_railing'],
+    suitableSurfaceLabels: surfaceLinkLabels(['egress_cantilever', 'glass_railing']),
     representativeCountryCodes: ['DE', 'FR', 'CH'],
     weightDescription: 'Heavy glass BIPV',
     thicknessDescription: '~3–5mm',
@@ -6308,8 +6301,8 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     environmentalFitEn: 'Holds on hot vertical façades',
     cellStructureJa: 'ガラス一体型化合物薄膜（CdTe / CIGS）・フレームレス',
     cellStructureEn: 'Glass-integrated compound thin film (CdTe / CIGS), frameless',
-    primaryTypologyId: 'precast_parapet',
-    recommendedTypologyIds: ['precast_parapet', 'glass_railing'],
+    primaryTypologyId: 'glass_railing',
+    recommendedTypologyIds: ['egress_cantilever', 'glass_railing'],
     historyStreamId: 'cigs_cdte',
   },
   etfe_flexible_silicon: {
@@ -6383,17 +6376,17 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     id: 'origami_perovskite',
     nameJa: '折りたためる超軽量パネル',
     nameEn: 'Fold-away ultralight panel',
-    categoryBadgeJa: '自律出仕舞い家具',
+    categoryBadgeJa: '自律可動・収納型',
     categoryBadgeEn: 'Self-stowing furniture',
     suitableSurfaceIds: [
       'egress_cantilever',
-      'glass_railing',
-      'mansard_dormer',
+      'recessed_loggia',
+      'access_gallery',
     ],
     suitableSurfaceLabels: surfaceLinkLabels([
       'egress_cantilever',
-      'glass_railing',
-      'mansard_dormer',
+      'recessed_loggia',
+      'access_gallery',
     ]),
     representativeCountryCodes: ['JP', 'CN', 'DE'],
     weightDescription: '<1.0kg',
@@ -6415,7 +6408,7 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     agilityScore: 96,
     firedElementJa: '重いガラス・金属架台・屋根限定を解雇',
     firedElementEn: 'Fires heavy glass, metal racks & roof-only rules',
-    shortBadgeJa: '出仕舞い家具',
+    shortBadgeJa: '可動・収納型',
     shortBadgeEn: 'Stow furniture',
     roleTitleJa: '折りたためる超軽量パネル',
     roleTitleEn: 'Fold-away ultralight panel',
@@ -6441,8 +6434,8 @@ export const SOLAR_CELL_TYPES: Record<SolarCellTypeId, SolarCellTypeDetail> = {
     primaryTypologyId: 'egress_cantilever',
     recommendedTypologyIds: [
       'egress_cantilever',
-      'glass_railing',
-      'mansard_dormer',
+      'recessed_loggia',
+      'access_gallery',
     ],
     historyStreamId: 'organic_perovskite',
   },

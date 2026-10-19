@@ -77,13 +77,19 @@
       "overcast_tsuyu": "曇天・梅雨",
       "typhoon_alert": "台風警報"
     },
-    "livingMetrics": {
-      "cardTitle": "角度効率・生活適応",
-      "relativeEfficiency": "相対発電効率",
-      "lifeCompliance": "生活・安全適合",
-      "windRisk": "風圧リスク",
-      "typhoonStowHint": "台風時は出仕舞いで生活適合100%"
-    },
+      "livingMetrics": {
+        "cardTitle": "角度効率・生活適応",
+        "relativeEfficiency": "相対発電効率",
+        "efficiencyNote": {
+          "optimal_tilt": "（年間基準値）",
+          "horizontal": "（散乱光向け）",
+          "vertical": "（冬季90%以上）",
+          "retracted": "（発電停止）"
+        },
+        "lifeCompliance": "生活・安全適合",
+        "windRisk": "風圧リスク",
+        "typhoonStowHint": "台風時は出仕舞いで生活適合100%"
+      },
     "railing": {
       "grid": "格子スチール",
       "glass": "ガラス",
@@ -145,6 +151,13 @@
       "at": "オーストリア",
       "it": "イタリア"
     },
+    "typology": {
+      "japanStandardBalcony": "日本の集合住宅ベランダ（マンション・団地）",
+      "euStandardBalcony": "欧州アパートの標準バルコニー（Balkonkraftwerk型）",
+      "concreteWaistWall": "コンクリート腰壁のあるベランダ",
+      "recessedLoggia": "くぼんだ形のバルコニー",
+      "shallowJuliet": "ヨーロッパ風の浅いベランダ（鉄柵付き）"
+    },
     "typologies": {
       "listTitle": "建築形態一覧",
       "listLead": "建築形態と受光幾何を主軸に、傾斜角・受光特性・物理制約から類型を選びます。",
@@ -170,11 +183,11 @@
         "rental_facades": "賃貸ファサード"
       },
       "egress_cantilever": {
-        "name": "一般的なマンションのベランダ",
+        "name": "一般的な集合住宅のベランダ（マンション・団地）",
         "feature": "隔て板・避難ハッチを備えた片持ちスラブ。標準奥行き床＋アルミ柵。物干しと防災動線が同居する。",
-        "constraints": "床面閉塞を避け、強風外力時は出仕舞い（完全退避）できる可搬・折りたたみ設置が必須。",
+        "constraints": "床面閉塞を避け、強風外力時は折りたたんで室内へ安全に退避できる可搬・折りたたみ設置が必須。",
         "regionContext": "※適用地域の例：集合住宅（避難路確保）、台風・強風帯",
-        "mechanism": "ナスティック／折り紙型縁台・すだれ。台風時は完全に室内へ出仕舞い。"
+        "mechanism": "収納式縁台ベンチ型・手すり巻取り型。台風時は折りたたんで室内へ安全に退避。"
       },
       "precast_parapet": {
         "name": "コンクリート腰壁のあるベランダ",
@@ -575,6 +588,11 @@
       }
     },
     "architecture": {
+      "japanStandardBalcony": "日本標準バルコニー",
+      "euStandardBalcony": "EU標準バルコニー（手すり格子）",
+      "concreteWaistWall": "コンクリート腰壁",
+      "recessedLoggia": "インナーバルコニー（ロッジア）",
+      "shallowJuliet": "ジュリエットバルコニー（手すり直付け）",
       "sectionTitle": "建築形態",
       "constraintsLabel": "構造制約",
       "adaptedFurnitureLabel": "適応する生活家具解法",
@@ -614,7 +632,7 @@
         "models": {
           "haussmann-balconet": "極薄石床＋装飾アイアン柵。窓面ルーバーが受光面。",
           "concrete-parapet": "厚みのある腰壁にクランプ金具で垂直マウント。",
-          "japanese-evacuation-balcony": "標準奥行き床＋アルミ柵。蹴破り戸と出仕舞い縁台。",
+          "japanese-evacuation-balcony": "標準奥行き床＋アルミ柵。蹴破り戸と可動・収納型縁台。",
           "japanese-kawara-roof": "勾配約30°の瓦屋根。支持金具で面板を沿わせる。",
           "french-mansard-roof": "2段勾配マンサード＋亜鉛板。ドーマー脇に受光面。",
           "flat-concrete-roof": "平坦陸屋根スラブ。日除けパーゴラ架台に面板。",
@@ -635,6 +653,17 @@
           "angleNative": "この形態の主傾斜に近い視点",
           "angleHint": "カメラ方位のプリセット（形態の主傾斜は {tilt}）",
           "panelModeLabel": "解説パネル",
+          "tabStructure": "構造・安全",
+          "tabLegal": "規約・法規制",
+          "tabPanels": "推奨パネル",
+          "structureTitle": "手すり内側の設置・室内退避構造",
+          "structureDesc": "強風・突風時の落下防止のため、手すり外側への固定は禁止。台風時は数分で室内に退避できる折りたたみ・可搬構造とし、避難ハッチや隔て板の周辺スペースを常時確保する。",
+          "structureScope": "※適用対象：民間分譲・賃貸マンション、公団・UR団地（避難動線幅60cm以上の維持）",
+          "legalTitle": "マンション共用部規約・消防法",
+          "legalDesc": "バルコニーは共用部分（専用使用部）のため、躯体へのビス留め・穴あけ工事は不可（非破壊固定・自立型のみ）。日本国内では無届の系統逆潮流は禁止されているため、ポータブル蓄電池への充電など安全な自家消費形態をとる。",
+          "panelsRec1": "軽量フレキシブル薄膜（手すり内側固定・受風圧低減）",
+          "panelsRec2": "折りたたみ式・可動家具型ソーラー（ベンチ型・スタンド型）",
+          "panelsUnfit": "※重量のあるガラス固定架台パネル（約20kg）は落下危険・規約違反のため不適",
           "modeConstraints": "構造的制約",
           "modeFurniture": "生活家具型ソーラー"
         }
@@ -653,9 +682,9 @@
           "regionContext": "※適用地域の例：中欧集合ストック、集合住宅全般の厚壁パラペット"
         },
         "japanese-evacuation-balcony": {
-          "name": "一般的なマンションのベランダ",
+          "name": "一般的な集合住宅のベランダ（マンション・団地）",
           "description": "隔て板・避難ハッチを備えた片持ちスラブ。標準奥行き床＋アルミ柵。物干しと防災動線が同居する。",
-          "constraints": "可搬・出仕舞い必須",
+          "constraints": "可搬・折りたたみ収納必須",
           "regionContext": "※適用地域の例：集合住宅（避難路確保）、台風・強風帯"
         },
         "access-gallery": {
@@ -737,12 +766,12 @@
           "adaptation": "腰壁上に載せ置きする生活家具型。移動・退避が容易。"
         },
         "solar-endai-bench": {
-          "name": "出仕舞い縁台ソーラー",
-          "adaptation": "避難動線を塞がず、台風時は室内へ完全退避できる縁台型。"
+          "name": "収納式縁台ベンチ型ソーラー",
+          "adaptation": "避難動線を塞がず、台風時は折りたたんで室内へ安全に退避できるベンチ型。"
         },
         "solar-sudare-screen": {
-          "name": "巻取り簾ペロブスカイト",
-          "adaptation": "隔て板まわりに沿う軽量簾。巻取りで避難ハッチを確保。"
+          "name": "手すり巻取り型ペロブスカイト",
+          "adaptation": "手すり内側に沿う軽量すだれ型。巻き取れば隔て板や避難ハッチの開口部を塞がない。"
         },
         "origami-byobu-solar": {
           "name": "自立屏風型オリガミソーラー",

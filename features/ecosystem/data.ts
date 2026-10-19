@@ -271,7 +271,12 @@ export function filterActors(
   })
 }
 
-export function filterActorsByCountry(actors: EcosystemActor[], code?: CountryCode): EcosystemActor[] {
-  if (!code) return actors
-  return actors.filter((a) => a.countryCodes?.includes(code))
+export function filterActorsByCountry(
+  actors: readonly EcosystemActor[],
+  code?: string,
+): EcosystemActor[] {
+  if (!code) return [...actors]
+  return actors.filter((a) =>
+    a.countryCodes?.includes(code as CountryCode),
+  )
 }

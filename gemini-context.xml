@@ -1,0 +1,3636 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where content has been compressed (code blocks are separated by ⋮---- delimiter).
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+- Pay special attention to the Repository Instruction. These contain important context and guidelines specific to this project.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: .cursorrules, package.json, global.d.ts, features/shell/components/app-shell.tsx, features/balcony-pv/**, features/living-sense/**, features/network/**, lib/**
+- Files matching these patterns are excluded: messages/**, features/basin-dam/**, features/ecosystem/**, features/ecosystem-orgs/**, features/ranking/**, agri-dam-and-basin-grid/**, public/**, **/*.test.{ts,tsx}, **/*.spec.{ts,tsx}
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Content has been compressed - code blocks are separated by ⋮---- delimiter
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+features/
+  balcony-pv/
+    components/
+      balcony-illustration.tsx
+      balcony-view.tsx
+      cell-3d-model.tsx
+      pv-history-timeline.tsx
+      solar-cell-types-view.tsx
+      surface-3d-full-view.tsx
+      surface-3d-viewer.tsx
+      world-implementation-view.tsx
+      world-pv-map.tsx
+    data.ts
+    history-data.ts
+    index.ts
+    simulator-data.ts
+  living-sense/
+    components/
+      home-view.tsx
+      living-card.tsx
+      power-flow-diagram.tsx
+    data.ts
+    index.ts
+  network/
+    components/
+      japan-re-map.tsx
+      network-detail-sidebar.tsx
+      network-flow.tsx
+      network-view.tsx
+    data.ts
+    index.ts
+  shell/
+    components/
+      app-shell.tsx
+lib/
+  country-codes.ts
+  regions.ts
+  utils.ts
+.cursorrules
+global.d.ts
+package.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="lib/country-codes.ts">
+export type CountryCode = 'DE' | 'AT' | 'IT' | 'GB' | 'FR' | 'BE' | 'CH' | 'CN' | 'JP' | 'US' | 'EU'
+⋮----
+/** ecosystem 既存フィルタへの射影 */
+export function toRegionScope(code: CountryCode): 'japan' | 'global'
+</file>
+
+<file path="global.d.ts">
+import type ja from './messages/ja.json'
+⋮----
+type Messages = typeof ja
+⋮----
+// Augment next-intl message keys for typed useTranslations / getTranslations.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface IntlMessages extends Messages {}
+</file>
+
+<file path="features/balcony-pv/components/pv-history-timeline.tsx">
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  Box,
+  Building2,
+  ExternalLink,
+  Layers,
+  Sparkles,
+  X,
+  Zap,
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import {
+  getSurfaceTypologyDetail,
+  PV_VENDORS,
+  type AdoptedVendorId,
+  type SurfaceTypology,
+} from '../data'
+import {
+  PV_HISTORY_MILESTONES,
+  PV_HISTORY_STREAMS,
+  type PvHistoryMilestone,
+  type PvHistoryStream,
+} from '../history-data'
+⋮----
+export type PvHistoryTimelineProps = {
+  initialStream?: PvHistoryStream | 'all'
+  onSelectTypology?: (typologyId: SurfaceTypology) => void
+  onNavigateToCell3D?: (streamId: PvHistoryStream) => void
+  onSelectVendor?: (vendorId: string) => void
+  isEn?: boolean
+}
+⋮----
+type StreamFilter = 'all' | PvHistoryStream
+⋮----
+const onKey = (e: KeyboardEvent) =>
+⋮----
+className=
+</file>
+
+<file path="features/balcony-pv/simulator-data.ts">
+// Simulator / surface-typology mock for balcony-plug-in-pv (cold path).
+// Heuristic stand-in for suncalc-js-engine.
+⋮----
+import type { PvHistoryStream } from './history-data'
+⋮----
+export type Direction = 'south' | 'southeast' | 'southwest' | 'east' | 'west'
+export type RailingType = 'grid' | 'glass' | 'concrete'
+⋮----
+/**
+ * UK / multi-rain balcony form factors (locale-independent).
+ * Labels: `balconyPv.balconyType.*`.
+ */
+export type BalconyType = 'standard' | 'juliet' | 'recessed' | 'roof_terrace'
+⋮----
+/**
+ * UK roof form factors for terrace-house / mansard contexts (locale-independent).
+ * Labels: `balconyPv.roofType.*`.
+ */
+export type RoofType = 'flat' | 'pitched_gable' | 'pitched_mansard_dormer'
+⋮----
+/** Direct / diffuse irradiance split for a receiving surface (sums ≈ 1). */
+export interface SurfaceIrradianceParams {
+  /** Default receiving area (m²). */
+  receivingAreaM2: number
+  /** Default tilt from horizontal (degrees). */
+  tiltDeg: number
+  /** Direct-beam irradiance share (0–1). */
+  directRatio: number
+  /** Diffuse-sky irradiance share (0–1). */
+  diffuseRatio: number
+}
+⋮----
+/** Default receiving area (m²). */
+⋮----
+/** Default tilt from horizontal (degrees). */
+⋮----
+/** Direct-beam irradiance share (0–1). */
+⋮----
+/** Diffuse-sky irradiance share (0–1). */
+⋮----
+export type BalconyTypePreset = { value: BalconyType } & SurfaceIrradianceParams
+export type RoofTypePreset = { value: RoofType } & SurfaceIrradianceParams
+⋮----
+/** Locale-independent kit label keys under `balconyPv.kit`. */
+export type KitPanelKey = 'panelDefault' | 'panelMid' | 'panelLight'
+export type KitStorageKey = 'storageDefault' | 'storageMid' | 'storageLight'
+⋮----
+/** Locale-independent direction keys. Labels live in messages under `common.directions`. */
+⋮----
+/** Locale-independent railing keys. Labels: `balconyPv.railing.*`. */
+⋮----
+/**
+ * UK balcony selector presets: cantilever / Juliet / recessed loggia / roof terrace.
+ * Irradiance ratios reflect typical UK overcast (higher diffuse) vs clear-beam days.
+ */
+⋮----
+// Juliet: no deck — rail / French-door glazing as primary surface
+⋮----
+// Recessed / loggia: side-wall shading → more diffuse, smaller effective area
+⋮----
+// Roof terrace on flat roof deck
+⋮----
+/**
+ * UK roof selector presets: flat / pitched gable (terrace house) / mansard+dormer.
+ */
+⋮----
+// Pitched gable — slate / clay tile terrace-house slopes
+⋮----
+// Mansard / dormer — steep outer pitch + dormer cheeks
+⋮----
+export function getBalconyTypePreset(type: BalconyType): BalconyTypePreset
+⋮----
+export function getRoofTypePreset(type: RoofType): RoofTypePreset
+⋮----
+// ---------------------------------------------------------------------------
+// Typology-first surface master (建築形態が第一級エンティティ)
+// i18n: `balconyPv.typologies.*`
+// ---------------------------------------------------------------------------
+⋮----
+/** Architectural balcony / roof receiving-surface typology (locale-independent). */
+export type SurfaceTypology =
+  | 'egress_cantilever'
+  | 'precast_parapet'
+  | 'recessed_loggia'
+  | 'glass_railing'
+  | 'access_gallery'
+  | 'mansard_dormer'
+  | 'japanese_tiled_roof'
+  | 'flat_roof_terrace'
+  | 'pitched_gable_terrace'
+⋮----
+/** Biomimetic / living-furniture mount family suited to a typology. */
+export type BiomimeticMechanism =
+  | 'nastic_origami'
+  | 'flexible_perovskite'
+  | 'clamp_mount'
+  | 'catenary_hook'
+⋮----
+/** Receiving-surface optical / irradiance character (locale-independent). */
+export type OpticalProfile = 'diffuse_dominant' | 'direct_beam' | 'high_altitude'
+⋮----
+/** Locale-independent typical-region keys under `balconyPv.typologies.regions.*`. */
+export type TypicalRegionKey =
+  | 'urban_europe'
+  | 'historic_district'
+  | 'multifamily_general'
+  | 'multifamily_egress'
+  | 'central_europe_stock'
+  | 'tiled_pitch_roofs'
+  | 'flat_deck_roofs'
+  | 'terrace_house_roofs'
+  | 'rental_facades'
+⋮----
+/** Recommended mount / fix method for a receiving surface (locale-independent). */
+export type SurfaceMountMethod =
+  | 'clamp_no_drill'
+  | 'freestanding_furniture'
+  | 'vertical_rail_hook'
+  | 'louver_hanger'
+  | 'tile_hook'
+⋮----
+export interface SurfaceMountOption {
+  mountMethod: SurfaceMountMethod
+  /** i18n key under `balconyPv.mount.*` (e.g. `mount.clamp_no_drill`). */
+  labelKey: string
+}
+⋮----
+/** i18n key under `balconyPv.mount.*` (e.g. `mount.clamp_no_drill`). */
+⋮----
+export interface PrevalentCountry {
+  code: string
+  /** i18n key under `balconyPv.countries.*` (e.g. `countries.fr`). */
+  nameKey: string
+}
+⋮----
+/** i18n key under `balconyPv.countries.*` (e.g. `countries.fr`). */
+⋮----
+/**
+ * Deployable panel tilt / stow posture (locale-independent).
+ * Labels: `balconyPv.tiltMode.*`.
+ */
+export type PanelTiltMode = 'horizontal' | 'optimal_tilt' | 'vertical' | 'retracted'
+⋮----
+export interface PanelTiltOption {
+  id: PanelTiltMode
+  /** Degrees from horizontal when deployed (`retracted` is 0° + stowed pose). */
+  tiltDeg: number
+  /** i18n key under `balconyPv.tiltMode.*`. */
+  labelKey: string
+}
+⋮----
+/** Degrees from horizontal when deployed (`retracted` is 0° + stowed pose). */
+⋮----
+/** i18n key under `balconyPv.tiltMode.*`. */
+⋮----
+/** Master of install-style (variable tilt / 出仕舞い) options. */
+⋮----
+export function getPanelTiltOption(mode: PanelTiltMode): PanelTiltOption
+⋮----
+/** Efficiency / safety trade-offs for each install-style (demo heuristic). */
+export interface TiltMetric {
+  annualEfficiencyPct: number
+  /** Season / irradiance fit (display copy). */
+  winterAdvantage: string
+  /** Wind-load character (display copy). */
+  windRisk: string
+  /** One-line living / install trade-off hint. */
+  summary: string
+  /** Optional progress caption (e.g. winter relative note). */
+  efficiencyNote?: string
+}
+⋮----
+/** Season / irradiance fit (display copy). */
+⋮----
+/** Wind-load character (display copy). */
+⋮----
+/** One-line living / install trade-off hint. */
+⋮----
+/** Optional progress caption (e.g. winter relative note). */
+⋮----
+/**
+ * Angle-wise generation & safety metrics keyed by PanelTiltMode.
+ * Relative annual efficiency vs optimal_tilt = 100%.
+ */
+⋮----
+export function getTiltMetric(mode: PanelTiltMode): TiltMetric
+⋮----
+/** Daily balcony use pattern (locale-independent). Labels: `balconyPv.livingHabit.*`. */
+export type LivingHabit =
+  | 'laundry_drying'
+  | 'view_preservation_terrace'
+  | 'outdoor_unit_service'
+⋮----
+/** Weather / season scenario (locale-independent). Labels: `balconyPv.weather.*`. */
+export type WeatherCondition = 'clear' | 'overcast_tsuyu' | 'typhoon_alert'
+⋮----
+export type CulturalConstraintKind = 'egress_path_60cm' | 'hatch_no_go'
+⋮----
+export interface CulturalConstraint {
+  kind: CulturalConstraintKind
+  /** Demo penalty when PV/furniture occupies the zone (0–1). */
+  occupancyPenalty: number
+}
+⋮----
+/** Demo penalty when PV/furniture occupies the zone (0–1). */
+⋮----
+export interface LivingContext {
+  habit: LivingHabit
+  weather: WeatherCondition
+}
+⋮----
+export interface LivingContextModifiers {
+  directRatioMul: number
+  diffuseRatioMul: number
+  /** 1 = no laundry shade, lower = more panel shading. */
+  laundryShadeFactor: number
+  lifeComplianceBase: number
+}
+⋮----
+/** 1 = no laundry shade, lower = more panel shading. */
+⋮----
+/** Default cultural constraints for egress-heavy typologies (demo). */
+⋮----
+export function getLivingContextModifiers(ctx: LivingContext): LivingContextModifiers
+⋮----
+export function applyWeatherToIrradiance(
+  params: SurfaceIrradianceParams,
+  weather: WeatherCondition,
+): SurfaceIrradianceParams
+⋮----
+export interface ResolvedLivingMetrics {
+  lifeCompliancePct: number
+  displayEfficiencyPct: number
+}
+⋮----
+export function resolveLivingMetrics(
+  ctx: LivingContext,
+  tiltMode: PanelTiltMode,
+  typologyId?: SurfaceTypology,
+): ResolvedLivingMetrics
+⋮----
+export function getTypologyCulturalConstraints(
+  id: SurfaceTypology,
+): CulturalConstraint[]
+⋮----
+export interface SurfaceTypologyDetail {
+  id: SurfaceTypology
+  category: 'balcony' | 'roof'
+  /** i18n key under `balconyPv.typologies.<id>.name` (short path stored). */
+  nameKey: string
+  defaultTiltDeg: number
+  irradiance: SurfaceIrradianceParams
+  /** Optical / beam character of the receiving geometry. */
+  opticalProfile: OpticalProfile
+  /** Secondary context only — not card identity (i18n via `regions.*`). */
+  typicalRegions: TypicalRegionKey[]
+  /** Countries where this form is mainly seen (i18n via `countries.*`). */
+  prevalentCountries: PrevalentCountry[]
+  /** Recommended fix methods for install-job support. */
+  mountOptions: SurfaceMountOption[]
+  /** 出仕舞い（強風時退避機構）が必要か */
+  requiresDeShimai: boolean
+  /** i18n key under `balconyPv.typologies.<id>.constraints`. */
+  constraintsKey: string
+  biomimeticSuitability: {
+    mechanism: BiomimeticMechanism
+    /** 出仕舞い（退避機構）が必須か */
+    deShimaiRequired: boolean
+    descriptionKey: string
+  }
+  /** Install-style modes the form can physically support. */
+  supportedTiltModes?: PanelTiltMode[]
+  /** Initial install-style when the typology is selected. */
+  defaultTiltMode?: PanelTiltMode
+  /** Optimal cell chemistry stream for this building form. */
+  recommendedCellStream: PvHistoryStream
+  /** Display badge for the recommended cell (JA). */
+  recommendedCellBadgeJa: string
+  /** Display badge for the recommended cell (EN). */
+  recommendedCellBadgeEn: string
+}
+⋮----
+/** i18n key under `balconyPv.typologies.<id>.name` (short path stored). */
+⋮----
+/** Optical / beam character of the receiving geometry. */
+⋮----
+/** Secondary context only — not card identity (i18n via `regions.*`). */
+⋮----
+/** Countries where this form is mainly seen (i18n via `countries.*`). */
+⋮----
+/** Recommended fix methods for install-job support. */
+⋮----
+/** 出仕舞い（強風時退避機構）が必要か */
+⋮----
+/** i18n key under `balconyPv.typologies.<id>.constraints`. */
+⋮----
+/** 出仕舞い（退避機構）が必須か */
+⋮----
+/** Install-style modes the form can physically support. */
+⋮----
+/** Initial install-style when the typology is selected. */
+⋮----
+/** Optimal cell chemistry stream for this building form. */
+⋮----
+/** Display badge for the recommended cell (JA). */
+⋮----
+/** Display badge for the recommended cell (EN). */
+⋮----
+/** Resolve supported tilt modes with geometry-aware fallback. */
+export function resolveSupportedTiltModes(
+  detail: SurfaceTypologyDetail,
+): PanelTiltMode[]
+⋮----
+/** Resolve default tilt mode with geometry-aware fallback. */
+export function resolveDefaultTiltMode(
+  detail: SurfaceTypologyDetail,
+): PanelTiltMode
+⋮----
+/**
+ * Master catalog: pure architectural form + irradiance geometry first;
+ * typical regions and regulations are secondary context only.
+ */
+⋮----
+export function getSurfaceTypologyDetail(
+  id: SurfaceTypology,
+): SurfaceTypologyDetail
+⋮----
+/** Typology → legacy balcony selector (undefined when roof-primary). */
+⋮----
+/** Typology → legacy roof selector (undefined when balcony-primary). */
+⋮----
+export function typologyToBalconyType(id: SurfaceTypology): BalconyType | undefined
+⋮----
+export function typologyToRoofType(id: SurfaceTypology): RoofType | undefined
+⋮----
+/** Bridge: balcony selector → primary typology. */
+export function balconyTypeToTypology(type: BalconyType): SurfaceTypology
+⋮----
+/** Bridge: roof selector → primary typology. */
+export function roofTypeToTypology(type: RoofType): SurfaceTypology
+⋮----
+/**
+ * Irradiance preset for a typology, falling back to legacy balcony/roof tables
+ * when a bridge mapping exists.
+ */
+export function getTypologyIrradiance(id: SurfaceTypology): SurfaceIrradianceParams
+⋮----
+// Returns a suitability score (0-100) for the balcony simulator based on
+// direction, railing type, time of day, and optional living / weather context.
+export function computeBalconyScore(
+  direction: Direction,
+  railing: RailingType,
+  hour: number,
+  ctx: LivingContext = DEFAULT_LIVING_CONTEXT,
+  tiltMode: PanelTiltMode = 'optimal_tilt',
+): number
+⋮----
+// Bell curve centered at 12:30 across an 8:00-17:00 window.
+⋮----
+/** Life / safety fit for the balcony simulator card (0–100). */
+export function computeBalconyLifeCompliance(
+  ctx: LivingContext,
+  tiltMode: PanelTiltMode = 'optimal_tilt',
+): number
+⋮----
+export function scoreLabel(score: number): string
+⋮----
+export function recommendedKit(score: number):
+</file>
+
+<file path="features/living-sense/index.ts">
+/** 構造分析書ノード: living-sense-ui */
+</file>
+
+<file path="features/network/components/japan-re-map.tsx">
+import { useState } from "react"
+import { Minus, Plus, RotateCcw } from "lucide-react"
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+} from "react-simple-maps"
+import {
+  NETWORK_MODELS,
+  NETWORK_UI,
+  categoryColor,
+  localizedMapSite,
+  matchesModelCategory,
+  uiText,
+  type MapRegionFocus,
+  type ModelCategory,
+  type NetworkLocale,
+  type NetworkModel,
+} from "../data"
+⋮----
+/**
+ * Natural Earth via world-atlas (same stack as world-pv-map).
+ * 50m keeps Okinawa / major islets readable at Japan national framing;
+ * world map uses 110m for global scale.
+ */
+⋮----
+/** National framing: lon 128–146 / lat ~26–46 (Okinawa→Hokkaido) via Mercator */
+⋮----
+type MapCamera = { center: [number, number]; zoom: number }
+type CategoryFilter = ModelCategory | "all"
+⋮----
+interface JapanReMapProps {
+  locale: NetworkLocale
+  selectedModelId: NetworkModel | null
+  onSelect: (model: NetworkModel | null) => void
+}
+⋮----
+function clampZoom(z: number)
+⋮----
+function focusRegion(id: MapRegionFocus)
+⋮----
+function zoomBy(factor: number)
+⋮----
+function resetView()
+⋮----
+function selectPin(id: NetworkModel)
+⋮----
+onMoveEnd=
+⋮----
+e.stopPropagation()
+selectPin(id)
+⋮----
+onKeyDown=
+⋮----
+onPointerDown=
+</file>
+
+<file path="lib/utils.ts">
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+⋮----
+export function cn(...inputs: ClassValue[])
+</file>
+
+<file path="features/balcony-pv/components/cell-3d-model.tsx">
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Line, OrbitControls } from '@react-three/drei'
+⋮----
+import type { Group } from 'three'
+import type { SolarCellTypeId } from '../data'
+⋮----
+export type CellViewAngle = 0 | 30 | 90
+⋮----
+export type Cell3DModelProps = {
+  type: SolarCellTypeId
+  interactive?: boolean
+  className?: string
+  /** 観察角度プリセット（度）。未指定時は表面30°の静止表示。 */
+  viewAngle?: CellViewAngle
+}
+⋮----
+/** 観察角度プリセット（度）。未指定時は表面30°の静止表示。 */
+⋮----
+/** Panels face +Z; camera stays in the +Z hemisphere so the cell face stays readable. */
+⋮----
+/** Oblique front overview — list cards and detail default. */
+⋮----
+/** Si主流：アルミフレームの頑丈さと約35mm厚の重厚感を強調 */
+⋮----
+/** ~35mm相当の視覚厚み */
+⋮----
+/* Cell face on +Z toward the default camera. */
+⋮----
+{/* Aluminum frame — thick glossy structural extrusion */}
+⋮----
+{/* Inner frame lip — recessed channel for glass */}
+⋮----
+{/* Backsheet */}
+⋮----
+{/* Glass cover — subtle silicon reflection */}
+⋮----
+{/* Silicon cells + busbars */}
+⋮----
+/** CdTe：フレームレス強化ガラス鏡面 + リアルなガラス切断面エッジ（シアン排除） */
+⋮----
+{/* 斜めスペキュラ用 DirectionalLight — 大面積ガラス表面を走らせる */}
+⋮----
+{/* 本体：ガラス積層内の薄膜吸収層 */}
+⋮----
+{/* 表面カバーガラス — 強い鏡面ハイライト（フレームレス） */}
+⋮----
+{/* 裏面ガラス */}
+⋮----
+{/* ガラス切断面エッジ — 無色〜淡いグレーの断面（シアンなし） */}
+{/* 左右 */}
+⋮----
+{/* 上下 */}
+⋮----
+/** ペロブスカイト：1mm未満の剛体折り紙ヒンジ + 折り畳み／展開の動的変形 */
+⋮----
+/** 視覚上 1mm未満の超薄フィルム */
+⋮----
+// 0 → 展開、π → 畳み：正弦で往復
+⋮----
+const fold = 0.08 + t * 1.15 // ~5°〜~70°
+⋮----
+{/* 中央面（谷折り基準面） */}
+⋮----
+{/* 左翼 — 山折りヒンジ（動的） */}
+⋮----
+{/* 右翼 — 谷折り反対側（動的） */}
+⋮----
+{/* 折り目サポート — 極薄ヒンジライン */}
+⋮----
+/** ETFEフレキシブル：薄型プレート＋四隅ハトメ固定メタファー */
+⋮----
+{/* ETFE fluoropolymer sheet — thin translucent shell; cells face +Z. */}
+⋮----
+{/* Mono-Si cell lattice under the sheet (toward camera / +Z) */}
+⋮----
+{/* Corner grommets (ハトメ) */}
+⋮----
+{/* Soft curl hint — sheet edge lift */}
+⋮----
+/** 生活スケール基準：消防避難通路幅 60cm（0.6m）の半透明ガイドライン */
+⋮----
+/** 幅0.6m × 奥行き1.8m の破線長方形 */
+⋮----
+{/* 半透明リング：幅0.6mの物差し */}
+⋮----
+// Defer Canvas until after paint so React 19 never sync-unmounts an R3F root mid-render.
+⋮----
+// List cards: static front 30°. Detail: sidebar angle (default 30°).
+⋮----
+{/* No key on Canvas — remounting mid-render races React 19; type changes via CellStageGroup. */}
+</file>
+
+<file path="features/balcony-pv/history-data.ts">
+import type { AdoptedVendorId, SurfaceTypology } from './data'
+⋮----
+/** 太陽電池セル開発史のスイムレーン系統（結晶Si・化合物薄膜・有機/ペロブスカイト） */
+export type PvHistoryStream =
+  | 'silicon_mainstream' // 結晶Si・HIT・主系統
+  | 'cigs_cdte' // 化合物薄膜
+  | 'organic_perovskite' // 有機系・ペロブスカイト
+⋮----
+| 'silicon_mainstream' // 結晶Si・HIT・主系統
+| 'cigs_cdte' // 化合物薄膜
+| 'organic_perovskite' // 有機系・ペロブスカイト
+⋮----
+export interface PvHistoryMilestone {
+  id: string
+  year: string
+  stream: PvHistoryStream
+  significance: 'disruptive' | 'major' | 'normal'
+  titleJa: string
+  titleEn: string
+  /** タイムラインカード用：専門用語なしの直感的な1行要約 */
+  oneLinerJa: string
+  oneLinerEn: string
+  /** タイムラインカード用：物語がつながる平易な補足解説（2〜3行） */
+  storyJa: string
+  storyEn: string
+  keyFigure?: string
+  /** モーダル詳細用：クリステンセン理論による深掘り分析 */
+  jtbdAnalysis?: {
+    /** 解消された不便・手放した制約（Fire） */
+    firedInconvenienceJa: string
+    firedInconvenienceEn: string
+    /** 手に入れた新体験・新しい置き場（Hire） */
+    hiredJobJa: string
+    hiredJobEn: string
+  }
+  recommendedTypologyIds?: SurfaceTypology[]
+  relatedVendorIds?: AdoptedVendorId[]
+  physicsTags: string[]
+}
+⋮----
+/** タイムラインカード用：専門用語なしの直感的な1行要約 */
+⋮----
+/** タイムラインカード用：物語がつながる平易な補足解説（2〜3行） */
+⋮----
+/** モーダル詳細用：クリステンセン理論による深掘り分析 */
+⋮----
+/** 解消された不便・手放した制約（Fire） */
+⋮----
+/** 手に入れた新体験・新しい置き場（Hire） */
+⋮----
+/** 3Dパネル観察用のセル構造・物性スペック */
+export interface Cell3DVisualSpec {
+  /** 例: '単結晶Siウェハ + 強化ガラス + アルミフレーム' */
+  cellStructureJa: string
+  cellStructureEn: string
+  /** 例: '約30〜40mm (ガラス・フレーム込)' */
+  thicknessMm: string
+  flexibility: 'rigid' | 'semi-rigid' | 'flexible-etfe' | 'flexible-origami'
+  lightType: 'direct_beam' | 'high_temperature' | 'diffuse_dominant'
+  /** 一覧カード右上: 例 '30° 直達光主体' */
+  lightBadgeJa: string
+  lightBadgeEn: string
+  /** ピルタグ: 主要用途 */
+  useCaseJa: string
+  useCaseEn: string
+}
+⋮----
+/** 例: '単結晶Siウェハ + 強化ガラス + アルミフレーム' */
+⋮----
+/** 例: '約30〜40mm (ガラス・フレーム込)' */
+⋮----
+/** 一覧カード右上: 例 '30° 直達光主体' */
+⋮----
+/** ピルタグ: 主要用途 */
+⋮----
+/** クリステンセン的トレードオフ直感メーター用パラメーター */
+export interface StreamTradeoffMetric {
+  /** 分子スペック：晴天ピーク出力（0-100） */
+  peakPowerScore: number
+  /** 分母スペック：身軽さ・設置容易度（0-100、薄さ・軽さ・工事不要度） */
+  agilityScore: number
+  /** 耐環境性ラベル */
+  environmentalFitJa: string
+  environmentalFitEn: string
+  /** 直感キャッチコピー（8文字以内） */
+  shortBadgeJa: string
+  shortBadgeEn: string
+  /** 観察視点固有ラベル [正面, 斜め, 固有アングル] */
+  viewAngleLabels: [string, string, string]
+  viewAngleLabelsEn: [string, string, string]
+  /** セレクター用の役割キャラ付け */
+  roleTitleJa: string
+  roleTitleEn: string
+  roleSubtitleJa: string
+  roleSubtitleEn: string
+}
+⋮----
+/** 分子スペック：晴天ピーク出力（0-100） */
+⋮----
+/** 分母スペック：身軽さ・設置容易度（0-100、薄さ・軽さ・工事不要度） */
+⋮----
+/** 耐環境性ラベル */
+⋮----
+/** 直感キャッチコピー（8文字以内） */
+⋮----
+/** 観察視点固有ラベル [正面, 斜め, 固有アングル] */
+⋮----
+/** セレクター用の役割キャラ付け */
+⋮----
+/** ベランダ生活適合（設置スタンプ・出仕舞い・避難動線） */
+export interface BalconyLivingFit {
+  /** 不可 / 条件付き / 現行Good Enough / 次世代理想 */
+  balconyFitStatus: 'unfit' | 'conditional' | 'good_enough' | 'optimal'
+  balconyFitLabelJa: string
+  /** 出仕舞い（台風退避）性能 */
+  deShimaiAbilityJa: string
+  /** 消防避難動線（60cm）のクリア度 */
+  egressClearanceScore: number
+  /** 重量・厚みバッジ */
+  weightThicknessJa?: string
+  /** 解雇した要素 */
+  firedElementJa?: string
+}
+⋮----
+/** 不可 / 条件付き / 現行Good Enough / 次世代理想 */
+⋮----
+/** 出仕舞い（台風退避）性能 */
+⋮----
+/** 消防避難動線（60cm）のクリア度 */
+⋮----
+/** 重量・厚みバッジ */
+⋮----
+/** 解雇した要素 */
+⋮----
+/** 三大分類サマリーカード用マスター */
+export interface PvStreamSummary {
+  id: PvHistoryStream
+  labelJa: string
+  labelEn: string
+  generationLabelJa: string
+  generationLabelEn: string
+  /** カード用短い世代バッジ: 例 '第1世代' */
+  generationShortJa: string
+  generationShortEn: string
+  taglineJa: string
+  taglineEn: string
+  /** カードフッター: 構造的ポイント解説（1行） */
+  structuralPointJa: string
+  structuralPointEn: string
+  bestFitPlaceJa: string
+  bestFitPlaceEn: string
+  /** 相対発電効率（%）・生活・安全適合度（%） */
+  relativeEfficiencyPct: number
+  livingFitnessPct: number
+  /** トレードオフ直感メーター（ピーク発電力 vs 身軽さ） */
+  tradeoff: StreamTradeoffMetric
+  /** ベランダ生活適合（設置・出仕舞い・避難動線） */
+  balconyLivingFit: BalconyLivingFit
+  /** カードクリック時に遷移する代表的な3D建築形態 */
+  primaryTypologyId: SurfaceTypology
+  recommendedTypologyIds: SurfaceTypology[]
+  keyMilestoneYears: string[]
+  badgeClass: string
+  accentBorderClass: string
+  /** 3Dモデル・物性タグ用メタデータ */
+  cell3d: Cell3DVisualSpec
+  /** 系統が解消した代表的な制約（Fire） */
+  firedConstraintJa: string
+  firedConstraintEn: string
+}
+⋮----
+/** カード用短い世代バッジ: 例 '第1世代' */
+⋮----
+/** カードフッター: 構造的ポイント解説（1行） */
+⋮----
+/** 相対発電効率（%）・生活・安全適合度（%） */
+⋮----
+/** トレードオフ直感メーター（ピーク発電力 vs 身軽さ） */
+⋮----
+/** ベランダ生活適合（設置・出仕舞い・避難動線） */
+⋮----
+/** カードクリック時に遷移する代表的な3D建築形態 */
+⋮----
+/** 3Dモデル・物性タグ用メタデータ */
+⋮----
+/** 系統が解消した代表的な制約（Fire） */
+⋮----
+/** @deprecated Prefer PvStreamSummary */
+export type PvHistoryStreamMeta = PvStreamSummary
+⋮----
+/** 系統に紐付く開発史マイルストーンを抽出 */
+export function getMilestonesByStream(
+  stream: PvHistoryStream,
+): readonly PvHistoryMilestone[]
+</file>
+
+<file path="features/balcony-pv/components/surface-3d-full-view.tsx">
+import { useEffect, useMemo, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
+import { CheckCircle2, FileText, PanelRightClose, PanelRightOpen, ShieldAlert, Sparkles, XCircle } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils'
+import {
+  DEFAULT_LIVING_CONTEXT,
+  getCountryArchitectureConfig,
+  getPanelTiltOption,
+  getTiltMetric,
+  listArchitectureCatalog,
+  resolveDefaultTiltMode,
+  resolveLivingMetrics,
+  resolveSupportedTiltModes,
+  type ArchitectureProfile,
+  type LivingContext,
+  type PanelTiltMode,
+  type SurfaceTiltAngle,
+} from '../data'
+import { Surface3DViewer } from './surface-3d-viewer'
+⋮----
+export type Surface3DFocus = {
+  countryId: string
+  profileId: string
+}
+⋮----
+export type Surface3DFullViewProps = {
+  initialFocus?: Surface3DFocus | null
+  className?: string
+  /** Controlled install-style (variable tilt / 出仕舞い). */
+  tiltMode?: PanelTiltMode
+  onTiltModeChange?: (mode: PanelTiltMode) => void
+  /** Controlled living / weather scenario (optional). */
+  livingContext?: LivingContext
+  onLivingContextChange?: (ctx: LivingContext) => void
+  /** Controlled sidebar visibility (optional; defaults to internal state). */
+  sidebarOpen?: boolean
+  onSidebarOpenChange?: (open: boolean) => void
+  /** Hide the built-in toggle when the parent renders one. */
+  hideSidebarToggle?: boolean
+}
+⋮----
+/** Controlled install-style (variable tilt / 出仕舞い). */
+⋮----
+/** Controlled living / weather scenario (optional). */
+⋮----
+/** Controlled sidebar visibility (optional; defaults to internal state). */
+⋮----
+/** Hide the built-in toggle when the parent renders one. */
+⋮----
+type AnglePreset = '0°' | '30°' | '90°'
+type PanelMode = 'structure' | 'legal' | 'panels'
+⋮----
+function resolveInitialProfile(
+  focus: Surface3DFocus | null | undefined,
+  catalog: ReturnType<typeof listArchitectureCatalog>,
+):
+⋮----
+const setSidebarOpen = (open: boolean | ((prev: boolean) => boolean)) =>
+⋮----
+// Match card-list preview: always open on the oblique overview (not panel tiltAngle).
+⋮----
+const setTiltMode = (mode: PanelTiltMode) =>
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps -- only react to weather / supported modes
+⋮----
+const angleMatches = (tilt: SurfaceTiltAngle) =>
+⋮----
+className=
+⋮----
+{/* 1. 観察角度 */}
+⋮----
+{/* 2. 角度効率・生活適応メーター */}
+⋮----
+{/* 3. 制約・法規制・推奨パネル */}
+</file>
+
+<file path="features/living-sense/data.ts">
+// Mock for living-sense-ui. Static — no backend or external API calls.
+⋮----
+export type LivingCard = {
+  id: string
+  icon: 'laptop' | 'fan' | 'coffee' | 'smartphone' | 'waves' | 'shield' | 'moon'
+  title: string
+  value: string
+  unit: string
+  progress: number // 0-100
+  detail: string
+}
+⋮----
+progress: number // 0-100
+⋮----
+/** 流域・田んぼダムの生活実感（デモ。詳細操作は basin ビュー） */
+⋮----
+/** Locale-independent; resolve via `livingSense.notRequired` in the view. */
+⋮----
+/** Locale-independent watershed status key. Label: `livingSense.watershedNormal`. */
+⋮----
+export type FlowNode = {
+  id: string
+  label: string
+  sublabel: string
+  icon: 'sun' | 'battery' | 'laptop'
+}
+</file>
+
+<file path="features/network/components/network-detail-sidebar.tsx">
+import { useCallback, useRef, useState } from "react"
+import {
+  ArrowDown,
+  ArrowUp,
+  BatteryCharging,
+  Building2,
+  Droplets,
+  Flame,
+  Fuel,
+  Home,
+  Sprout,
+  SunMedium,
+  Wind,
+  X,
+  type LucideIcon,
+} from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import {
+  NETWORK_MODELS,
+  caseStatusKey,
+  energyTypeFilterKey,
+  localizedMapSite,
+  localizedModel,
+  localizedNode,
+  networkMethodKey,
+  uiText,
+  type NetworkLocale,
+  type NetworkModel,
+  type NetworkNode,
+} from "../data"
+⋮----
+type FlowMode = "day" | "night"
+⋮----
+export type NetworkDetailSidebarProps = {
+  modelId: NetworkModel | null
+  locale: NetworkLocale
+  open: boolean
+  onClose: () => void
+  width: number
+  onWidthChange: (width: number) => void
+  minWidth: number
+  maxWidth: number
+}
+⋮----
+function FlowConnector(
+⋮----
+function StageSection({
+  label,
+  nodes,
+  locale,
+}: {
+  label: string
+  nodes: NetworkNode[]
+  locale: NetworkLocale
+})
+⋮----
+
+⋮----
+className=
+</file>
+
+<file path="features/network/index.ts">
+/** 構造分析書ノード: react-flow-visualizer, modular-microgrid-vn */
+</file>
+
+<file path="lib/regions.ts">
+// Shared region / weather mock. Feature data lives under features/*/data.ts.
+⋮----
+export type AppLocale = 'ja' | 'en'
+⋮----
+/**
+ * World-implementation macro regions (4 poles).
+ * Used by balcony-pv map filters / country `regionCategory`.
+ */
+⋮----
+export type WorldMacroRegion = (typeof WORLD_MACRO_REGIONS)[number]
+⋮----
+/** Locale-independent filter ids including "all regions". */
+⋮----
+export type WorldMacroRegionFilter = (typeof WORLD_MACRO_REGION_FILTERS)[number]
+⋮----
+export type Region = {
+  id: string
+  label: string
+  labelEn: string
+  prefecture: string
+  prefectureEn: string
+}
+⋮----
+export function localizedRegion(
+  region: Region,
+  locale: AppLocale
+):
+⋮----
+export type WeatherState = {
+  label: string
+  labelEn: string
+  icon: 'sun' | 'cloud-sun' | 'cloud'
+  irradiance: number // W/m^2
+}
+⋮----
+irradiance: number // W/m^2
+⋮----
+export function localizedWeatherLabel(
+  weather: WeatherState,
+  locale: AppLocale
+): string
+</file>
+
+<file path="features/balcony-pv/components/solar-cell-types-view.tsx">
+import dynamic from 'next/dynamic'
+import { useCallback, useEffect, useState } from 'react'
+import {
+  ArrowLeft,
+  ExternalLink,
+  History,
+  PanelRightClose,
+  PanelRightOpen,
+  X,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  getSurfaceTypologyDetail,
+  SOLAR_CELL_TYPE_IDS,
+  SOLAR_CELL_TYPES,
+  solarCellTypeFromHistoryStream,
+  type SolarCellFlexibility,
+  type SolarCellHistoryStreamId,
+  type SolarCellTypeId,
+  type SurfaceTypology,
+} from '../data'
+import type { PvHistoryStream } from '../history-data'
+import type { CellViewAngle } from './cell-3d-model'
+import { PvHistoryTimeline } from './pv-history-timeline'
+⋮----
+type DetailTab = 'properties' | 'typology' | 'history'
+⋮----
+/** 分子＝ピーク発電力 / 分母＝設置の身軽さ — トレードオフ直感メーター */
+⋮----
+className=
+⋮----
+{/* 1. 観察角度 */}
+⋮----
+{/* 2. トレードオフ直感メーター */}
+⋮----
+{/* 3. タブ切り替え */}
+⋮----
+e.stopPropagation()
+handleTypology(surf.id as SurfaceTypology)
+</file>
+
+<file path="features/balcony-pv/components/surface-3d-viewer.tsx">
+import { createContext, Suspense, useContext, useLayoutEffect, useMemo } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
+import { MathUtils } from 'three'
+import { useTranslations } from 'next-intl'
+import type { Surface3dModelId } from '../data'
+import { cn } from '@/lib/utils'
+⋮----
+export type Surface3DCameraPreset = '0°' | '30°' | '90°'
+⋮----
+export type Surface3DViewerProps = {
+  profileId: Surface3dModelId
+  className?: string
+  /** Compact sidebar preview (default) or large full-tab canvas. */
+  variant?: 'preview' | 'full'
+  /** Orbit camera azimuth preset for the full viewer. */
+  cameraPreset?: Surface3DCameraPreset
+  /** Panel tilt from horizontal (degrees). */
+  tiltDeg?: number
+  /** Stow / 出仕舞い pose. */
+  isRetracted?: boolean
+}
+⋮----
+/** Compact sidebar preview (default) or large full-tab canvas. */
+⋮----
+/** Orbit camera azimuth preset for the full viewer. */
+⋮----
+/** Panel tilt from horizontal (degrees). */
+⋮----
+/** Stow / 出仕舞い pose. */
+⋮----
+type PanelTiltContextValue = {
+  tiltDeg: number
+  isRetracted: boolean
+}
+⋮----
+// 外部から渡された base[0]（初期角度）をベースにチルト角を付与
+⋮----
+{/* façade */}
+⋮----
+{/* shallow stone floor */}
+⋮----
+{/* decorative iron balustrade */}
+⋮----
+{/* articulated louver shutter (living furniture) */}
+⋮----
+{/* thick parapet */}
+⋮----
+{/* clamp mounts */}
+⋮----
+{/* 1. 外壁（RC躯体＋サッシ枠ライン） */}
+⋮----
+{/* 掃き出し窓サッシ枠 */}
+⋮----
+{/* 複層ガラス */}
+⋮----
+{/* 壁付け物干し金物（ホスクリーン型アーム：左右2基 ＋ SUS物干し竿） */}
+⋮----
+{/* 左右のアーム金物（サッシ脇：x = -1.2, 0.85） */}
+⋮----
+{/* ベース壁面固定座（H300×W50mm） */}
+⋮----
+{/* 角度調整可動アーム（出幅約550mm・斜め下約35°） */}
+⋮----
+{/* 先端竿掛けリング部 */}
+⋮----
+{/* 物干し竿（SUSクラッド管：Φ30mm × 2.2m、アーム先端リング接合位置） */}
+⋮----
+{/* 2. 床コンクリートスラブ（厚み150mm・長尺塩ビシート仕上げ） */}
+⋮----
+{/* 3. 排水側溝（手すり側の一段下がった水抜き溝） */}
+⋮----
+{/* 4. JIS準拠 アルミ手すり（天端H=1,100mm・ピッチ110mm格子） */}
+⋮----
+{/* トップレール（笠木） */}
+⋮----
+{/* ボトムレール（下桟） */}
+⋮----
+{/* メイン支柱（4本スラブアンカー） */}
+⋮----
+{/* 転落防止 縦格子 */}
+⋮----
+{/* 5. 隔て板（蹴破り戸：アルミ枠＋ケイカル板＋避難ステッカー） */}
+⋮----
+{/* 6. 避難ハッチ金物（SUS製 600角：外枠段差・蓋天板・格納式取っ手・ラッチ部） */}
+⋮----
+{/* 床埋め込みアウター枠 */}
+⋮----
+{/* 止水インナー枠 */}
+⋮----
+{/* 上蓋メイン天板 */}
+⋮----
+{/* 格納式SUS取っ手金物 */}
+⋮----
+{/* 開閉ラッチ錠 */}
+⋮----
+{/* 避難はしご標示プレート枠 */}
+⋮----
+{/* 7. エアコン室外機＋据付架台＋配管化粧カバー（CAD標準：W780×D300×H560mm） */}
+⋮----
+{/* 据付プラ架台（2脚） */}
+⋮----
+{/* ファン吹き出し口・円形フロントグリル */}
+⋮----
+{/* 右側面 サービスバルブ・端子カバー凸部 */}
+⋮----
+{/* 配管化粧カバー（外壁縦ダクト〜室外機接続エルボ） */}
+⋮----
+{/* 8. 消防避難動線（60cm幅クリアライン床面ガイド） */}
+⋮----
+{/* 9. ドイツ式バルコニー発電スタイル（手すり外側・完全垂直吊り下げ） */}
+⋮----
+{/* 手すり笠木からのSUS引っ掛けフック金具（左右2箇所：外側から笠木を抱え込む） */}
+⋮----
+{/* 上部フック（笠木抱き込み部：外側から内側へ折り返し） */}
+⋮----
+{/* 縦ステー金物 */}
+⋮----
+{/* 垂直ソーラーパネル本体（手すり外側に面して直立） */}
+⋮----
+{/* walls */}
+⋮----
+{/* gable / hip kawara planes */}
+⋮----
+{/* ridge */}
+⋮----
+{/* mounting brackets + panel */}
+⋮----
+{/* lower steep mansard (zinc) */}
+⋮----
+{/* upper shallow pitch */}
+⋮----
+{/* dormer */}
+⋮----
+{/* flat slab */}
+⋮----
+{/* shade pergola frame */}
+⋮----
+/** UK Juliet: no deck — French doors + flush rail; window louvers as harvest plane. */
+⋮----
+{/* French door pair (glazing) */}
+⋮----
+{/* flush Juliet rail */}
+⋮----
+{/* articulated louver shutter along window plane */}
+⋮----
+/** UK recessed loggia: side cheeks + soffit shade; table / clamp furniture. */
+⋮----
+{/* outer façade wings */}
+⋮----
+{/* setback back wall */}
+⋮----
+{/* soffit */}
+⋮----
+{/* recessed floor */}
+⋮----
+{/* front rail */}
+⋮----
+{/* solar table furniture */}
+⋮----
+/** UK roof terrace: wide flat deck + shade pergola living furniture. */
+⋮----
+{/* low parapet */}
+⋮----
+{/* pergola posts + beams */}
+⋮----
+/** UK pitched gable: ~45° slate / clay terrace-house roof. */
+⋮----
+{/* brick chimney stub */}
+⋮----
+{/* slate / clay gable planes */}
+⋮----
+{/* heavy-duty clamp mounts along pitch */}
+⋮----
+/** UK mansard + dormer: steep outer pitch with dormer cheeks. */
+⋮----
+{/* steep outer faces (slate) */}
+⋮----
+{/* shallow upper deck */}
+⋮----
+{/* dormer body + cheeks */}
+⋮----
+{/* window-shutter harvest beside dormer */}
+⋮----
+/** Shared look-at for card preview and full detail (model mid-height). */
+⋮----
+/** Compact card-list framing. */
+⋮----
+/**
+ * Full detail framing — same angles as preview, pulled back so wall / roof
+ * apex and floor stay inside the large viewport with padding.
+ */
+⋮----
+/** Aim preview camera at the same target as OrbitControls (avoid origin look-at). */
+⋮----
+className=
+⋮----
+<div className=
+</file>
+
+<file path="features/balcony-pv/index.ts">
+/** 構造分析書ノード: balcony-plug-in-pv */
+</file>
+
+<file path="features/balcony-pv/components/world-implementation-view.tsx">
+import dynamic from "next/dynamic"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
+import {
+  Building2,
+  Droplets,
+  ExternalLink,
+  Fan,
+  Laptop,
+  Layers,
+  Lightbulb,
+  Landmark,
+  PanelRightClose,
+  PanelRightOpen,
+  Refrigerator,
+  Smartphone,
+  type LucideIcon,
+  Wifi,
+  X,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { SurfaceCountryTags } from "./balcony-illustration"
+import type { Surface3DFocus } from "./surface-3d-full-view"
+import type { PvHistoryStream } from "../history-data"
+import type {
+  EcosystemDiagramViewMode,
+  MovementHistoryPhaseId,
+} from "./world-pv-map"
+⋮----
+function HeavyChunkLoading(
+⋮----
+className=
+⋮----
+/** 自立分散・未電化/停電自衛（送電網非依存・BOP）と判定する status */
+⋮----
+switch (model)
+⋮----
+/* fall through */
+⋮----
+/** surfaces タブ内: 一覧 / 大画面詳細（戻り先は一覧 or マップ） */
+⋮----
+// Keep MARKET_ECOSYSTEM_TOPOLOGIES.wiringFlow in sync with locale for diagram/table.
+⋮----
+const countryMsg = (field: string, defaultFallback: string = "") =>
+⋮----
+// next-intl の t.has が利用可能な場合は事前チェック
+⋮----
+// 未解決でキー文字列そのまま、または空文字列が返ってきた場合のガード
+⋮----
+// MISSING_MESSAGE 例外をトラップし、画面クラッシュを防ぐ
+⋮----
+const sidebarLegalProc = () =>
+⋮----
+// 欧米伝播史は WorldPvMap 内 TimelineSidebar に一元化（親 Card との二重表示を防ぐ）
+⋮----
+if (
+            v === "vendors" ||
+            v === "nonprofits" ||
+            v === "oss" ||
+            v === "ecosystem" ||
+            v === "cell-types"
+)
+⋮----
+{/* 国詳細／ランキング Card 展開時は右端を空け、コントロールバーが下敷きにならないよう可視域内に収める */}
+⋮----
+// <lg: ボトムシート（マップ上部を常時可視、ピン操作を阻害しない）
+⋮----
+// >=lg: 右側絶対配置オーバーレイ（地図を押し縮めない）
+⋮----
+aria-label=
+⋮----
+} catch { /* fall through */ }
+⋮----
+} catch { /* fall through */ }
+⋮----
+
+⋮----
+jumpToSurfacesTabForCountry(selectedCountry)
+⋮----
+milestoneLabel=
+⋮----
+{/* Hide inner ①②③ tabs — parent owns model selection for chip sync.
+              remount on locale / viewMode so wiringFlow + SVG overlays refresh.
+              Hide default wiring-step cards (5th child); re-render below as hardware specs. */}
+⋮----
+onSelectOssTab=
+⋮----
+{/* Hardware wiring specs only — software overlays live on the SVG above */}
+</file>
+
+<file path="features/living-sense/components/living-card.tsx">
+import { useTranslations } from "next-intl"
+import { Laptop, Fan, Coffee, Smartphone, Waves, ShieldCheck, Moon, type LucideIcon } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import type { LivingCard as LivingCardData } from "../data"
+</file>
+
+<file path="features/living-sense/components/power-flow-diagram.tsx">
+import { useTranslations } from "next-intl"
+import { Sun, BatteryCharging, Laptop, type LucideIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import type { FlowNode } from "../data"
+⋮----
+className=
+</file>
+
+<file path="features/network/data.ts">
+// Mock for react-flow-visualizer / modular-microgrid-vn. Static — no API.
+⋮----
+export type NetworkLocale = "ja" | "en"
+⋮----
+/** Japan map site id — sourced from Notion「再生可能エネルギーの導入事例（日本）」 */
+export type NetworkModel =
+  | "ichinoseki-solar-sharing"
+  | "goto-tidal"
+  | "goto-floating-wind"
+  | "kairyu-ocean-current"
+  | "fh2r"
+  | "gifu-biomass"
+  | "yumesakura-p2g"
+  | "choshi-offshore-wind"
+  | "tomakomai-biomass"
+  | "kumejima-otec"
+  | "katatsumuri-geothermal"
+  | "wasabizawa-geothermal"
+  | "nagayoshigawa-hydro"
+  | "hiratsuka-wave"
+⋮----
+/** Japan RE map filter / pin category (再エネ種別) */
+export type ModelCategory =
+  | "solar"
+  | "wind"
+  | "ocean"
+  | "biomass"
+  | "geothermal"
+  | "hydro"
+  | "hydrogen"
+⋮----
+/** Macro region for map camera / filter */
+export type MapRegionFocus =
+  | "all"
+  | "hokkaido"
+  | "tohoku"
+  | "kanto"
+  | "chubu"
+  | "kansai"
+  | "kyushu"
+  | "okinawa"
+  | "ocean"
+⋮----
+/** ステータス（Notion select） */
+export type CaseStatus =
+  | "commercial"
+  | "demo"
+  | "planning"
+  | "construction"
+⋮----
+export type NetworkNodeStatus = "normal" | "watch"
+⋮----
+export type NetworkNode = {
+  id: string
+  label: string
+  labelEn?: string
+  sublabel: string
+  sublabelEn?: string
+  kind: "supply" | "convert" | "consume"
+  icon:
+    | "sun-medium"
+    | "wind"
+    | "droplets"
+    | "flame"
+    | "battery-charging"
+    | "building-2"
+    | "home"
+    | "fuel"
+    | "sprout"
+  levelPct?: number
+  status?: NetworkNodeStatus
+}
+⋮----
+export type NetworkEdge = {
+  from: string
+  to: string
+}
+⋮----
+export type NetworkModelConfig = {
+  label: string
+  labelEn?: string
+  description: string
+  descriptionEn?: string
+  /** WGS84 [longitude, latitude] for react-simple-maps Marker */
+  coordinates: [number, number]
+  regionName: string
+  regionNameEn?: string
+  /** Primary pin color / filter category */
+  modelCategory: ModelCategory
+  /** All RE types on the case (Notion multi_select) */
+  energyTypes: ModelCategory[]
+  mapRegion: Exclude<MapRegionFocus, "all">
+  caseStatus: CaseStatus
+  scaleLabel: string
+  scaleLabelEn?: string
+  /** Demo self-sufficiency ratio (0–100); omit when not meaningful */
+  selfSufficiencyPct?: number
+  partners?: string
+  partnersEn?: string
+  paradigmPoint: string
+  paradigmPointEn?: string
+  sourceUrl?: string | null
+  nodes: NetworkNode[]
+  edges: NetworkEdge[]
+}
+⋮----
+/** WGS84 [longitude, latitude] for react-simple-maps Marker */
+⋮----
+/** Primary pin color / filter category */
+⋮----
+/** All RE types on the case (Notion multi_select) */
+⋮----
+/** Demo self-sufficiency ratio (0–100); omit when not meaningful */
+⋮----
+/** Country / plug-in PV regulation entry for map + detail sheet. */
+export type CountryDetails = {
+  system: string
+  legal: string
+  meter: string
+  payback: string
+  summary: string
+  connection: string
+  tenantRight: string
+  regulation: string
+}
+⋮----
+export type Country = {
+  id: string
+  name: string
+  nameEn: string
+  subtitle: string
+  subtitleEn: string
+  category: string
+  categoryEn: string
+  region: "europe" | "asia" | "others"
+  details: CountryDetails
+  detailsEn: CountryDetails
+}
+⋮----
+export type MapRegionTab = "all" | "europe" | "asia" | "others"
+⋮----
+export function uiText(
+  key: keyof typeof NETWORK_UI,
+  locale: NetworkLocale
+): string
+⋮----
+export function pickLocale<T extends { ja: string; en: string }>(
+  entry: T,
+  locale: NetworkLocale
+): string
+⋮----
+export function localizedNode(
+  node: NetworkNode,
+  locale: NetworkLocale
+): Pick<NetworkNode, "label" | "sublabel">
+⋮----
+export function localizedModel(
+  config: NetworkModelConfig,
+  locale: NetworkLocale
+):
+⋮----
+export function localizedCountry(
+  country: Country,
+  locale: NetworkLocale
+):
+⋮----
+export function matchesModelCategory(
+  config: Pick<NetworkModelConfig, "modelCategory" | "energyTypes">,
+  filter: ModelCategory | "all"
+): boolean
+⋮----
+export function categoryColor(category: ModelCategory): string
+⋮----
+export function networkMethodKey(
+  category: ModelCategory
+):
+  | "methodSolar"
+  | "methodWind"
+  | "methodOcean"
+  | "methodBiomass"
+  | "methodGeothermal"
+  | "methodHydro"
+  | "methodHydrogen" {
+switch (category)
+⋮----
+export function caseStatusKey(
+  status: CaseStatus
+):
+  | "statusCommercial"
+  | "statusDemo"
+  | "statusPlanning"
+  | "statusConstruction" {
+switch (status)
+⋮----
+export function energyTypeFilterKey(
+  category: ModelCategory
+):
+  | "japanMapFilterSolar"
+  | "japanMapFilterWind"
+  | "japanMapFilterOcean"
+  | "japanMapFilterBiomass"
+  | "japanMapFilterGeothermal"
+  | "japanMapFilterHydro"
+  | "japanMapFilterHydrogen" {
+switch (category)
+⋮----
+export function localizedMapSite(
+  config: NetworkModelConfig,
+  locale: NetworkLocale
+):
+</file>
+
+<file path=".cursorrules">
+### Living Energy UI デザインシステム統一規約 (Design System Rules) v2.0
+
+画面間（シミュレーション、世界実装、パネル種類、エコシステム等）のデザイン乖離・手戻りを防ぐため、コンポーネント実装時はトップページおよび世界実装ビューのトンマナを厳守すること。
+
+#### 1. タイポグラフィ階層（font-size 縮小化の禁止）
+- **text-[10px] や text-[11px] の多用は全面禁止**。全体的に文字が小さくなりすぎるのを防ぐ。
+- 階層基準（Tailwind CSS）：
+  - **ページ・重要数値見出し**: `text-2xl` 〜 `text-4xl` (`font-bold`)
+  - **カード見出し・セクション大項目**: `text-base` (`font-semibold text-slate-100`)
+  - **標準本文・主要ラベル・ボタン**: `text-sm` (`font-medium text-slate-200`)
+  - **補足注記・メタ情報（最小サイズ）**: `text-xs` (`text-slate-400`。これ未満のサイズは使用不可)
+
+#### 2. カラーパレット統一規約（ダーク＆エメラルドグリーン基調）
+全画面共通のトーン（ダークネイビー × エメラルド）をブランドの基本色とし、ページ間でベースカラーや背景色に差異が出ないよう厳守する。
+- **ベース背景（全画面共通）**: `bg-[#0B0F17]` 〜 `bg-slate-950`
+- **サーフェス・カード背景**: `bg-slate-900/60` または `bg-[#111827]/70`（`border border-slate-800/60` を併用）
+- **プライマリアクセント（ブランドカラー）**: `emerald-500` (`#10B981`)
+  - スコア、ハイライト、進行ゲージ、主要ボタン、推奨パネルバッジのアクティブ状態はすべてエメラルドグリーン系で統一。
+- **セカンダリ・ステータスカラーの使用制限**:
+  - シアン（`sky` / `cyan`）、イエロー（`amber`）、レッド（`rose`）は警告や物理系統の区別など「真に必要な文脈」にのみ限定し、単一カード内に多色を混在させない。
+
+#### 3. コンポーネント・装飾の引き算ルール（カード構造の標準化）
+- **3Dサーフェイス・建築形態一覧カード等の構造**:
+  - **ヘッダー部**: 一般生活者向けの親しみやすいタイトル＋国名タグを最下部に配置（専門的・冗長な工法バッジや角度・光属性バッジはヘッダーから除外）。
+  - **ビジュアル部**: 3Dシミュレーションのレンダリング画像のみ。下部の説明文や操作ガイド（「ドラッグで回転」等）は完全削除。
+  - **メタデータ部**: タイプ（例：バルコニー）および推奨パネル（エメラルド強調）を上段に、国名タグを下段に配置する2段構成。
+- **ピル・タグ・バッジのトーン統一**:
+  - 安っぽい大きな丸み（`rounded-full` 等）を排除し、シャープでソリッドな角（`rounded-md`）を採用。
+  - 非アクティブ: `bg-slate-900/80 text-slate-300 border border-slate-700/60`
+  - アクティブ/推奨パネル: `border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-medium`
+
+#### 4. 空間設計・余白・背景深度（Spatial System & Elevation Rules）
+画面の窮屈感・認知負荷を解消し、「呼吸感のある余白」を保つため、以下のレイアウト数値を一律厳守すること。
+
+##### ① 背景深度の3レイヤー設計（黒つぶれ防止）
+画面内の背景色は以下の3段階のみを使用し、要素同士を直接同色で重ねない：
+- **Layer 0（ベース背景 / キャンバス）**: `bg-[#0B0F17]` または `bg-slate-950`
+- **Layer 1（セクション外枠 / コンテナパネル）**: `bg-slate-900/40` + `border border-slate-800/80` + `rounded-2xl`
+- **Layer 2（カード / インタラクティブ要素）**: `bg-slate-900/80` + `border border-slate-800` + `rounded-xl`
+  - ※ホバー時: `hover:bg-slate-800/80 hover:border-slate-700`
+
+##### ② 余白（Padding / Gap）の最低下限ルール
+狭小な余白（`p-2`, `p-3`, `gap-2`）のカードレイアウトは禁止。
+- **カード内パディング**: 原則 **`p-5` 〜 `p-6`**（20px〜24px）を標準とする。`p-4` 未満は原則禁止。
+- **セクション間の垂直余白**: 主要ブロック間は **`space-y-8` 〜 `space-y-10`**（32px〜40px）を空け、視線の区切りを作る。
+- **グリッドギャップ**: カード一覧グリッド（Grid）は **`gap-6`**（24px）以上を確保する（`gap-3` や `gap-4` で詰め込まない）。
+- **フォーム・選択ボタン列の余白**: ラベルとボタングループ間は `mb-3`、選択肢ピル間は `gap-2` 〜 `gap-2.5`。
+
+##### ③ 認知負荷低減のタイポグラフィ行間・情報密度
+- **行間（Leading）**: 本文や説明文は必ず `leading-relaxed`（1.625）または `leading-normal` を指定し、行同士が接触しないようにする。
+- **カード内セクション分離**: カード内の小セクション間には、`space-y-4` や控えめな区切り（`border-t border-slate-800/60 pt-3`）を設け、境界を明確にする。
+- **ラベルと値のコントラスト**:
+  - ラベル（項目名）: `text-xs font-semibold text-slate-400 uppercase tracking-wider`
+  - データ値/本文: `text-sm font-medium text-slate-200`
+
+#### 5. 文言・コピーの統一規約（生活者向け学習体験）
+画面上のテキストはすべて、「専門知識を持たないユーザーがベランダソーラー・再エネの知識を深められること」を目的に統一する。
+- **読み手の前提**: 電気・建築・太陽光の専門用語に詳しくない一般生活者を想定する。
+- **タイトル・ラベル**: 専門セル名・工法名・規格名（例：単結晶Si、CIGS、BIPV、VDE）をそのまま出さず、直感的な生活者向けの名称に言い換える。
+- **説明文**: 「何が起きるか／自分のベランダで何が変わるか」が先に伝わる語り口にし、必要な専門語は括弧や短文で補足するにとどめる。
+- **学習の導線**: 用語の羅列や産業向けスペック表記にせず、比較・選択・理解が進む文言（適した場所、重さ、取り付けのしやすさなど）を優先する。
+- **トーンの一貫性**: 画面間で同じ概念には同じ言い回しを使い、技術寄りと生活寄りが混在しないようにする。
+</file>
+
+<file path="features/network/components/network-view.tsx">
+import { useState } from "react"
+import { useLocale } from "next-intl"
+import { cn } from "@/lib/utils"
+import { JapanReMap } from "./japan-re-map"
+import { NetworkDetailSidebar } from "./network-detail-sidebar"
+import {
+  type NetworkLocale,
+  type NetworkModel,
+} from "../data"
+⋮----
+function toNetworkLocale(locale: string): NetworkLocale
+⋮----
+export function NetworkView()
+</file>
+
+<file path="package.json">
+{
+  "name": "my-project",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "dump": "node scripts/dump-context.mjs"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.5.0",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "@vercel/analytics": "1.6.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "d3-geo": "^3.1.1",
+    "lucide-react": "^1.16.0",
+    "next": "16.3.0",
+    "next-intl": "^4.14.6",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-simple-maps": "^5.0.5",
+    "shadcn": "^4.8.0",
+    "tailwind-merge": "^3.3.1",
+    "three": "^0.180.0",
+    "topojson-client": "^3.1.0",
+    "tw-animate-css": "^1.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/d3-geo": "^3.1.1",
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.180.0",
+    "@types/topojson-client": "^3.1.5",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "hono": "4.12.25"
+    }
+  }
+}
+</file>
+
+<file path="features/living-sense/components/home-view.tsx">
+import { useTranslations } from "next-intl"
+import { Zap, Leaf, PiggyBank, ShieldCheck } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { LivingCard } from "./living-card"
+import { PowerFlowDiagram } from "./power-flow-diagram"
+import { LIVING_CARDS, FLOOD_LIVING_CARDS, FLOOD_STATUS, LIVE_STATUS, HOME_FLOW } from "../data"
+⋮----
+<CardTitle className="text-base font-semibold text-slate-100">
+</file>
+
+<file path="features/network/components/network-flow.tsx">
+import { useEffect, useRef, useState } from "react"
+import { useLocale } from "next-intl"
+import {
+  SunMedium,
+  Wind,
+  Droplets,
+  Flame,
+  BatteryCharging,
+  Building2,
+  Home,
+  Fuel,
+  Sprout,
+  type LucideIcon,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  localizedNode,
+  uiText,
+  type NetworkEdge,
+  type NetworkLocale,
+  type NetworkNode,
+} from "../data"
+⋮----
+type LinePos = { x1: number; y1: number; x2: number; y2: number; key: string; active: boolean }
+⋮----
+function toNetworkLocale(locale: string): NetworkLocale
+⋮----
+function measure()
+⋮----
+if (el) nodeRefs.current.set(node.id, el)
+</file>
+
+<file path="features/balcony-pv/components/balcony-illustration.tsx">
+import { useState, type CSSProperties } from "react"
+import { useLocale, useTranslations } from "next-intl"
+import { ChevronLeft, PanelRightClose, PanelRightOpen } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import {
+  SURFACE_TYPOLOGIES,
+  getPanelTiltOption,
+  resolveDefaultTiltMode,
+  typologyToBalconyType,
+  typologyToRoofType,
+  type BalconyType,
+  type Direction,
+  type RailingType,
+  type RoofType,
+  DEFAULT_LIVING_CONTEXT,
+  type LivingContext,
+  type SurfaceTypology,
+  type SurfaceTypologyDetail,
+  type WeatherCondition,
+} from "../simulator-data"
+import {
+  getSolarCellTypesForSurface,
+  type SolarCellTypeDetail,
+  type SolarCellTypeId,
+} from "../data"
+⋮----
+type SurfaceCategoryFilter = "all" | "balcony" | "roof"
+⋮----
+export type BalconyIllustrationProps = {
+  direction: Direction
+  railing: RailingType
+  hour: number
+  balconyType?: BalconyType
+  roofType?: RoofType
+  /** Optional typology override (bridges to balcony/roof presets). */
+  typologyId?: SurfaceTypology
+  /** Panel tilt from horizontal (degrees); drives mesh X-axis rotation. */
+  tiltDeg?: number
+  /** Stow / 出仕舞い — fold panels flat inside the rail. */
+  isRetracted?: boolean
+  /** Laundry / egress / weather overlays for lived-experience simulation. */
+  livingContext?: LivingContext
+  /** Show 60 cm egress stripe + hatch no-go zones. */
+  showEgressOverlay?: boolean
+}
+⋮----
+/** Optional typology override (bridges to balcony/roof presets). */
+⋮----
+/** Panel tilt from horizontal (degrees); drives mesh X-axis rotation. */
+⋮----
+/** Stow / 出仕舞い — fold panels flat inside the rail. */
+⋮----
+/** Laundry / egress / weather overlays for lived-experience simulation. */
+⋮----
+/** Show 60 cm egress stripe + hatch no-go zones. */
+⋮----
+function LifeLayerDefs()
+⋮----
+if (collapsed)
+⋮----
+if (weather === "overcast_tsuyu") return 0.72
+  if (weather === "typhoon_alert") return 0.85
+  return 0.5
+}
+
+function weatherSunOpacity(weather: WeatherCondition): number
+⋮----
+/** Panel group style: X-axis CSS rotate (+ stow pose). */
+⋮----
+height=
+⋮----
+/** Juliet: no protruding deck — French doors + rail/glass with thin-film mesh. */
+⋮----
+{/* building façade */}
+⋮----
+{/* door handles */}
+⋮----
+/** Recessed / loggia: setback walls, ceiling, and side cheeks with shade. */
+⋮----
+{/* outer façade plane */}
+⋮----
+{/* left cheek wall (perspective) */}
+⋮----
+{/* right cheek wall */}
+⋮----
+{/* ceiling soffit */}
+⋮----
+{/* setback back wall */}
+⋮----
+{/* recessed deck floor */}
+⋮----
+{/* side-wall cast shade on deck */}
+⋮----
+{/* PV on recessed deck */}
+⋮----
+{/* front rail of loggia */}
+⋮----
+/** Roof terrace: flat roof plane as primary surface. */
+⋮----
+const panelStyle = panelTiltStyle(tiltDeg, isRetracted)
+⋮----
+/** Pitched gable — steep slate roof with PV highlight band. */
+⋮----
+{/* gable silhouette */}
+⋮----
+{/* slate course lines */}
+⋮----
+{/* eaves / wall */}
+⋮----
+/** Mansard + dormer — steep outer pitch with dormer cheek highlight. */
+⋮----
+{/* mansard outer steep faces */}
+⋮----
+{/* upper shallow pitch */}
+⋮----
+{/* dormer body */}
+⋮----
+{/* PV on mansard pitch flanking dormer */}
+⋮----
+{/* slate hint lines */}
+⋮----
+if (!typologyId) return
+⋮----
+// hour ranges 8-17. Map to sun arc position: t=0 at 8:00, t=1 at 17:00.
+⋮----
+// Elevation peaks at solar noon (t ~ 0.5).
+⋮----
+// Longer shadows at low elevation.
+⋮----
+<svg viewBox="0 0 300 200" className="h-56 w-full" role="img" aria-label=
+⋮----
+{/* sky */}
+⋮----
+{/* UK pitched roofs sit in the upper / background plane */}
+⋮----
+{/* balcony / terrace receiving surface */}
+⋮----
+{/* When a pitched roof is selected with standard deck, keep a simple floor under eaves */}
+⋮----
+/** Prevalent-country tags shared by typology cards and world-impl surfaces list. */
+⋮----
+/** Mount-method + de-shimai badges for install-job support. */
+⋮----
+/** Reverse link: open a panel typology card. */
+⋮----
+/** Single typology-first catalog card (title = pure form geometry, not country). */
+⋮----
+e.stopPropagation()
+onNavigateToCell?.(cell.id)
+⋮----
+/** セル／パネル4大タイポロジーの2Dプレビュー（ETFEハトメ・折り紙など） */
+⋮----
+{/* Thin ETFE plate */}
+⋮----
+{/* Grommets (ハトメ) at corners */}
+⋮----
+{/* Soft edge curl */}
+⋮----
+{/* Rigid origami fold — center + angled wings */}
+⋮----
+onNavigateToCountry?.(code)
+⋮----
+/** Deduplicate master rows by typology id (guards against accidental double registration). */
+⋮----
+/** Typology-first 3D surface / architecture list (replaces country-led cards). */
+</file>
+
+<file path="features/balcony-pv/components/world-pv-map.tsx">
+import React, { useLayoutEffect, useRef, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { ExternalLink, FolderGit2, Minus, Plus, RotateCcw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+} from 'react-simple-maps';
+import {
+  CountryPvDetail,
+  AFRICA_LEAPFROG_TIMELINE,
+  ASIA_OCEANIA_TRANSITION_TIMELINE,
+  COMMON_OSS_PROJECTS,
+  INDIA_LIVELIHOOD_TIMELINE,
+  MARKET_ECOSYSTEM_TOPOLOGIES,
+  MOVEMENT_HISTORY_PHASES,
+  SOUTHEAST_ASIA_ISLAND_TIMELINE,
+  WORLD_BALCONY_PV_COUNTRIES,
+  getAfricaLeapfrogPhaseById,
+  getAsiaOceaniaPhaseById,
+  getIndiaLivelihoodPhaseById,
+  getMarketEcosystemForCountry,
+  getMarketEcosystemTopology,
+  getMaturityScore,
+  getMovementPhaseById,
+  getSoutheastAsiaIslandPhaseById,
+  matchesModelFilter,
+  resolveEcosystemNodeTools,
+  resolveRegionCategory,
+  type AfricaLeapfrogPhaseId,
+  type AsiaOceaniaPhaseId,
+  type CountryTimelineMilestone,
+  type CountryTimelinePhase,
+  type EcosystemNodeToolDetail,
+  type EcosystemToolBinding,
+  type IndiaLivelihoodPhaseId,
+  type MarketEcosystemTopology,
+  type MilestoneKeyActor,
+  type MovementHistoryPhaseId,
+  type MovementMilestone,
+  type OssProject,
+  type RegionCategory,
+  type SoutheastAsiaIslandPhaseId,
+} from '../data';
+⋮----
+/** Hardware = physical wiring only; software = capability overlays on the SVG. */
+export type EcosystemDiagramViewMode = 'hardware' | 'software';
+⋮----
+type EcoOverlayAnchor = 'above' | 'left';
+⋮----
+function toolsForNode(
+  topology: MarketEcosystemTopology,
+  target: EcosystemToolBinding['targetNode'],
+  viewMode: EcosystemDiagramViewMode,
+  isEn: boolean,
+): EcosystemNodeToolDetail[]
+⋮----
+interface WorldPvMapProps {
+  selectedCountryId: string;
+  onSelectCountry: (country: CountryPvDetail | null) => void;
+  isRankingOpen: boolean;
+  onRankingOpenChange: (open: boolean) => void;
+  isMovementHistoryOpen: boolean;
+  onMovementHistoryOpenChange: (open: boolean) => void;
+  historyPhase: MovementHistoryPhaseId | null;
+  onHistoryPhaseChange: (phase: MovementHistoryPhaseId | null) => void;
+  /** サイドバーのマイルストーン連動用。regionId を渡すとピン強調・パンする */
+  historyFocusRegionId?: string | null;
+  /** ISO country codes to pulse/highlight (from panel → map linking). */
+  highlightCountryCodes?: readonly string[];
+}
+⋮----
+/** サイドバーのマイルストーン連動用。regionId を渡すとピン強調・パンする */
+⋮----
+/** ISO country codes to pulse/highlight (from panel → map linking). */
+⋮----
+type RegionFocus = 'all' | RegionCategory;
+⋮----
+type MapCamera = { center: [number, number]; zoom: number };
+⋮----
+/** Mobile width (< sm / 768px) → europe; desktop → all. */
+function getDefaultRegionFocus(): RegionFocus
+⋮----
+/** Leaf (and non-grouped) regions rendered as map pins. */
+⋮----
+function clampZoom(z: number)
+⋮----
+/** Per-country label offset so dense clusters (W. Europe / E. Africa) don't overlap. */
+const getLabelOffset = (id: string):
+⋮----
+// 西欧クラスタ
+⋮----
+return { x: -12, y: -16, textAnchor: 'end' }; // イギリス: 左上
+⋮----
+return { x: -8, y: -12, textAnchor: 'end' }; // ベルギー: 左上寄り
+⋮----
+return { x: 12, y: -16, textAnchor: 'start' }; // ドイツ: 右上
+⋮----
+return { x: -16, y: 0, textAnchor: 'end' }; // フランス: 左横
+⋮----
+return { x: 0, y: -13, textAnchor: 'middle' }; // スイス: 真上
+⋮----
+return { x: 16, y: -6, textAnchor: 'start' }; // オーストリア: 右横
+⋮----
+return { x: 0, y: 16, textAnchor: 'middle' }; // イタリア: 下
+⋮----
+// 東アフリカクラスタ
+⋮----
+return { x: 12, y: -12, textAnchor: 'start' }; // エチオピア: 右上
+⋮----
+return { x: -12, y: -12, textAnchor: 'end' }; // ウガンダ: 左上
+⋮----
+return { x: 14, y: 0, textAnchor: 'start' }; // ケニア: 右横
+⋮----
+return { x: -14, y: 8, textAnchor: 'end' }; // ルワンダ: 左下
+⋮----
+return { x: 0, y: 18, textAnchor: 'middle' }; // タンザニア: 下
+⋮----
+// 北米クラスタ
+⋮----
+return { x: -14, y: 0, textAnchor: 'end' }; // カリフォルニア: 左横
+⋮----
+return { x: -14, y: -12, textAnchor: 'end' }; // ユタ: 左上（COと分離）
+⋮----
+return { x: 14, y: 10, textAnchor: 'start' }; // コロラド: 右下
+⋮----
+// 東海岸・ニューイングランド（近接ピンのラベル扇状配置）
+⋮----
+return { x: 18, y: -16, textAnchor: 'start' }; // メイン: 右上
+⋮----
+return { x: 20, y: 2, textAnchor: 'start' }; // ニューハンプシャー: 右横
+⋮----
+return { x: -18, y: -12, textAnchor: 'end' }; // バーモント: 左上
+⋮----
+return { x: 16, y: 16, textAnchor: 'start' }; // コネチカット: 右下
+⋮----
+return { x: 18, y: -10, textAnchor: 'start' }; // メリーランド: 右上
+⋮----
+return { x: -16, y: 14, textAnchor: 'end' }; // バージニア: 左下
+⋮----
+function statusColor(status: CountryPvDetail['status']): string
+⋮----
+function historyPhaseRegion(
+  phase: MovementHistoryPhaseId | null
+): 'europe' | 'americas' | null
+⋮----
+/** マイルストーン内の非営利団体・突破アクションサブカード（欧米・アフリカ共通） */
+⋮----
+onPointerDown=
+⋮----
+/** 欧米伝播史・アフリカ跳躍史で共用するタイムラインサイドバー */
+⋮----
+/** 国別詳細ドロワー「タイムライン」タブ用（フェーズ折りたたみ＋縦軸） */
+⋮----
+const togglePhase = (idx: number) =>
+⋮----
+/** 省略時は共通 OSS + 各国 localTools を一覧表示（トップレベルタブ用） */
+⋮----
+/** OSS / ツール一覧（トップレベルタブ。非営利一覧と同型のカードグリッド） */
+⋮----
+/** Software-mode capability cards (empty / omitted in hardware mode). */
+⋮----
+{/* Floating software overlay — outside the node box so arrows stay intact */}
+⋮----
+{/* flowing dots along the path */}
+⋮----
+/** ① プラグイン公認: 発電→変換→壁コンセント→二股（自家消費 / スマートメーター↔系統） */
+⋮----
+// Extra top pad when software overlays float above nodes.
+⋮----
+{/* bifurcation fork — short stems into stacked branches */}
+⋮----
+{/* Lower branch: smart meter ↔ grid as one compact cluster */}
+⋮----
+/** ② 逆潮流禁止: PV→蓄電→家電の閉ループ + 系統境界の防壁 */
+⋮----
+// Top pad for battery overlay; left pad for appliances overlay.
+⋮----
+{/* household closed loop area */}
+⋮----
+{/* barrier wall */}
+⋮----
+/** ③ オフグリッド跳躍: 系統不在 + PV→蓄電→直結負荷 */
+⋮----
+{/* severed grid */}
+⋮----
+/** When set, initial model follows the country; omit for top-level market-model browser. */
+⋮----
+/** Optional override (map model filter / GridCategory / ecosystem modelId). */
+⋮----
+/** Hardware = wiring only; software = floating capability overlays on the SVG. */
+⋮----
+/** Jump to OSS tools tab when an inline topology badge is clicked. */
+⋮----
+/** 市場モデル別の給電トポロジー（トップレベル「エコシステム・給電図」タブ） */
+⋮----
+{/* 環境前提条件（診断バッジ） */}
+⋮----
+// SP (< 768px) のみ初期リージョンを欧州に。SSR/ハイドレーション不一致を避けるためマウント後に判定。
+⋮----
+// アフリカ跳躍史オープン時: 大陸中心へパン＆ズーム
+⋮----
+// アジア・オセアニア転換史オープン時: 域内中心へパン＆ズーム
+⋮----
+// インド生計跳躍史オープン時: インド中心へパン＆ズーム
+⋮----
+// 東南アジア島嶼・分散跳躍史オープン時: 域内中心へパン＆ズーム
+⋮----
+// 欧米伝播史が親から開いたら他年表を閉じる（排他）
+⋮----
+/** 欧米普及ムーブメント: クリック時のみ排他トグル（ホバー開閉なし） */
+⋮----
+/** @param forceOpen true のときトグルせず必ず開く（インドピン連動用） */
+⋮----
+/** @param forcePinId マップピン連動時にフォーカスする国 id（`vn` / `sg` / `indonesia` / `philippines`） */
+⋮----
+if (africaOpenPhases.has(id))
+⋮----
+if (indiaOpenPhases.has(id))
+⋮----
+const focusAfricaMilestone = (regionId: string) =>
+⋮----
+const focusAsiaMilestone = (regionId: string) =>
+⋮----
+const focusIndiaMilestone = (regionId: string) =>
+⋮----
+const focusSeaMilestone = (regionId: string) =>
+⋮----
+const focusMovementMilestone = (phaseId: MovementHistoryPhaseId, regionId: string) =>
+⋮----
+const isInFocus = (country: CountryPvDetail) =>
+⋮----
+e.stopPropagation();
+selectPin();
+⋮----
+{/* 欧米伝播史・アフリカ跳躍史（共通 TimelineSidebar） */}
+⋮----
+onFocusMilestone=
+</file>
+
+<file path="features/shell/components/app-shell.tsx">
+import dynamic from "next/dynamic"
+import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
+import { Sun, Network, Globe2, Leaf, PanelLeft } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { RegionHeader } from "./region-header"
+import { REGIONS } from "@/lib/regions"
+⋮----
+function ViewChunkLoading()
+⋮----
+const selectView = (id: ViewId) =>
+⋮----
+className=
+</file>
+
+<file path="features/balcony-pv/components/balcony-view.tsx">
+import dynamic from "next/dynamic"
+import { useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
+import { Gauge, PackageCheck } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Slider } from "@/components/ui/slider"
+import { Badge } from "@/components/ui/badge"
+import { BalconyIllustration } from "./balcony-illustration"
+import {
+  DIRECTIONS,
+  RAILING_TYPES,
+  computeBalconyLifeCompliance,
+  computeBalconyScore,
+  DEFAULT_LIVING_CONTEXT,
+  recommendedKit,
+  type Direction,
+  type LivingContext,
+  type LivingHabit,
+  type PanelTiltMode,
+  type RailingType,
+  type WeatherCondition,
+} from "../simulator-data"
+⋮----
+type BalconyTab = "simulator" | "living-sense"
+⋮----
+function formatHour(hour: number)
+⋮----
+function scoreBand(score: number): "excellent" | "good" | "fair" | "poor"
+⋮----
+<CardTitle className="text-base font-semibold text-slate-100">
+⋮----
+onValueChange=
+</file>
+
+<file path="features/balcony-pv/data.ts">
+// World-map / ecosystem / architecture mock for balcony-plug-in-pv.
+// Simulator & typology primitives re-exported from ./simulator-data.
+⋮----
+import type { CountryCode } from '@/lib/country-codes'
+import type { WorldMacroRegion } from '@/lib/regions'
+import {
+  getSurfaceTypologyDetail,
+  SURFACE_TYPOLOGIES,
+  type SurfaceTypology,
+  type SurfaceTypologyDetail,
+  type TypicalRegionKey,
+} from './simulator-data'
+⋮----
+/** Continental / macro region for world-map focus filters (4 poles). */
+export type RegionCategory = WorldMacroRegion
+⋮----
+/**
+ * Deployment / authorization model (locale-independent).
+ * Legacy `status` values remain for map color / legend compatibility.
+ */
+export type SystemModelType =
+  | 'plug_800w'
+  | 'plug_1200w'
+  | 'plug_600w'
+  | 'net_metering'
+  | 'offgrid_storage'
+  | 'nec_strict'
+  | 'productive_offgrid'
+  | 'micro_solar_kit'
+⋮----
+/**
+ * Parent infrastructure category (locale-independent).
+ * ① grid_plug_in — outlet plug-in (EU, CA/UT, AU, SG, Cape Town, …)
+ * ② grid_hybrid_storage — export-restricted storage hybrid (JP/TW/CN/VN/ID/PH, US-TX/FL/NY, …)
+ * ③ grid_blackout_defense — unstable-grid / blackout self-defense (ZA, NG, KE, RW)
+ * ④ no_grid_leapfrog — unelectrified / independent power (ET, SN, TZ, UG, IN, …)
+ */
+export type GridCategory =
+  | 'grid_plug_in'
+  | 'grid_hybrid_storage'
+  | 'grid_blackout_defense'
+  | 'no_grid_leapfrog'
+⋮----
+/** Flat map-header filter ids (all + 4 market models). */
+⋮----
+export type WorldPvModelFilterOption = (typeof WORLD_PV_MODEL_FILTER_OPTIONS)[number]
+⋮----
+/** systemModel → parent gridCategory (code-level overrides in resolveGridCategory). */
+⋮----
+/** ISO / subnational code → GridCategory (splits Africa urban blackout vs Asia hybrid). */
+⋮----
+/** Authorization / deployment status shown on the world map. */
+export type CountryPvStatusKind =
+  | 'legal_plug'
+  | 'appliance_notified'
+  | 'storage_only'
+  | 'strict_code'
+  | 'plug_exemption'
+  | 'productive_offgrid'
+  | 'micro_solar_kit'
+⋮----
+/** ISO country or US-state / subnational code used on the map. */
+export type PvRegionCode =
+  | CountryCode
+  | 'NG'
+  | 'ET'
+  | 'KE'
+  | 'ZA'
+  | 'RW'
+  | 'TZ'
+  | 'UG'
+  | 'SN'
+  | 'AU'
+  | 'VN'
+  | 'IN'
+  | 'SG'
+  | 'ID'
+  | 'PH'
+  | 'TW'
+  | 'US-UT'
+  | 'US-CA'
+  | 'US-CO'
+  | 'US-WA'
+  | 'US-OR'
+  | 'US-AZ'
+  | 'US-ME'
+  | 'US-VA'
+  | 'US-MD'
+  | 'US-CT'
+  | 'US-VT'
+  | 'US-NH'
+  | 'US-MN'
+  | 'US-TX'
+  | 'US-FL'
+  | 'US-NY'
+  | 'NZ'
+  | 'ZA-CPT'
+  | 'BR'
+⋮----
+/** Global / widely distributed equipment vendor IDs (locale-independent). */
+export type AdoptedVendorId =
+  | 'enphase'
+  | 'hoymiles'
+  | 'anker-solix'
+  | 'ecoflow'
+  | 'jackery'
+  | 'tesla-energy'
+  | 'mkopa'
+  | 'sun-king'
+  | 'dlight'
+  | 'priwatt'
+  | 'yuma'
+  | 'solaredge'
+  | 'sunrun'
+  | 'goodleap'
+⋮----
+/** Country-level history milestone (balcony / rooftop / plug-in PV). */
+export interface CountryTimelineMilestone {
+  date: string // e.g. "2014-12", "2020-03", "2024-05"
+  category: 'policy' | 'civil-movement' | 'grid-rule' | 'urban-housing'
+  titleJa: string
+  titleEn: string
+  descriptionJa: string
+  descriptionEn: string
+  orgName?: string
+  orgUrl?: string
+  breakthrough?: string // barrier overcome / contested issue
+  outcome?: string // win / adoption result
+}
+⋮----
+date: string // e.g. "2014-12", "2020-03", "2024-05"
+⋮----
+breakthrough?: string // barrier overcome / contested issue
+outcome?: string // win / adoption result
+⋮----
+/** Phase grouping for a country's renewable / balcony-PV history. */
+export interface CountryTimelinePhase {
+  period: string // e.g. "2010年代半ば〜2020", "2024〜2026"
+  phaseTitleJa: string
+  phaseTitleEn: string
+  milestones: CountryTimelineMilestone[]
+}
+⋮----
+period: string // e.g. "2010年代半ば〜2020", "2024〜2026"
+⋮----
+/** Local-first / OSS tools for autonomous energy control (EMS, firmware, automation). */
+export interface OssProject {
+  id: string
+  name: string
+  category: 'ems' | 'firmware' | 'automation' | 'protocol' | 'community'
+  descriptionJa: string
+  descriptionEn: string
+  repoUrl?: string
+  siteUrl?: string
+  starsOrBadge?: string
+  /** Job hired (e.g. cloud-off, fully local control). */
+  keyJobJa: string
+  keyJobEn: string
+  compatibleHardwareJa?: string
+  compatibleHardwareEn?: string
+}
+⋮----
+/** Job hired (e.g. cloud-off, fully local control). */
+⋮----
+/**
+ * Globally useful OSS / software for living-scale energy autonomy
+ * (no central grid SCADA / vendor cloud dependency).
+ */
+⋮----
+export interface CountryPvDetail {
+  id: string
+  name: string
+  /** English display name (locale bind). */
+  nameEn?: string
+  code: PvRegionCode
+  rating: string // 例: "★★★★★"
+  status: CountryPvStatusKind
+  statusLabel: string
+  /** Optional system-model tag (defaults inferred from status when omitted). */
+  systemModel?: SystemModelType
+  /**
+   * Parent infrastructure category (defaults inferred from code / systemModel).
+   * ① grid_plug_in / ② grid_hybrid_storage / ③ grid_blackout_defense / ④ no_grid_leapfrog
+   */
+  gridCategory?: GridCategory
+  /** Macro region for focus tabs (defaults inferred from id when omitted). */
+  regionCategory?: RegionCategory
+  /** Parent region id for US-state grouping (e.g. `'usa'`). */
+  parentId?: string
+  /** Locale-independent driver keys or short JA demo phrases. */
+  keyDrivers?: string[]
+  /** English counterparts for `keyDrivers`. */
+  keyDriversEn?: string[]
+  /** Locale-independent bottleneck keys or short JA demo phrases. */
+  bottlenecks?: string[]
+  /** English counterparts for `bottlenecks`. */
+  bottlenecksEn?: string[]
+  powerLimit: string
+  connectionMethod: string
+  /** Optional English override for connection method (locale bind). */
+  connectionMethodEn?: string
+  tenantRights: string
+  /** Optional English override for legal / tenant rights (locale bind). */
+  tenantRightsEn?: string
+  regulation: string
+  /** Optional English override for regulation label (locale bind). */
+  regulationEn?: string
+  costRange: string
+  paybackYears: string
+  baseLoadCoverage: string
+  incentives: string
+  antiIslanding: string
+  meterRequirement: string
+  windSafety: string
+  mountingRules: string
+  summary: string
+  /** Optional English override for summary (locale bind). */
+  summaryEn?: string
+  /** Map pin as [longitude, latitude]. */
+  coordinates: [number, number]
+  lastUpdated: string
+  /**
+   * Locale-independent vendor IDs suited to this region's rules / market
+   * (resolved via `PV_VENDORS`). Not shown in related-orgs.
+   */
+  adoptedVendors?: AdoptedVendorId[]
+  /** Historical phases for the country detail Timeline tab. */
+  timeline?: CountryTimelinePhase[]
+  /** Country-specific OSS / community tools (merged with COMMON_OSS_PROJECTS in the OSS tab). */
+  localTools?: OssProject[]
+}
+⋮----
+/** English display name (locale bind). */
+⋮----
+rating: string // 例: "★★★★★"
+⋮----
+/** Optional system-model tag (defaults inferred from status when omitted). */
+⋮----
+/**
+   * Parent infrastructure category (defaults inferred from code / systemModel).
+   * ① grid_plug_in / ② grid_hybrid_storage / ③ grid_blackout_defense / ④ no_grid_leapfrog
+   */
+⋮----
+/** Macro region for focus tabs (defaults inferred from id when omitted). */
+⋮----
+/** Parent region id for US-state grouping (e.g. `'usa'`). */
+⋮----
+/** Locale-independent driver keys or short JA demo phrases. */
+⋮----
+/** English counterparts for `keyDrivers`. */
+⋮----
+/** Locale-independent bottleneck keys or short JA demo phrases. */
+⋮----
+/** English counterparts for `bottlenecks`. */
+⋮----
+/** Optional English override for connection method (locale bind). */
+⋮----
+/** Optional English override for legal / tenant rights (locale bind). */
+⋮----
+/** Optional English override for regulation label (locale bind). */
+⋮----
+/** Optional English override for summary (locale bind). */
+⋮----
+/** Map pin as [longitude, latitude]. */
+⋮----
+/**
+   * Locale-independent vendor IDs suited to this region's rules / market
+   * (resolved via `PV_VENDORS`). Not shown in related-orgs.
+   */
+⋮----
+/** Historical phases for the country detail Timeline tab. */
+⋮----
+/** Country-specific OSS / community tools (merged with COMMON_OSS_PROJECTS in the OSS tab). */
+⋮----
+/** Map legend rows (labels: `worldPv.map.*` or `label` fallback). */
+⋮----
+export function resolveSystemModel(country: CountryPvDetail): SystemModelType
+⋮----
+/** Resolve parent ①–④ category from code override, explicit field, or systemModel. */
+export function resolveGridCategory(country: CountryPvDetail): GridCategory
+⋮----
+// Legacy field value from before the ②/③ split.
+⋮----
+/** True when filter is a parent GridCategory id. */
+export function isGridCategoryFilter(filter: string): filter is GridCategory
+⋮----
+/**
+ * Model-dropdown match: `all` | parent GridCategory | leaf SystemModelType.
+ * Legacy `grid_no_plug` matches both ② hybrid and ③ blackout defense.
+ */
+export function matchesModelFilter(country: CountryPvDetail, filter: string): boolean
+⋮----
+// ---------------------------------------------------------------------------
+// Market ecosystem / power-flow topology (① plug-in · ② no-export · ③ off-grid)
+// ---------------------------------------------------------------------------
+⋮----
+/** Locale-independent market-ecosystem model id (maps from GridCategory). */
+export type MarketEcosystemModelId =
+  | 'grid_plugin_allowed'
+  | 'grid_plugin_prohibited'
+  | 'offgrid_leapfrog'
+⋮----
+/** Circuit geometry for the ecosystem wiring diagram. */
+export type EcosystemTopologyShape =
+  | 'bifurcation' // ① wall-outlet fork: self-use + bidirectional grid export
+  | 'closed_loop' // ② PV→battery→loads loop with zero-export barrier
+  | 'standalone' // ③ grid-absent direct PV→battery→loads
+⋮----
+| 'bifurcation' // ① wall-outlet fork: self-use + bidirectional grid export
+| 'closed_loop' // ② PV→battery→loads loop with zero-export barrier
+| 'standalone' // ③ grid-absent direct PV→battery→loads
+⋮----
+/** Grid / pole presence for diagnostic badges. */
+export type EcosystemGridPresence = 'present' | 'absent'
+⋮----
+/** Outlet plug-in legal regime (locale-independent status). */
+export type EcosystemOutletLaw = 'certified' | 'prohibited' | 'n_a'
+⋮----
+/** Meter / reverse-flow measurement regime. */
+export type EcosystemMeterMode = 'bidirectional' | 'no_reverse' | 'not_required'
+⋮----
+/** Environmental preconditions shown above the topology diagram. */
+export type EcosystemPrerequisites = {
+  grid: {
+    status: EcosystemGridPresence
+    labelJa: string
+    labelEn: string
+  }
+  outletLaw: {
+    status: EcosystemOutletLaw
+    labelJa: string
+    labelEn: string
+  }
+  meter: {
+    status: EcosystemMeterMode
+    labelJa: string
+    labelEn: string
+  }
+}
+⋮----
+/** Power-wiring topology for a market model (detail-drawer Ecosystem tab). */
+export interface EcosystemToolBinding {
+  toolId: string // 'opendtu' | 'ahoydtu' | 'home-assistant' | 'solar-assistant' | 'node-red'
+  name: string
+  roleJa: string
+  roleEn: string
+  targetNode: 'conversion' | 'metering' | 'consumption'
+}
+⋮----
+toolId: string // 'opendtu' | 'ahoydtu' | 'home-assistant' | 'solar-assistant' | 'node-red'
+⋮----
+/** Living-sense appliance chip shown inside self-consumption / load nodes. */
+export interface PoweredAppliance {
+  icon: string // 'laptop' | 'fridge' | 'wifi' | 'fan' | 'smartphone' | 'pump' | 'lightbulb' 等
+  nameJa: string
+  nameEn: string
+  wattage: string
+}
+⋮----
+icon: string // 'laptop' | 'fridge' | 'wifi' | 'fan' | 'smartphone' | 'pump' | 'lightbulb' 等
+⋮----
+export interface MarketEcosystemTopology {
+  modelId: string // e.g. 'grid_plugin_allowed' | 'grid_plugin_prohibited' | 'offgrid_leapfrog'
+  titleJa: string
+  titleEn: string
+  badgeJa: string // e.g. "① 系統連系・プラグイン公認"
+  badgeEn: string
+  summaryJa: string
+  summaryEn: string
+  /** Geometric layout key for model-specific SVG wiring. */
+  topologyShape: EcosystemTopologyShape
+  /** Diagnostic badges: poles / outlet law / meter regime. */
+  prerequisites: EcosystemPrerequisites
+  wiringFlow: {
+    generation: string // e.g. "太陽光パネル (600W/800W)"
+    conversion: string // e.g. "マイクロインバータ (+ 蓄電池)"
+    connection: string // e.g. "230V壁コンセント直挿し (工事不要)"
+    metering: string // e.g. "スマートメーター (逆潮流計測・動的単価連動)"
+    consumption: string // e.g. "家庭内自家消費 (余剰は電力網または蓄電池へ)"
+  }
+  /** English counterparts for `wiringFlow` (locale bind). */
+  wiringFlowEn: {
+    generation: string
+    conversion: string
+    connection: string
+    metering: string
+    consumption: string
+  }
+  /** Concrete appliances / scenes powered under this market model. */
+  poweredAppliances: PoweredAppliance[]
+  applianceNoteJa: string
+  applianceNoteEn: string
+  keyFeaturesJa: string[]
+  keyFeaturesEn: string[]
+  /** Local OSS / autonomous-control bindings overlaid on hardware nodes. */
+  integratedTools: EcosystemToolBinding[]
+}
+⋮----
+modelId: string // e.g. 'grid_plugin_allowed' | 'grid_plugin_prohibited' | 'offgrid_leapfrog'
+⋮----
+badgeJa: string // e.g. "① 系統連系・プラグイン公認"
+⋮----
+/** Geometric layout key for model-specific SVG wiring. */
+⋮----
+/** Diagnostic badges: poles / outlet law / meter regime. */
+⋮----
+generation: string // e.g. "太陽光パネル (600W/800W)"
+conversion: string // e.g. "マイクロインバータ (+ 蓄電池)"
+connection: string // e.g. "230V壁コンセント直挿し (工事不要)"
+metering: string // e.g. "スマートメーター (逆潮流計測・動的単価連動)"
+consumption: string // e.g. "家庭内自家消費 (余剰は電力網または蓄電池へ)"
+⋮----
+/** English counterparts for `wiringFlow` (locale bind). */
+⋮----
+/** Concrete appliances / scenes powered under this market model. */
+⋮----
+/** Local OSS / autonomous-control bindings overlaid on hardware nodes. */
+⋮----
+/** GridCategory → MarketEcosystemModelId (②/③ share storage closed-loop topology). */
+⋮----
+/** Three market-model power topologies for the Ecosystem diagram. */
+⋮----
+/** Locale flag for ecosystem wiringFlow resolution (set from UI before read). */
+⋮----
+/** Sync ecosystem wiringFlow locale (call from view when `locale === "en"`). */
+export function setMarketEcosystemUiLocale(isEn: boolean): void
+⋮----
+/** Resolve wiring-flow copy for the active locale. */
+export function resolveMarketEcosystemWiringFlow(
+  topology: MarketEcosystemTopology,
+  isEn: boolean,
+): MarketEcosystemTopology['wiringFlow']
+⋮----
+// Locale-aware `wiringFlow` so diagram/table consumers see EN without per-call switches.
+⋮----
+get()
+⋮----
+/** Resolve ecosystem model id from a country's grid category. */
+export function resolveMarketEcosystemModelId(
+  country: CountryPvDetail,
+): MarketEcosystemModelId
+⋮----
+/** Look up ecosystem topology by model id (or GridCategory alias). */
+export function getMarketEcosystemTopology(
+  modelId: string,
+): MarketEcosystemTopology | undefined
+⋮----
+/** Ecosystem topology for a country (defaults to ① plug-in if unknown). */
+export function getMarketEcosystemForCountry(
+  country: CountryPvDetail,
+): MarketEcosystemTopology
+⋮----
+/** Wiring-step keys shared by the ecosystem node grid / overlays. */
+export type EcosystemWiringStepKey = keyof MarketEcosystemTopology['wiringFlow']
+⋮----
+/** Locale-resolved OSS overlay for a hardware wiring node. */
+export type EcosystemNodeToolDetail = {
+  toolId: string
+  name: string
+  role: string
+  capability: string
+  targetNode: EcosystemToolBinding['targetNode']
+}
+⋮----
+/**
+ * Resolve `integratedTools` against `COMMON_OSS_PROJECTS` for software-view overlays.
+ * Falls back to the binding role when a tool id is missing from the OSS catalog.
+ */
+export function resolveEcosystemNodeTools(
+  topology: MarketEcosystemTopology,
+  isEn: boolean,
+): EcosystemNodeToolDetail[]
+⋮----
+/** Shared emerald / slate accents for ①②③ (map badge ↔ power-flow tabs). */
+⋮----
+/** ISO 3166-1 alpha-2 (or longer codes) → flag emoji. */
+export function countryCodeToFlagEmoji(code: string): string
+⋮----
+/**
+ * Countries adopting a market ecosystem model (excludes sub-regions with parentId).
+ */
+export function getCountriesByMarketEcosystemModel(
+  modelId: MarketEcosystemModelId,
+): CountryPvDetail[]
+⋮----
+/** Chip label e.g. `🇩🇪 ドイツ (800W)` / `🇯🇵 日本` / `🇰🇪 ケニア`. */
+export function formatMarketEcosystemCountryChip(
+  country: CountryPvDetail,
+  isEn: boolean,
+): string
+⋮----
+// Strip JA suffixes like `（家電扱い…）` / `級` — keep numeric W only.
+⋮----
+export function resolveRegionCategory(country: CountryPvDetail): RegionCategory
+⋮----
+export function getParentCountry(country: CountryPvDetail): CountryPvDetail | undefined
+⋮----
+/** ★5段階評価（rating の ★個数）。セマンティックズーム／ランキング用。 */
+export function getMaturityScore(country: CountryPvDetail): number
+⋮----
+/** @deprecated Prefer CountryPvDetail */
+export type CountryPvStatus = CountryPvDetail
+⋮----
+export function getCountryPvByCode(code: PvRegionCode): CountryPvDetail | undefined
+⋮----
+/** World-map chrome keys under `worldPv.sidebar` / `worldPv.detail`. */
+⋮----
+/** @deprecated Prefer `worldPv.detail.close` via next-intl */
+⋮----
+/** @deprecated Prefer `worldPv.sidebar.relatedOrgs` via next-intl */
+⋮----
+/** @deprecated Prefer `worldPv.sidebar.relatedOrgsEmpty` via next-intl */
+⋮----
+/** @deprecated Prefer `worldPv.sidebar.adoptedVendors` via next-intl */
+⋮----
+/** @deprecated Prefer `worldPv.sidebar.adoptedVendorsEmpty` via next-intl */
+⋮----
+/** @deprecated Prefer `worldPv.sidebar.resizeAria` via next-intl */
+⋮----
+/** Analysis panel chrome (map overlay; prefer `worldPv.detail.*` when dictionaries catch up). */
+⋮----
+export type PvVendor = {
+  id: AdoptedVendorId
+  name: string
+  nameEn?: string
+  role: string
+  roleEn?: string
+  url?: string
+}
+⋮----
+/** Catalog of equipment vendors shown as adopted-solution chips (not related orgs). */
+⋮----
+/** Product category for global hardware vendors (display labels). */
+export type GlobalPvVendorCategory =
+  | 'マイクロインバータ'
+  | 'ベランダ蓄電キット'
+  | 'ポータブル電源'
+  | '家庭用蓄電'
+  | 'オフグリッドSHS'
+  | 'PAYGフィンテック'
+  | 'スマートインバータ・DCオプティマイザ'
+  | '家庭用蓄電・分散型VPP'
+  | 'PAYGフィンテック・クリーンエネルギーローン'
+⋮----
+/** Global hardware vendor card for the major-vendors sidebar. */
+export type GlobalPvVendor = {
+  id: AdoptedVendorId
+  name: string
+  nameJa: string
+  /** 銘柄・上場区分（例: `NASDAQ: SEDG` / `未上場`）。 */
+  ticker?: string
+  tickerEn?: string
+  /** 本社所在地（国・都市の表示ラベル）。 */
+  hqCountry: string
+  hqCountryEn?: string
+  /**
+   * 本社・発祥のマクロ地域。
+   * 主要企業一覧の「地域」フィルターは既定でこの値で絞り込む。
+   */
+  headquartersRegion: RegionCategory
+  category: GlobalPvVendorCategory
+  categoryEn?: string
+  description: string
+  descriptionEn?: string
+  keyProducts: string[]
+  /** WORLD_BALCONY_PV_COUNTRIES ids where the vendor is suited / deployed. */
+  targetRegionIds: string[]
+  /**
+   * 主要展開マクロ地域（欧州 / アフリカ / アジア・オセアニア / 北米・米州）。
+   * カード下部の展開バッジに使い、国名チップの肥大化を避ける。
+   */
+  targetRegions: RegionCategory[]
+  url: string
+}
+⋮----
+/** 銘柄・上場区分（例: `NASDAQ: SEDG` / `未上場`）。 */
+⋮----
+/** 本社所在地（国・都市の表示ラベル）。 */
+⋮----
+/**
+   * 本社・発祥のマクロ地域。
+   * 主要企業一覧の「地域」フィルターは既定でこの値で絞り込む。
+   */
+⋮----
+/** WORLD_BALCONY_PV_COUNTRIES ids where the vendor is suited / deployed. */
+⋮----
+/**
+   * 主要展開マクロ地域（欧州 / アフリカ / アジア・オセアニア / 北米・米州）。
+   * カード下部の展開バッジに使い、国名チップの肥大化を避ける。
+   */
+⋮----
+/** Major global hardware vendors (阳台 / plug-in / storage kit makers). */
+⋮----
+/** Alias used by company/ticker list UIs (`COMPANIES.length` / count badges). */
+⋮----
+export function getAdoptedVendors(country: CountryPvDetail): PvVendor[]
+⋮----
+export function getAdoptedVendorsByCountryId(countryId: string): PvVendor[]
+⋮----
+/** Macro regions where a global vendor is suited / deployed (explicit `targetRegions` preferred). */
+export function getVendorRegionCategories(vendor: GlobalPvVendor): RegionCategory[]
+⋮----
+/** Display names for vendor target regions (deduped, parents preferred). */
+export function getVendorRegionLabels(vendor: GlobalPvVendor): string[]
+⋮----
+/** Locale-independent region filter ids for the major-vendors list. */
+⋮----
+export type VendorRegionFilter = (typeof VENDOR_REGION_FILTERS)[number]
+⋮----
+/** Category filter ids for the major-vendors list (plus `all`). */
+⋮----
+export type VendorCategoryFilter = (typeof VENDOR_CATEGORY_FILTERS)[number]
+⋮----
+/**
+ * 主要企業一覧の絞り込み。
+ * 地域は既定で本社・発祥（`headquartersRegion`）基準 — 展開市場（`targetRegions`）とは混同しない。
+ */
+export function filterGlobalPvVendors(
+  region: VendorRegionFilter = 'all',
+  category: VendorCategoryFilter = 'all',
+): GlobalPvVendor[]
+⋮----
+/** Non-profit / commons / standards actor for the world-implementation tab. */
+export type NonProfitOrg = {
+  id: string
+  name: string
+  nameEn: string
+  /** 拠点国・都市（表示ラベル）。 */
+  headquarters: string
+  headquartersEn: string
+  /** 4大地域区分。 */
+  region: RegionCategory
+  /** 活動種別（JA）。 */
+  category: string
+  categoryEn: string
+  overview: string
+  overviewEn: string
+  barrierOvercome: string
+  barrierOvercomeEn: string
+  keyMilestone: string
+  keyMilestoneEn: string
+  websiteUrl: string
+}
+⋮----
+/** 拠点国・都市（表示ラベル）。 */
+⋮----
+/** 4大地域区分。 */
+⋮----
+/** 活動種別（JA）。 */
+⋮----
+/** Locale-independent region filter ids for the non-profit orgs list. */
+⋮----
+export type NonProfitRegionFilter = VendorRegionFilter
+⋮----
+/**
+ * 非営利・推進団体・コモンズ（各地域の制度突破プレイヤー）。
+ * タイムラインの重要アクターを企業一覧と同型のカードデータへ整理。
+ */
+⋮----
+/** 非営利・推進団体一覧の地域フィルター。 */
+export function filterNonProfitOrgs(region: NonProfitRegionFilter = 'all'): NonProfitOrg[]
+⋮----
+/** Sidebar rows for world balcony-PV status (labels: `worldPv.sidebar.*`). */
+⋮----
+/** Related-organization actor type (locale-independent). */
+export type EcosystemActorType = 'company' | 'npo' | 'government'
+⋮----
+export type EcosystemActor = {
+  id: string
+  name: string
+  /** Optional English display name (locale bind). */
+  nameEn?: string
+  type: EcosystemActorType
+  countryId: string
+  role: string
+  roleEn?: string
+  url?: string
+}
+⋮----
+/** Optional English display name (locale bind). */
+⋮----
+export type EcosystemActorFilter = 'all' | EcosystemActorType
+⋮----
+/** Sub-tab filters for related organizations (labels: `worldPv.sidebar.filters.*`). */
+⋮----
+// Regional orgs only (gov / NPO / industry associations / regulators).
+// Global equipment vendors live in GLOBAL_PV_VENDORS.
+⋮----
+// India (in)
+⋮----
+// Brazil (br)
+⋮----
+// Singapore (sg)
+⋮----
+// Taiwan (tw)
+⋮----
+// US California (us-ca)
+⋮----
+// Other US states (plug-exemption / strict-code coverage)
+⋮----
+export function getEcosystemActorsByCountry(
+  countryId: string,
+  filter: EcosystemActorFilter = 'all',
+): EcosystemActor[]
+⋮----
+// Parent gov/NPO only — never inherit parent-scoped equipment vendors.
+⋮----
+/**
+ * 全登録地域エイリアス（ランキング・一覧用）。
+ * 実装データの正本は WORLD_BALCONY_PV_COUNTRIES。
+ */
+⋮----
+/** maturityScore 降順（★5 → ★1）の地域一覧。 */
+export function getPvRegionsByMaturityDesc(): CountryPvDetail[]
+⋮----
+/** 欧米普及ムーブメントのフェーズ ID（ロケール非依存）。 */
+export type MovementHistoryPhaseId =
+  | 'guerrilla'
+  | 'energyCrisis'
+  | 'euDomino'
+  | 'usSpread'
+⋮----
+/** 壁をこじ開けた非営利団体・民間企業などの突破アクション。 */
+export type MilestoneKeyActorKind = 'npo' | 'company' | 'government'
+⋮----
+export type MilestoneKeyActor = {
+  name: string
+  nameEn?: string
+  /** 例: "🧪 工学安全立証" | "🛡️ 市民権利擁護" | "🌐 国際品質標準" | "🏢 量産・PAYG" */
+  roleBadge: string
+  roleBadgeEn?: string
+  /** 立ち向かった規制・電力会社の防壁 */
+  barrier: string
+  barrierEn?: string
+  /** 勝ち取った成果・法制化 */
+  achievement: string
+  achievementEn?: string
+  url?: string
+  /** 省略時は非営利・業界団体扱い。`company` で企業ハイライト色調 */
+  kind?: MilestoneKeyActorKind
+}
+⋮----
+/** 例: "🧪 工学安全立証" | "🛡️ 市民権利擁護" | "🌐 国際品質標準" | "🏢 量産・PAYG" */
+⋮----
+/** 立ち向かった規制・電力会社の防壁 */
+⋮----
+/** 勝ち取った成果・法制化 */
+⋮----
+/** 省略時は非営利・業界団体扱い。`company` で企業ハイライト色調 */
+⋮----
+/** 国・州単位の法制化マイルストーン。 */
+export type MovementMilestone = {
+  id: string
+  /** `YYYY-MM` */
+  date: string
+  /** WORLD_BALCONY_PV_COUNTRIES の id */
+  regionId: string
+  regionName: string
+  regionNameEn?: string
+  /** 法制化・制度変更の要約 */
+  summary: string
+  summaryEn?: string
+  /** 制度改革を押し通した非営利団体などの突破アクション */
+  keyActor?: MilestoneKeyActor
+}
+⋮----
+/** `YYYY-MM` */
+⋮----
+/** WORLD_BALCONY_PV_COUNTRIES の id */
+⋮----
+/** 法制化・制度変更の要約 */
+⋮----
+/** 制度改革を押し通した非営利団体などの突破アクション */
+⋮----
+/** 普及ムーブメントの1フェーズ。 */
+export type MovementHistoryPhase = {
+  id: MovementHistoryPhaseId
+  /** その期に地図強調する国・州 id */
+  targetRegionIds: string[]
+  milestones: MovementMilestone[]
+}
+⋮----
+/** その期に地図強調する国・州 id */
+⋮----
+/**
+ * 欧米の普及ムーブメント（欧州国別・北米州別タイムライン）。
+ * 表示ラベルは messages `worldPv.movementHistory.phases.*`、詳細は milestones。
+ */
+⋮----
+export function getMovementPhaseById(
+  id: MovementHistoryPhaseId | null,
+): MovementHistoryPhase | undefined
+⋮----
+/** アフリカ跳躍史フェーズ ID（ロケール非依存）。 */
+export type AfricaLeapfrogPhaseId =
+  | 'deKerosene'
+  | 'paygExplosion'
+  | 'shsAppliance'
+  | 'productiveUse'
+⋮----
+/** アフリカ跳躍史の1フェーズ（欧米伝播史と同型のマイルストーン構造）。 */
+export type AfricaLeapfrogPhase = {
+  id: AfricaLeapfrogPhaseId
+  /** 表示用期間（例: 2010〜2015） */
+  period: string
+  periodEn?: string
+  /** フェーズ見出し */
+  title: string
+  titleEn?: string
+  /** その期に地図強調する国 id */
+  targetRegionIds: string[]
+  milestones: MovementMilestone[]
+}
+⋮----
+/** 表示用期間（例: 2010〜2015） */
+⋮----
+/** フェーズ見出し */
+⋮----
+/** その期に地図強調する国 id */
+⋮----
+/**
+ * アフリカ・新興国のオフグリッド跳躍史（Leapfrog Revolution）。
+ * Lighting Africa → PAYG → SHS家電統合 → 生産電化（PUE）。
+ */
+⋮----
+export function getAfricaLeapfrogPhaseById(
+  id: AfricaLeapfrogPhaseId | null,
+): AfricaLeapfrogPhase | undefined
+⋮----
+/** アジア・オセアニア転換史フェーズ ID（ロケール非依存）。 */
+export type AsiaOceaniaPhaseId =
+  | 'exportAndStorage'
+  | 'tenantSelfSupply'
+  | 'nationalSchemes'
+  | 'urbanNetMetering'
+⋮----
+/** アジア・オセアニア転換史の1フェーズ（欧米・アフリカと同型構造）。 */
+export type AsiaOceaniaPhase = {
+  id: AsiaOceaniaPhaseId
+  /** 表示用期間（例: 2020〜2023） */
+  period: string
+  periodEn?: string
+  /** フェーズ見出し */
+  title: string
+  titleEn?: string
+  /** その期に地図強調する国 id */
+  targetRegionIds: string[]
+  milestones: MovementMilestone[]
+}
+⋮----
+/** 表示用期間（例: 2020〜2023） */
+⋮----
+/** フェーズ見出し */
+⋮----
+/** その期に地図強調する国 id */
+⋮----
+/**
+ * アジア・オセアニアの転換史（枠組み定義・初期データ）。
+ * 蓄電自給 → 賃貸テナント権 → 国策キット → 都市ネットメータリング／BIPV。
+ */
+⋮----
+export function getAsiaOceaniaPhaseById(
+  id: AsiaOceaniaPhaseId | null,
+): AsiaOceaniaPhase | undefined
+⋮----
+/** インド生計跳躍史フェーズ ID（ロケール非依存）。 */
+export type IndiaLivelihoodPhaseId =
+  | 'dawnLightingMicrofinance'
+  | 'livelihoodPue'
+  | 'healthcareColdStorage'
+  | 'pmKusumAgriSolar'
+⋮----
+/** インド生計跳躍史の1フェーズ（アフリカ跳躍史と同型構造）。 */
+export type IndiaLivelihoodPhase = {
+  id: IndiaLivelihoodPhaseId
+  /** 表示用期間（例: 2010〜2015） */
+  period: string
+  periodEn?: string
+  /** フェーズ見出し */
+  title: string
+  titleEn?: string
+  /** その期に地図強調する国 id（`in` = インド） */
+  targetRegionIds: string[]
+  milestones: MovementMilestone[]
+}
+⋮----
+/** 表示用期間（例: 2010〜2015） */
+⋮----
+/** フェーズ見出し */
+⋮----
+/** その期に地図強調する国 id（`in` = インド） */
+⋮----
+/**
+ * インドの生計跳躍史（India's Livelihood Revolution）。
+ * 夜間照明・小口金融 → Livelihood PUE → 医療・コールドチェーン → PM-KUSUM。
+ * マップピン / 地域キー: `in`（india）・`asia-oceania`（インド選択時）。
+ */
+⋮----
+/** インド生計跳躍史を開く地域キー（マップピン `in` / `india` / インド選択時の `asia-oceania`）。 */
+⋮----
+export function isIndiaLivelihoodRegion(regionKey: string | null | undefined): boolean
+⋮----
+export function getIndiaLivelihoodPhaseById(
+  id: IndiaLivelihoodPhaseId | null,
+): IndiaLivelihoodPhase | undefined
+⋮----
+/** 東南アジア島嶼・分散跳躍史フェーズ ID（ロケール非依存）。 */
+export type SoutheastAsiaIslandPhaseId =
+  | 'isolatedDieselPicoHydro'
+  | 'islandMicrogridsHybrid'
+  | 'vietnamRooftopFloatingPv'
+  | 'coldChainPueAutonomy'
+⋮----
+/** 東南アジア島嶼・分散跳躍史の1フェーズ（インド・アフリカ跳躍史と同型構造）。 */
+export type SoutheastAsiaIslandPhase = {
+  id: SoutheastAsiaIslandPhaseId
+  /** 表示用期間（例: 2010〜2016） */
+  period: string
+  periodEn?: string
+  /** フェーズ見出し */
+  title: string
+  titleEn?: string
+  /** その期に地図強調する国 id（`vn` / `sg` / `indonesia` / `philippines` 等） */
+  targetRegionIds: string[]
+  milestones: MovementMilestone[]
+}
+⋮----
+/** 表示用期間（例: 2010〜2016） */
+⋮----
+/** フェーズ見出し */
+⋮----
+/** その期に地図強調する国 id（`vn` / `sg` / `indonesia` / `philippines` 等） */
+⋮----
+/**
+ * 東南アジアの島嶼・分散跳躍史（Southeast Asia's Island & Microgrid Leap）。
+ * 孤立ディーゼル／小水力限界 → 島嶼マイクログリッド → ベトナム屋根上／水上PV → 冷熱PUE。
+ * マップピン / 地域キー: `southeast-asia`・`vn`・`sg`・`indonesia`・`philippines`。
+ */
+⋮----
+/** 東南アジア島嶼・分散跳躍史を開く地域キー（マップピン `vn` / `sg` / `indonesia` / `philippines` / `southeast-asia`）。 */
+⋮----
+export function isSoutheastAsiaIslandRegion(
+  regionKey: string | null | undefined,
+): boolean
+⋮----
+export function getSoutheastAsiaIslandPhaseById(
+  id: SoutheastAsiaIslandPhaseId | null,
+): SoutheastAsiaIslandPhase | undefined
+⋮----
+// ---------------------------------------------------------------------------
+// Country architectural context × living-furniture solar adaptations
+// i18n: `worldPv.architecture.*`
+// ---------------------------------------------------------------------------
+⋮----
+export type ArchitectureSurfaceType = 'balcony' | 'roof' | 'facade'
+⋮----
+/** Procedural 3D surface model IDs for Surface3DViewer. */
+export type Surface3dModelId =
+  | 'haussmann-balconet'
+  | 'concrete-parapet'
+  | 'japanese-evacuation-balcony'
+  | 'japanese-kawara-roof'
+  | 'french-mansard-roof'
+  | 'flat-concrete-roof'
+  | 'uk-juliet-balcony'
+  | 'uk-recessed-balcony'
+  | 'uk-roof-terrace'
+  | 'uk-pitched-gable'
+  | 'uk-pitched-mansard-dormer'
+⋮----
+/** Irradiance-surface tilt labels (locale-independent display tokens). */
+export type SurfaceTiltAngle = '0°' | '30°' | '45°' | '90°'
+⋮----
+/** Locale-independent solar living-furniture IDs. Labels: `worldPv.architecture.furniture.*`. */
+export type SolarFurnitureId =
+  | 'solar-window-shutter'
+  | 'ac-steckerspeicher'
+  | 'heavy-duty-clamp-pv'
+  | 'solar-table'
+  | 'solar-endai-bench'
+  | 'solar-sudare-screen'
+  | 'origami-byobu-solar'
+  | 'solar-pergola'
+⋮----
+/** Legacy 3D profile id → typology-first SurfaceTypology. */
+⋮----
+export interface ArchitectureProfile {
+  id: string
+  type: ArchitectureSurfaceType
+  /** Typology-first axis (derived from id when omitted). */
+  typologyId?: SurfaceTypology
+  /** Procedural 3D model key for Surface3DViewer. */
+  model3dId: Surface3dModelId
+  /** Primary irradiance surface tilt. */
+  tiltAngle: SurfaceTiltAngle
+  nameKey: string
+  descriptionKey: string
+  constraintsKey: string
+  adaptedFurnitureIds: SolarFurnitureId[]
+}
+⋮----
+/** Typology-first axis (derived from id when omitted). */
+⋮----
+/** Procedural 3D model key for Surface3DViewer. */
+⋮----
+/** Primary irradiance surface tilt. */
+⋮----
+export function resolveProfileTypology(profile: ArchitectureProfile): SurfaceTypology
+⋮----
+export interface CountryArchitectureConfig {
+  countryCode: string
+  /** Map pin / region id aliases (e.g. germany, france, japan, in). */
+  regionIds: readonly string[]
+  primaryArchitectureId: string
+  profiles: ArchitectureProfile[]
+}
+⋮----
+/** Map pin / region id aliases (e.g. germany, france, japan, in). */
+⋮----
+/** Alias used by UI/docs for a country’s balcony–roof architectural context. */
+export type ArchitecturalContext = CountryArchitectureConfig
+⋮----
+// 共用開放廊下 — 既存 3D を流用し typology のみ access_gallery を代表
+⋮----
+// 陸屋根デッキ／パーゴラ — roof カテゴリ（バルコニー一覧への混入防止）
+⋮----
+// uk-pitched-mansard-dormer は french-mansard-roof（mansard_dormer）と
+// 同一類型のため一覧重複を避ける目的で GB カタログから除外。
+// 3D モデル ID 自体は Surface3dModelId に残し、代表は FR 側を正とする。
+⋮----
+export function getCountryArchitectureConfig(
+  countryCodeOrRegionId: string | null | undefined,
+): CountryArchitectureConfig | null
+⋮----
+export function getArchitectureProfilesForCountry(
+  countryCodeOrRegionId: string | null | undefined,
+): ArchitectureProfile[]
+⋮----
+/** 建築形態一覧カードの「主な実装国」表示対象（原則 JP / DE のみ） */
+⋮----
+export function filterSurfaceDisplayCountries<T extends { code: string }>(
+  countries?: readonly T[] | null,
+): T[]
+⋮----
+/**
+ * Flat catalog for the full-screen 3D architectural surface explorer.
+ * One row per SurfaceTypology（同一類型の国別プロファイルは先頭代表のみ）。
+ */
+export type ArchitectureCatalogEntry = {
+  countryId: string
+  countryCode: string
+  profile: ArchitectureProfile
+  typologyId: SurfaceTypology
+  typology: SurfaceTypologyDetail
+}
+⋮----
+export function listArchitectureCatalog(): ArchitectureCatalogEntry[]
+⋮----
+// List cards bind `recommendedCellBadgeJa` in JA and `recommendedCellBadgeEn` in EN.
+⋮----
+// SURFACE_TYPOLOGIES 順で一意リストを返す（未紐づけ類型はスキップ）
+⋮----
+/**
+ * Typology-first catalog: one card per SurfaceTypology, with typical regions
+ * and a representative ArchitectureProfile (when available).
+ */
+export function listSurfaceTypologyCatalog():
+⋮----
+/** Flag emoji for architecture catalog cards (locale-independent). */
+⋮----
+export function getArchitectureCountryFlag(countryCode: string): string
+⋮----
+// ---------------------------------------------------------------------------
+// ベランダソーラー生活実装 — 4大セル／パネル・タイポロジー
+// （抽象素材論 → 避難動線・出仕舞いを含む Good Enough 実装軸）
+// ---------------------------------------------------------------------------
+⋮----
+/** Locale-independent solar cell / panel typology for balcony living. */
+export type SolarCellTypeId =
+  | 'rigid_silicon'
+  | 'bipv_thin_film'
+  | 'etfe_flexible_silicon'
+  | 'origami_perovskite'
+⋮----
+/**
+ * @deprecated Suitability framing removed — use `categoryBadgeJa` / physical fields.
+ * Kept so existing type re-exports keep compiling.
+ */
+export type BalconyFitStatus = 'n/a'
+⋮----
+/** 開発史スイムレーンへの橋渡し（タイムライン用・3系統） */
+export type SolarCellHistoryStreamId =
+  | 'silicon_mainstream'
+  | 'cigs_cdte'
+  | 'organic_perovskite'
+⋮----
+export type SolarCellFlexibility =
+  | 'rigid'
+  | 'semi-rigid'
+  | 'flexible-etfe'
+  | 'flexible-origami'
+⋮----
+/**
+ * Neutral physical + cross-link fields for the four panel typologies.
+ * List cards use roleTitle / roleSubtitle / suitableSurfaceLabels / countries only
+ * (see SolarCellTypeDetail); other badges/meters stay detail-sidebar-only.
+ */
+export interface SolarCellTypology {
+  id: SolarCellTypeId
+  nameJa: string
+  categoryBadgeJa: string
+  suitableSurfaceIds: string[]
+  /** Suitable 3D surfaces (list-card chips). */
+  suitableSurfaceLabels: { id: string; labelJa: string; labelEn: string }[]
+  /** Key deployment countries (list-card chips). */
+  representativeCountryCodes: string[]
+  weightDescription: string
+  thicknessDescription: string
+  retractionMechanismJa: string
+  lightAbsorptionJa: string
+}
+⋮----
+/** Suitable 3D surfaces (list-card chips). */
+⋮----
+/** Key deployment countries (list-card chips). */
+⋮----
+/** Consumer-facing surface titles aligned with renewed 3D form names (JA). */
+⋮----
+/** Consumer-facing surface titles aligned with `messages/en.json` typologies (EN). */
+⋮----
+function surfaceLinkLabels(
+  ids: readonly SurfaceTypology[],
+):
+⋮----
+export interface SolarCellTypeDetail extends SolarCellTypology {
+  nameEn: string
+  categoryBadgeEn: string
+  weightThicknessJa: string
+  weightThicknessEn: string
+  egressDeShimaiJa: string
+  egressDeShimaiEn: string
+  retractionMechanismEn: string
+  lightAbsorptionEn: string
+  descriptionJa: string
+  descriptionEn: string
+  /** ピーク出力ゲージ（0–100） */
+  peakPowerScore: number
+  /** 避難動線60cmクリア指標（0–100） */
+  egressClearanceScore: number
+  /** 身軽さ・設置容易度（0–100） */
+  agilityScore: number
+  firedElementJa: string
+  firedElementEn: string
+  shortBadgeJa: string
+  shortBadgeEn: string
+  roleTitleJa: string
+  roleTitleEn: string
+  roleSubtitleJa: string
+  roleSubtitleEn: string
+  generationShortJa: string
+  generationShortEn: string
+  thicknessMm: string
+  flexibility: SolarCellFlexibility
+  lightBadgeJa: string
+  lightBadgeEn: string
+  useCaseJa: string
+  useCaseEn: string
+  badgeClass: string
+  accentBorderClass: string
+  viewAngleLabels: [string, string, string]
+  viewAngleLabelsEn: [string, string, string]
+  environmentalFitJa: string
+  environmentalFitEn: string
+  cellStructureJa: string
+  cellStructureEn: string
+  primaryTypologyId: SurfaceTypology
+  recommendedTypologyIds: SurfaceTypology[]
+  historyStreamId: SolarCellHistoryStreamId
+}
+⋮----
+/** ピーク出力ゲージ（0–100） */
+⋮----
+/** 避難動線60cmクリア指標（0–100） */
+⋮----
+/** 身軽さ・設置容易度（0–100） */
+⋮----
+/** History swimlane → default living typology (Si history lands on rigid by default). */
+export function solarCellTypeFromHistoryStream(
+  stream: SolarCellHistoryStreamId,
+): SolarCellTypeId
+⋮----
+export function getSolarCellType(id: SolarCellTypeId): SolarCellTypeDetail
+⋮----
+export function listSolarCellTypologies(): SolarCellTypeDetail[]
+⋮----
+/** Reverse link: 3D surface → recommended panel typologies. */
+export function getSolarCellTypesForSurface(
+  surfaceId: string,
+): SolarCellTypeDetail[]
+⋮----
+/** Reverse link: ISO country code → representative panel typologies. */
+export function getSolarCellTypesForCountryCode(
+  countryCode: string,
+): SolarCellTypeDetail[]
+⋮----
+/** Map pin / region id (e.g. germany, de) → matching panel typologies. */
+export function getSolarCellTypesForRegionId(
+  regionId: string | null | undefined,
+): SolarCellTypeDetail[]
+</file>
+
+</files>
+
+
+
+<instruction>
+# セッション運用前提ルール（Session Rules）
+
+- **プロジェクト**: my-project (living-energy-ui)
+- **用途**: AI（Gemini / Claude）新規スレッド開始時、および Cursor 連携時のコード選定・編集方針の統一
+- **基本原則**: AppShell から到達可能な「3画面」のみを対象とする。未接続 feature や巨大データは最小限の参照にとどめ、実装の正本はリポジトリ上の実ファイルとする。
+
+---
+
+## 1. セッション運用ルール
+
+このドキュメントは **セッション開始時のコード地図・前提指示** です。
+
+1. **パス選定の正本**: 「編集対象マップ」を最優先とし、ディレクトリツリーや断片コードよりマップ内の指定に従う。
+2. **UI 対象スコープ**: AppShell の **3画面のみ**（`balcony-simulation` / `global-implementation` / `regional-network`）。
+3. **未接続機能の除外**: 「未接続」に記載されたパスは、明示的な指示がない限り提案・編集対象に含めない。
+4. **命名・コンポーネントの取り違え防止**: ナビ ID `global-implementation` の実体は `WorldImplementationView`（`features/balcony-pv/...`）とする。
+5. **実ファイルの事前読み込み（Read-first）**: ダンプ・要約されたコードは概要に過ぎない。Cursor で実装・改修を行う際は、必ず該当ファイルを **「Read してから編集」** する。
+6. **文言とスタイル基準**: ユーザー向け文言はコンポーネント直書きせず `messages/{ja,en}.json` を参照・更新する。デザイン・トーンは `.cursorrules`（ダーク×エメラルド）を厳守する。
+
+---
+
+## 2. 編集対象マップ（パス指定の正本）
+
+AppShell（`features/shell/components/app-shell.tsx`）がマウントする以下の3画面のみを編集候補とします。
+
+### ① `balcony-simulation` — ベランダ発電シミュレーション
+- **entry（必須）**: `features/balcony-pv/components/balcony-view.tsx`
+- **関連（必要時のみ）**:
+  - `features/balcony-pv/simulator-data.ts`
+  - `features/balcony-pv/components/balcony-illustration.tsx`
+  - `features/living-sense/components/home-view.tsx` (タブ `living-sense`)
+  - `features/living-sense/data.ts`
+  - `messages/ja.json`
+  - `messages/en.json`
+
+### ② `global-implementation` — ベランダソーラー世界実装
+- **entry（必須）**: `features/balcony-pv/components/world-implementation-view.tsx`
+- **関連（必要時のみ）**:
+  - `features/balcony-pv/components/world-pv-map.tsx`
+  - `features/balcony-pv/data.ts`
+  - `features/balcony-pv/history-data.ts`
+  - `features/global-implementation/components/global-implementation-view.tsx` (`MajorVendorsListView` / `NonProfitOrgsListView` のみ使用)
+  - `messages/ja.json`
+  - `messages/en.json`
+
+### ③ `regional-network` — 地域再エネネットワーク
+- **entry（必須）**: `features/network/components/network-view.tsx`
+- **関連（必要時のみ）**:
+  - `features/network/components/japan-re-map.tsx`
+  - `features/network/components/network-detail-sidebar.tsx`
+  - `features/network/data.ts`
+  - `messages/ja.json`
+  - `messages/en.json`
+
+---
+
+## 3. 命名・構造上の注意点
+
+- **`global-implementation` の本体**: ナビ ID `global-implementation` で表示される本体は `WorldImplementationView`（`features/balcony-pv/components/world-implementation-view.tsx`）。`GlobalImplementationView` 全体は直接マウントされていない。
+- **生活実感タブ**: `HomeView` はトップナビゲーションではなく、`balcony-simulation` 内のサブタブとして配置されている。
+- **優先順位**: 過去の設計仕様書（AGENTS.md 等の旧画面表）よりも、本ルールおよび `app-shell.tsx` の現在の実装を正とする。
+
+---
+
+## 4. 未接続リスト（編集・提案の禁止対象）
+
+以下のパスはリポジトリ内に存在するが、**AppShell から未接続** です。明示的な復活・統合の依頼がない限り、編集・参照・提案の対象外とします。
+
+- `features/basin-dam/`
+- `features/ecosystem-orgs/`
+- `features/ecosystem/`
+- `features/ranking/`
+- `agri-dam-and-basin-grid/`（ネストされた別アプリ資産）
+
+---
+
+## 5. Cursor 依頼テンプレート（Minimal-Tokens v3.3 準拠）
+
+AI と方針確定後、Cursor へ投入する際は以下のフォーマットを使用してください。
+
+````markdown
+以下を実行してください。
+指定パスのディレクトリ階層に軽微なズレがある場合は近傍の該当ファイルを柔軟に特定して構いませんが、【編集対象は指定された1ファイルのみ】とし、プロジェクト全体の広範な探索や無関係なファイルへの連鎖編集は行わないでください。
+
+### Task
+<何をどう変更・追加するかを簡潔に記載（1〜2文）>
+
+### Edit File (only this)
+- path/to/target-file.tsx
+※ファイル全体の全行読み込みを防ぐため @ は付けないこと。
+
+### Reference Type（準拠すべき型定義 ※必要な場合のみ）
+```ts
+// 該当の型やインターフェースを数行抜粋
+</instruction>

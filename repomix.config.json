@@ -1,0 +1,64 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "gemini-context.xml",
+    "style": "xml",
+    "filePathStyle": "target-relative",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": true,
+    "topFilesLength": 10,
+    "showLineNumbers": false,
+    "truncateBase64": true,
+    "copyToClipboard": false,
+    "includeFullDirectoryStructure": false,
+    "tokenCountTree": true,
+    "instructionFilePath": "docs/ai/session-rules.md",
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false,
+      "includeLogsCount": 50
+    }
+  },
+  "include": [
+    ".cursorrules",
+    "package.json",
+    "global.d.ts",
+    "features/shell/components/app-shell.tsx",
+    "features/balcony-pv/**",
+    "features/living-sense/**",
+    "features/network/**",
+    "lib/**"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDotIgnore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "messages/**",
+      "features/basin-dam/**",
+      "features/ecosystem/**",
+      "features/ecosystem-orgs/**",
+      "features/ranking/**",
+      "agri-dam-and-basin-grid/**",
+      "public/**",
+      "**/*.test.{ts,tsx}",
+      "**/*.spec.{ts,tsx}"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
