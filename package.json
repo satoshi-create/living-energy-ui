@@ -4,11 +4,13 @@
   "private": true,
   "packageManager": "pnpm@10.15.1",
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
+    "dev": "next dev -p 3004",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "dump": "node scripts/dump-context.mjs"
+    "dump": "node scripts/dump-context.mjs",
+    "check": "npx tsc --noEmit && npm run lint",
+    "clean:build": "rm -rf .next && npm run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

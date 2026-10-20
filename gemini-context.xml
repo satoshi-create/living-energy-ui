@@ -151,6 +151,308 @@ const onKey = (e: KeyboardEvent) =>
 className=
 </file>
 
+<file path="features/living-sense/index.ts">
+/** 構造分析書ノード: living-sense-ui */
+</file>
+
+<file path="lib/utils.ts">
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+⋮----
+export function cn(...inputs: ClassValue[])
+</file>
+
+<file path="features/balcony-pv/components/cell-3d-model.tsx">
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Line, OrbitControls } from '@react-three/drei'
+⋮----
+import type { Group } from 'three'
+import type { SolarCellTypeId } from '../data'
+⋮----
+export type CellViewAngle = 0 | 30 | 90
+⋮----
+export type Cell3DModelProps = {
+  type: SolarCellTypeId
+  interactive?: boolean
+  className?: string
+  /** 観察角度プリセット（度）。未指定時は表面30°の静止表示。 */
+  viewAngle?: CellViewAngle
+}
+⋮----
+/** 観察角度プリセット（度）。未指定時は表面30°の静止表示。 */
+⋮----
+/** Panels face +Z; camera stays in the +Z hemisphere so the cell face stays readable. */
+⋮----
+/** Oblique front overview — list cards and detail default. */
+⋮----
+/** Si主流：アルミフレームの頑丈さと約35mm厚の重厚感を強調 */
+⋮----
+/** ~35mm相当の視覚厚み */
+⋮----
+/* Cell face on +Z toward the default camera. */
+⋮----
+{/* Aluminum frame — thick glossy structural extrusion */}
+⋮----
+{/* Inner frame lip — recessed channel for glass */}
+⋮----
+{/* Backsheet */}
+⋮----
+{/* Glass cover — subtle silicon reflection */}
+⋮----
+{/* Silicon cells + busbars */}
+⋮----
+/** CdTe：フレームレス強化ガラス鏡面 + リアルなガラス切断面エッジ（シアン排除） */
+⋮----
+{/* 斜めスペキュラ用 DirectionalLight — 大面積ガラス表面を走らせる */}
+⋮----
+{/* 本体：ガラス積層内の薄膜吸収層 */}
+⋮----
+{/* 表面カバーガラス — 強い鏡面ハイライト（フレームレス） */}
+⋮----
+{/* 裏面ガラス */}
+⋮----
+{/* ガラス切断面エッジ — 無色〜淡いグレーの断面（シアンなし） */}
+{/* 左右 */}
+⋮----
+{/* 上下 */}
+⋮----
+/** ペロブスカイト：1mm未満の剛体折り紙ヒンジ + 折り畳み／展開の動的変形 */
+⋮----
+/** 視覚上 1mm未満の超薄フィルム */
+⋮----
+// 0 → 展開、π → 畳み：正弦で往復
+⋮----
+const fold = 0.08 + t * 1.15 // ~5°〜~70°
+⋮----
+{/* 中央面（谷折り基準面） */}
+⋮----
+{/* 左翼 — 山折りヒンジ（動的） */}
+⋮----
+{/* 右翼 — 谷折り反対側（動的） */}
+⋮----
+{/* 折り目サポート — 極薄ヒンジライン */}
+⋮----
+/** ETFEフレキシブル：薄型プレート＋四隅ハトメ固定メタファー */
+⋮----
+{/* ETFE fluoropolymer sheet — thin translucent shell; cells face +Z. */}
+⋮----
+{/* Mono-Si cell lattice under the sheet (toward camera / +Z) */}
+⋮----
+{/* Corner grommets (ハトメ) */}
+⋮----
+{/* Soft curl hint — sheet edge lift */}
+⋮----
+/** 生活スケール基準：消防避難通路幅 60cm（0.6m）の半透明ガイドライン */
+⋮----
+/** 幅0.6m × 奥行き1.8m の破線長方形 */
+⋮----
+{/* 半透明リング：幅0.6mの物差し */}
+⋮----
+// Defer Canvas until after paint so React 19 never sync-unmounts an R3F root mid-render.
+⋮----
+// List cards: static front 30°. Detail: sidebar angle (default 30°).
+⋮----
+{/* No key on Canvas — remounting mid-render races React 19; type changes via CellStageGroup. */}
+</file>
+
+<file path="features/balcony-pv/history-data.ts">
+import type { AdoptedVendorId, SurfaceTypology } from './data'
+⋮----
+/** 太陽電池セル開発史のスイムレーン系統（結晶Si・化合物薄膜・有機/ペロブスカイト） */
+export type PvHistoryStream =
+  | 'silicon_mainstream' // 結晶Si・HIT・主系統
+  | 'cigs_cdte' // 化合物薄膜
+  | 'organic_perovskite' // 有機系・ペロブスカイト
+⋮----
+| 'silicon_mainstream' // 結晶Si・HIT・主系統
+| 'cigs_cdte' // 化合物薄膜
+| 'organic_perovskite' // 有機系・ペロブスカイト
+⋮----
+export interface PvHistoryMilestone {
+  id: string
+  year: string
+  stream: PvHistoryStream
+  significance: 'disruptive' | 'major' | 'normal'
+  titleJa: string
+  titleEn: string
+  /** タイムラインカード用：専門用語なしの直感的な1行要約 */
+  oneLinerJa: string
+  oneLinerEn: string
+  /** タイムラインカード用：物語がつながる平易な補足解説（2〜3行） */
+  storyJa: string
+  storyEn: string
+  keyFigure?: string
+  /** モーダル詳細用：クリステンセン理論による深掘り分析 */
+  jtbdAnalysis?: {
+    /** 解消された不便・手放した制約（Fire） */
+    firedInconvenienceJa: string
+    firedInconvenienceEn: string
+    /** 手に入れた新体験・新しい置き場（Hire） */
+    hiredJobJa: string
+    hiredJobEn: string
+  }
+  recommendedTypologyIds?: SurfaceTypology[]
+  relatedVendorIds?: AdoptedVendorId[]
+  physicsTags: string[]
+}
+⋮----
+/** タイムラインカード用：専門用語なしの直感的な1行要約 */
+⋮----
+/** タイムラインカード用：物語がつながる平易な補足解説（2〜3行） */
+⋮----
+/** モーダル詳細用：クリステンセン理論による深掘り分析 */
+⋮----
+/** 解消された不便・手放した制約（Fire） */
+⋮----
+/** 手に入れた新体験・新しい置き場（Hire） */
+⋮----
+/** 3Dパネル観察用のセル構造・物性スペック */
+export interface Cell3DVisualSpec {
+  /** 例: '単結晶Siウェハ + 強化ガラス + アルミフレーム' */
+  cellStructureJa: string
+  cellStructureEn: string
+  /** 例: '約30〜40mm (ガラス・フレーム込)' */
+  thicknessMm: string
+  flexibility: 'rigid' | 'semi-rigid' | 'flexible-etfe' | 'flexible-origami'
+  lightType: 'direct_beam' | 'high_temperature' | 'diffuse_dominant'
+  /** 一覧カード右上: 例 '30° 直達光主体' */
+  lightBadgeJa: string
+  lightBadgeEn: string
+  /** ピルタグ: 主要用途 */
+  useCaseJa: string
+  useCaseEn: string
+}
+⋮----
+/** 例: '単結晶Siウェハ + 強化ガラス + アルミフレーム' */
+⋮----
+/** 例: '約30〜40mm (ガラス・フレーム込)' */
+⋮----
+/** 一覧カード右上: 例 '30° 直達光主体' */
+⋮----
+/** ピルタグ: 主要用途 */
+⋮----
+/** クリステンセン的トレードオフ直感メーター用パラメーター */
+export interface StreamTradeoffMetric {
+  /** 分子スペック：晴天ピーク出力（0-100） */
+  peakPowerScore: number
+  /** 分母スペック：身軽さ・設置容易度（0-100、薄さ・軽さ・工事不要度） */
+  agilityScore: number
+  /** 耐環境性ラベル */
+  environmentalFitJa: string
+  environmentalFitEn: string
+  /** 直感キャッチコピー（8文字以内） */
+  shortBadgeJa: string
+  shortBadgeEn: string
+  /** 観察視点固有ラベル [正面, 斜め, 固有アングル] */
+  viewAngleLabels: [string, string, string]
+  viewAngleLabelsEn: [string, string, string]
+  /** セレクター用の役割キャラ付け */
+  roleTitleJa: string
+  roleTitleEn: string
+  roleSubtitleJa: string
+  roleSubtitleEn: string
+}
+⋮----
+/** 分子スペック：晴天ピーク出力（0-100） */
+⋮----
+/** 分母スペック：身軽さ・設置容易度（0-100、薄さ・軽さ・工事不要度） */
+⋮----
+/** 耐環境性ラベル */
+⋮----
+/** 直感キャッチコピー（8文字以内） */
+⋮----
+/** 観察視点固有ラベル [正面, 斜め, 固有アングル] */
+⋮----
+/** セレクター用の役割キャラ付け */
+⋮----
+/** ベランダ生活適合（設置スタンプ・出仕舞い・避難動線） */
+export interface BalconyLivingFit {
+  /** 不可 / 条件付き / 現行Good Enough / 次世代理想 */
+  balconyFitStatus: 'unfit' | 'conditional' | 'good_enough' | 'optimal'
+  balconyFitLabelJa: string
+  /** 出仕舞い（台風退避）性能 */
+  deShimaiAbilityJa: string
+  /** 消防避難動線（60cm）のクリア度 */
+  egressClearanceScore: number
+  /** 重量・厚みバッジ */
+  weightThicknessJa?: string
+  /** 解雇した要素 */
+  firedElementJa?: string
+}
+⋮----
+/** 不可 / 条件付き / 現行Good Enough / 次世代理想 */
+⋮----
+/** 出仕舞い（台風退避）性能 */
+⋮----
+/** 消防避難動線（60cm）のクリア度 */
+⋮----
+/** 重量・厚みバッジ */
+⋮----
+/** 解雇した要素 */
+⋮----
+/** 三大分類サマリーカード用マスター */
+export interface PvStreamSummary {
+  id: PvHistoryStream
+  labelJa: string
+  labelEn: string
+  generationLabelJa: string
+  generationLabelEn: string
+  /** カード用短い世代バッジ: 例 '第1世代' */
+  generationShortJa: string
+  generationShortEn: string
+  taglineJa: string
+  taglineEn: string
+  /** カードフッター: 構造的ポイント解説（1行） */
+  structuralPointJa: string
+  structuralPointEn: string
+  bestFitPlaceJa: string
+  bestFitPlaceEn: string
+  /** 相対発電効率（%）・生活・安全適合度（%） */
+  relativeEfficiencyPct: number
+  livingFitnessPct: number
+  /** トレードオフ直感メーター（ピーク発電力 vs 身軽さ） */
+  tradeoff: StreamTradeoffMetric
+  /** ベランダ生活適合（設置・出仕舞い・避難動線） */
+  balconyLivingFit: BalconyLivingFit
+  /** カードクリック時に遷移する代表的な3D建築形態 */
+  primaryTypologyId: SurfaceTypology
+  recommendedTypologyIds: SurfaceTypology[]
+  keyMilestoneYears: string[]
+  badgeClass: string
+  accentBorderClass: string
+  /** 3Dモデル・物性タグ用メタデータ */
+  cell3d: Cell3DVisualSpec
+  /** 系統が解消した代表的な制約（Fire） */
+  firedConstraintJa: string
+  firedConstraintEn: string
+}
+⋮----
+/** カード用短い世代バッジ: 例 '第1世代' */
+⋮----
+/** カードフッター: 構造的ポイント解説（1行） */
+⋮----
+/** 相対発電効率（%）・生活・安全適合度（%） */
+⋮----
+/** トレードオフ直感メーター（ピーク発電力 vs 身軽さ） */
+⋮----
+/** ベランダ生活適合（設置・出仕舞い・避難動線） */
+⋮----
+/** カードクリック時に遷移する代表的な3D建築形態 */
+⋮----
+/** 3Dモデル・物性タグ用メタデータ */
+⋮----
+/** 系統が解消した代表的な制約（Fire） */
+⋮----
+/** @deprecated Prefer PvStreamSummary */
+export type PvHistoryStreamMeta = PvStreamSummary
+⋮----
+/** 系統に紐付く開発史マイルストーンを抽出 */
+export function getMilestonesByStream(
+  stream: PvHistoryStream,
+): readonly PvHistoryMilestone[]
+</file>
+
 <file path="features/balcony-pv/simulator-data.ts">
 // Simulator / surface-typology mock for balcony-plug-in-pv (cold path).
 // Heuristic stand-in for suncalc-js-engine.
@@ -522,10 +824,6 @@ export function scoreLabel(score: number): string
 export function recommendedKit(score: number):
 </file>
 
-<file path="features/living-sense/index.ts">
-/** 構造分析書ノード: living-sense-ui */
-</file>
-
 <file path="features/network/components/japan-re-map.tsx">
 import { useState } from "react"
 import { Minus, Plus, RotateCcw } from "lucide-react"
@@ -584,383 +882,6 @@ selectPin(id)
 onKeyDown=
 ⋮----
 onPointerDown=
-</file>
-
-<file path="lib/utils.ts">
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-⋮----
-export function cn(...inputs: ClassValue[])
-</file>
-
-<file path="features/balcony-pv/components/cell-3d-model.tsx">
-import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Line, OrbitControls } from '@react-three/drei'
-⋮----
-import type { Group } from 'three'
-import type { SolarCellTypeId } from '../data'
-⋮----
-export type CellViewAngle = 0 | 30 | 90
-⋮----
-export type Cell3DModelProps = {
-  type: SolarCellTypeId
-  interactive?: boolean
-  className?: string
-  /** 観察角度プリセット（度）。未指定時は表面30°の静止表示。 */
-  viewAngle?: CellViewAngle
-}
-⋮----
-/** 観察角度プリセット（度）。未指定時は表面30°の静止表示。 */
-⋮----
-/** Panels face +Z; camera stays in the +Z hemisphere so the cell face stays readable. */
-⋮----
-/** Oblique front overview — list cards and detail default. */
-⋮----
-/** Si主流：アルミフレームの頑丈さと約35mm厚の重厚感を強調 */
-⋮----
-/** ~35mm相当の視覚厚み */
-⋮----
-/* Cell face on +Z toward the default camera. */
-⋮----
-{/* Aluminum frame — thick glossy structural extrusion */}
-⋮----
-{/* Inner frame lip — recessed channel for glass */}
-⋮----
-{/* Backsheet */}
-⋮----
-{/* Glass cover — subtle silicon reflection */}
-⋮----
-{/* Silicon cells + busbars */}
-⋮----
-/** CdTe：フレームレス強化ガラス鏡面 + リアルなガラス切断面エッジ（シアン排除） */
-⋮----
-{/* 斜めスペキュラ用 DirectionalLight — 大面積ガラス表面を走らせる */}
-⋮----
-{/* 本体：ガラス積層内の薄膜吸収層 */}
-⋮----
-{/* 表面カバーガラス — 強い鏡面ハイライト（フレームレス） */}
-⋮----
-{/* 裏面ガラス */}
-⋮----
-{/* ガラス切断面エッジ — 無色〜淡いグレーの断面（シアンなし） */}
-{/* 左右 */}
-⋮----
-{/* 上下 */}
-⋮----
-/** ペロブスカイト：1mm未満の剛体折り紙ヒンジ + 折り畳み／展開の動的変形 */
-⋮----
-/** 視覚上 1mm未満の超薄フィルム */
-⋮----
-// 0 → 展開、π → 畳み：正弦で往復
-⋮----
-const fold = 0.08 + t * 1.15 // ~5°〜~70°
-⋮----
-{/* 中央面（谷折り基準面） */}
-⋮----
-{/* 左翼 — 山折りヒンジ（動的） */}
-⋮----
-{/* 右翼 — 谷折り反対側（動的） */}
-⋮----
-{/* 折り目サポート — 極薄ヒンジライン */}
-⋮----
-/** ETFEフレキシブル：薄型プレート＋四隅ハトメ固定メタファー */
-⋮----
-{/* ETFE fluoropolymer sheet — thin translucent shell; cells face +Z. */}
-⋮----
-{/* Mono-Si cell lattice under the sheet (toward camera / +Z) */}
-⋮----
-{/* Corner grommets (ハトメ) */}
-⋮----
-{/* Soft curl hint — sheet edge lift */}
-⋮----
-/** 生活スケール基準：消防避難通路幅 60cm（0.6m）の半透明ガイドライン */
-⋮----
-/** 幅0.6m × 奥行き1.8m の破線長方形 */
-⋮----
-{/* 半透明リング：幅0.6mの物差し */}
-⋮----
-// Defer Canvas until after paint so React 19 never sync-unmounts an R3F root mid-render.
-⋮----
-// List cards: static front 30°. Detail: sidebar angle (default 30°).
-⋮----
-{/* No key on Canvas — remounting mid-render races React 19; type changes via CellStageGroup. */}
-</file>
-
-<file path="features/balcony-pv/history-data.ts">
-import type { AdoptedVendorId, SurfaceTypology } from './data'
-⋮----
-/** 太陽電池セル開発史のスイムレーン系統（結晶Si・化合物薄膜・有機/ペロブスカイト） */
-export type PvHistoryStream =
-  | 'silicon_mainstream' // 結晶Si・HIT・主系統
-  | 'cigs_cdte' // 化合物薄膜
-  | 'organic_perovskite' // 有機系・ペロブスカイト
-⋮----
-| 'silicon_mainstream' // 結晶Si・HIT・主系統
-| 'cigs_cdte' // 化合物薄膜
-| 'organic_perovskite' // 有機系・ペロブスカイト
-⋮----
-export interface PvHistoryMilestone {
-  id: string
-  year: string
-  stream: PvHistoryStream
-  significance: 'disruptive' | 'major' | 'normal'
-  titleJa: string
-  titleEn: string
-  /** タイムラインカード用：専門用語なしの直感的な1行要約 */
-  oneLinerJa: string
-  oneLinerEn: string
-  /** タイムラインカード用：物語がつながる平易な補足解説（2〜3行） */
-  storyJa: string
-  storyEn: string
-  keyFigure?: string
-  /** モーダル詳細用：クリステンセン理論による深掘り分析 */
-  jtbdAnalysis?: {
-    /** 解消された不便・手放した制約（Fire） */
-    firedInconvenienceJa: string
-    firedInconvenienceEn: string
-    /** 手に入れた新体験・新しい置き場（Hire） */
-    hiredJobJa: string
-    hiredJobEn: string
-  }
-  recommendedTypologyIds?: SurfaceTypology[]
-  relatedVendorIds?: AdoptedVendorId[]
-  physicsTags: string[]
-}
-⋮----
-/** タイムラインカード用：専門用語なしの直感的な1行要約 */
-⋮----
-/** タイムラインカード用：物語がつながる平易な補足解説（2〜3行） */
-⋮----
-/** モーダル詳細用：クリステンセン理論による深掘り分析 */
-⋮----
-/** 解消された不便・手放した制約（Fire） */
-⋮----
-/** 手に入れた新体験・新しい置き場（Hire） */
-⋮----
-/** 3Dパネル観察用のセル構造・物性スペック */
-export interface Cell3DVisualSpec {
-  /** 例: '単結晶Siウェハ + 強化ガラス + アルミフレーム' */
-  cellStructureJa: string
-  cellStructureEn: string
-  /** 例: '約30〜40mm (ガラス・フレーム込)' */
-  thicknessMm: string
-  flexibility: 'rigid' | 'semi-rigid' | 'flexible-etfe' | 'flexible-origami'
-  lightType: 'direct_beam' | 'high_temperature' | 'diffuse_dominant'
-  /** 一覧カード右上: 例 '30° 直達光主体' */
-  lightBadgeJa: string
-  lightBadgeEn: string
-  /** ピルタグ: 主要用途 */
-  useCaseJa: string
-  useCaseEn: string
-}
-⋮----
-/** 例: '単結晶Siウェハ + 強化ガラス + アルミフレーム' */
-⋮----
-/** 例: '約30〜40mm (ガラス・フレーム込)' */
-⋮----
-/** 一覧カード右上: 例 '30° 直達光主体' */
-⋮----
-/** ピルタグ: 主要用途 */
-⋮----
-/** クリステンセン的トレードオフ直感メーター用パラメーター */
-export interface StreamTradeoffMetric {
-  /** 分子スペック：晴天ピーク出力（0-100） */
-  peakPowerScore: number
-  /** 分母スペック：身軽さ・設置容易度（0-100、薄さ・軽さ・工事不要度） */
-  agilityScore: number
-  /** 耐環境性ラベル */
-  environmentalFitJa: string
-  environmentalFitEn: string
-  /** 直感キャッチコピー（8文字以内） */
-  shortBadgeJa: string
-  shortBadgeEn: string
-  /** 観察視点固有ラベル [正面, 斜め, 固有アングル] */
-  viewAngleLabels: [string, string, string]
-  viewAngleLabelsEn: [string, string, string]
-  /** セレクター用の役割キャラ付け */
-  roleTitleJa: string
-  roleTitleEn: string
-  roleSubtitleJa: string
-  roleSubtitleEn: string
-}
-⋮----
-/** 分子スペック：晴天ピーク出力（0-100） */
-⋮----
-/** 分母スペック：身軽さ・設置容易度（0-100、薄さ・軽さ・工事不要度） */
-⋮----
-/** 耐環境性ラベル */
-⋮----
-/** 直感キャッチコピー（8文字以内） */
-⋮----
-/** 観察視点固有ラベル [正面, 斜め, 固有アングル] */
-⋮----
-/** セレクター用の役割キャラ付け */
-⋮----
-/** ベランダ生活適合（設置スタンプ・出仕舞い・避難動線） */
-export interface BalconyLivingFit {
-  /** 不可 / 条件付き / 現行Good Enough / 次世代理想 */
-  balconyFitStatus: 'unfit' | 'conditional' | 'good_enough' | 'optimal'
-  balconyFitLabelJa: string
-  /** 出仕舞い（台風退避）性能 */
-  deShimaiAbilityJa: string
-  /** 消防避難動線（60cm）のクリア度 */
-  egressClearanceScore: number
-  /** 重量・厚みバッジ */
-  weightThicknessJa?: string
-  /** 解雇した要素 */
-  firedElementJa?: string
-}
-⋮----
-/** 不可 / 条件付き / 現行Good Enough / 次世代理想 */
-⋮----
-/** 出仕舞い（台風退避）性能 */
-⋮----
-/** 消防避難動線（60cm）のクリア度 */
-⋮----
-/** 重量・厚みバッジ */
-⋮----
-/** 解雇した要素 */
-⋮----
-/** 三大分類サマリーカード用マスター */
-export interface PvStreamSummary {
-  id: PvHistoryStream
-  labelJa: string
-  labelEn: string
-  generationLabelJa: string
-  generationLabelEn: string
-  /** カード用短い世代バッジ: 例 '第1世代' */
-  generationShortJa: string
-  generationShortEn: string
-  taglineJa: string
-  taglineEn: string
-  /** カードフッター: 構造的ポイント解説（1行） */
-  structuralPointJa: string
-  structuralPointEn: string
-  bestFitPlaceJa: string
-  bestFitPlaceEn: string
-  /** 相対発電効率（%）・生活・安全適合度（%） */
-  relativeEfficiencyPct: number
-  livingFitnessPct: number
-  /** トレードオフ直感メーター（ピーク発電力 vs 身軽さ） */
-  tradeoff: StreamTradeoffMetric
-  /** ベランダ生活適合（設置・出仕舞い・避難動線） */
-  balconyLivingFit: BalconyLivingFit
-  /** カードクリック時に遷移する代表的な3D建築形態 */
-  primaryTypologyId: SurfaceTypology
-  recommendedTypologyIds: SurfaceTypology[]
-  keyMilestoneYears: string[]
-  badgeClass: string
-  accentBorderClass: string
-  /** 3Dモデル・物性タグ用メタデータ */
-  cell3d: Cell3DVisualSpec
-  /** 系統が解消した代表的な制約（Fire） */
-  firedConstraintJa: string
-  firedConstraintEn: string
-}
-⋮----
-/** カード用短い世代バッジ: 例 '第1世代' */
-⋮----
-/** カードフッター: 構造的ポイント解説（1行） */
-⋮----
-/** 相対発電効率（%）・生活・安全適合度（%） */
-⋮----
-/** トレードオフ直感メーター（ピーク発電力 vs 身軽さ） */
-⋮----
-/** ベランダ生活適合（設置・出仕舞い・避難動線） */
-⋮----
-/** カードクリック時に遷移する代表的な3D建築形態 */
-⋮----
-/** 3Dモデル・物性タグ用メタデータ */
-⋮----
-/** 系統が解消した代表的な制約（Fire） */
-⋮----
-/** @deprecated Prefer PvStreamSummary */
-export type PvHistoryStreamMeta = PvStreamSummary
-⋮----
-/** 系統に紐付く開発史マイルストーンを抽出 */
-export function getMilestonesByStream(
-  stream: PvHistoryStream,
-): readonly PvHistoryMilestone[]
-</file>
-
-<file path="features/balcony-pv/components/surface-3d-full-view.tsx">
-import { useEffect, useMemo, useState } from 'react'
-import { useLocale, useTranslations } from 'next-intl'
-import { CheckCircle2, FileText, PanelRightClose, PanelRightOpen, ShieldAlert, Sparkles, XCircle } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { cn } from '@/lib/utils'
-import {
-  DEFAULT_LIVING_CONTEXT,
-  getCountryArchitectureConfig,
-  getPanelTiltOption,
-  getTiltMetric,
-  listArchitectureCatalog,
-  resolveDefaultTiltMode,
-  resolveLivingMetrics,
-  resolveSupportedTiltModes,
-  type ArchitectureProfile,
-  type LivingContext,
-  type PanelTiltMode,
-  type SurfaceTiltAngle,
-} from '../data'
-import { Surface3DViewer } from './surface-3d-viewer'
-⋮----
-export type Surface3DFocus = {
-  countryId: string
-  profileId: string
-}
-⋮----
-export type Surface3DFullViewProps = {
-  initialFocus?: Surface3DFocus | null
-  className?: string
-  /** Controlled install-style (variable tilt / 出仕舞い). */
-  tiltMode?: PanelTiltMode
-  onTiltModeChange?: (mode: PanelTiltMode) => void
-  /** Controlled living / weather scenario (optional). */
-  livingContext?: LivingContext
-  onLivingContextChange?: (ctx: LivingContext) => void
-  /** Controlled sidebar visibility (optional; defaults to internal state). */
-  sidebarOpen?: boolean
-  onSidebarOpenChange?: (open: boolean) => void
-  /** Hide the built-in toggle when the parent renders one. */
-  hideSidebarToggle?: boolean
-}
-⋮----
-/** Controlled install-style (variable tilt / 出仕舞い). */
-⋮----
-/** Controlled living / weather scenario (optional). */
-⋮----
-/** Controlled sidebar visibility (optional; defaults to internal state). */
-⋮----
-/** Hide the built-in toggle when the parent renders one. */
-⋮----
-type AnglePreset = '0°' | '30°' | '90°'
-type PanelMode = 'structure' | 'legal' | 'panels'
-⋮----
-function resolveInitialProfile(
-  focus: Surface3DFocus | null | undefined,
-  catalog: ReturnType<typeof listArchitectureCatalog>,
-):
-⋮----
-const setSidebarOpen = (open: boolean | ((prev: boolean) => boolean)) =>
-⋮----
-// Match card-list preview: always open on the oblique overview (not panel tiltAngle).
-⋮----
-const setTiltMode = (mode: PanelTiltMode) =>
-⋮----
-// eslint-disable-next-line react-hooks/exhaustive-deps -- only react to weather / supported modes
-⋮----
-const angleMatches = (tilt: SurfaceTiltAngle) =>
-⋮----
-className=
-⋮----
-{/* 1. 観察角度 */}
-⋮----
-{/* 2. 角度効率・生活適応メーター */}
-⋮----
-{/* 3. 制約・法規制・推奨パネル */}
 </file>
 
 <file path="features/living-sense/data.ts">
@@ -1104,6 +1025,89 @@ export function localizedWeatherLabel(
 ): string
 </file>
 
+<file path="features/balcony-pv/components/surface-3d-full-view.tsx">
+import { useEffect, useMemo, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
+import { CheckCircle2, FileText, PanelRightClose, PanelRightOpen, ShieldAlert, Sparkles, XCircle } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils'
+import {
+  DEFAULT_LIVING_CONTEXT,
+  getCountryArchitectureConfig,
+  getPanelTiltOption,
+  getTiltMetric,
+  listArchitectureCatalog,
+  resolveDefaultTiltMode,
+  resolveLivingMetrics,
+  resolveSupportedTiltModes,
+  type ArchitectureProfile,
+  type LivingContext,
+  type PanelTiltMode,
+  type SurfaceTiltAngle,
+} from '../data'
+import { Surface3DViewer } from './surface-3d-viewer'
+⋮----
+export type Surface3DFocus = {
+  countryId: string
+  profileId: string
+}
+⋮----
+export type Surface3DFullViewProps = {
+  initialFocus?: Surface3DFocus | null
+  className?: string
+  /** Controlled install-style (variable tilt / 出仕舞い). */
+  tiltMode?: PanelTiltMode
+  onTiltModeChange?: (mode: PanelTiltMode) => void
+  /** Controlled living / weather scenario (optional). */
+  livingContext?: LivingContext
+  onLivingContextChange?: (ctx: LivingContext) => void
+  /** Controlled sidebar visibility (optional; defaults to internal state). */
+  sidebarOpen?: boolean
+  onSidebarOpenChange?: (open: boolean) => void
+  /** Hide the built-in toggle when the parent renders one. */
+  hideSidebarToggle?: boolean
+}
+⋮----
+/** Controlled install-style (variable tilt / 出仕舞い). */
+⋮----
+/** Controlled living / weather scenario (optional). */
+⋮----
+/** Controlled sidebar visibility (optional; defaults to internal state). */
+⋮----
+/** Hide the built-in toggle when the parent renders one. */
+⋮----
+type AnglePreset = '0°' | '30°' | '90°'
+type PanelMode = 'structure' | 'legal' | 'panels'
+⋮----
+function resolveInitialProfile(
+  focus: Surface3DFocus | null | undefined,
+  catalog: ReturnType<typeof listArchitectureCatalog>,
+):
+⋮----
+const setSidebarOpen = (open: boolean | ((prev: boolean) => boolean)) =>
+⋮----
+// Match card-list preview: always open on the oblique overview (not panel tiltAngle).
+⋮----
+const setTiltMode = (mode: PanelTiltMode) =>
+⋮----
+// eslint-disable-next-line react-hooks/exhaustive-deps -- only react to weather / supported modes
+⋮----
+const angleMatches = (tilt: SurfaceTiltAngle) =>
+⋮----
+className=
+⋮----
+{/* 1. 観察角度 */}
+⋮----
+{/* 2. 角度効率・生活適応メーター */}
+⋮----
+{/* 3. 制約・法規制・推奨パネル */}
+</file>
+
+<file path="features/balcony-pv/index.ts">
+/** 構造分析書ノード: balcony-plug-in-pv */
+</file>
+
 <file path="features/balcony-pv/components/solar-cell-types-view.tsx">
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useState } from 'react'
@@ -1151,7 +1155,7 @@ import { createContext, Suspense, useContext, useLayoutEffect, useMemo } from 'r
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { MathUtils } from 'three'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { Surface3dModelId } from '../data'
 import { cn } from '@/lib/utils'
 ⋮----
@@ -1183,7 +1187,31 @@ type PanelTiltContextValue = {
   isRetracted: boolean
 }
 ⋮----
-// 外部から渡された base[0]（初期角度）をベースにチルト角を付与
+function LabelSprite({
+  text,
+  subText,
+  badge,
+  accentColor = '#10b981',
+  position,
+  scale = [0.75, 0.26, 1],
+}: {
+  text: string
+  subText?: string
+  badge?: string
+  accentColor?: string
+  position: [number, number, number]
+  scale?: [number, number, number]
+})
+⋮----
+// 前面描画の重複を防ぐためキャンバス全面をクリア
+⋮----
+// 背景角丸ピル
+⋮----
+// 番号・記号バッジ
+⋮----
+// 1行目: 部位名
+⋮----
+// 2行目: 役割（エメラルド / シアン強調）
 ⋮----
 {/* façade */}
 ⋮----
@@ -1193,9 +1221,100 @@ type PanelTiltContextValue = {
 ⋮----
 {/* articulated louver shutter (living furniture) */}
 ⋮----
-{/* thick parapet */}
+{/* 1. 建築躯体（コンクリート打放し・外壁・側壁） */}
+{/* 奥の外壁 */}
 ⋮----
-{/* clamp mounts */}
+{/* 左袖壁（側壁コンクリート・半透明シースルー） */}
+⋮----
+{/* 右袖壁（側壁コンクリート・半透明シースルー） */}
+⋮----
+{/* 床コンクリートスラブ */}
+⋮----
+{/* 2. 窓まわり（ドイツ風テラスドア＋外付けシャッター Rollladen） */}
+{/* 掃き出し窓＋固定窓サッシ枠 */}
+⋮----
+{/* ガラス窓 */}
+⋮----
+{/* Rollladen（巻き上げシャッターボックス） */}
+⋮----
+{/* 左側の細身ガラスドア枠 */}
+⋮----
+{/* 3. ドイツ式コンクリート腰壁（シースルー・半透明プレキャストパラペット） */}
+{/* 腰壁メイン躯体（内部配線・インバータ視認用半透明マテリアル） */}
+⋮----
+{/* 腰壁天端 笠木水切り（わずかに透過させつつエッジを保持） */}
+⋮----
+{/* 4. マイクロインバータ ＋ 壁・床密着プラグイン配線システム */}
+⋮----
+{/* インバータ本体（アルミシルバー放熱フィン付き筐体） */}
+⋮----
+{/* 放熱フィン（縦スリット） */}
+⋮----
+{/* 通電LEDインジケーター（エメラルド点灯） */}
+⋮----
+{/* Wi-Fi通信アンテナ */}
+⋮----
+{/* パネル裏面からインバータへ向かうDC配線（床・腰壁内面吸着） */}
+⋮----
+{/* ① 腰壁天端裏から内面を下りる配線 */}
+⋮----
+{/* ② 床面を這って奥の壁面へ向かうDCライン（Z: 0.60 ➔ -0.66） */}
+⋮----
+{/* ③ 奥の壁面を立ち上がりインバータ右下端子へ接続 */}
+⋮----
+{/* AC 230V 密着配線（インバータ左下 ➔ 壁面立下げ ➔ 巾木床面 ➔ コンセントプラグ） */}
+⋮----
+{/* ① インバータ直下から壁面（Z = -0.66）沿いに床面まで垂直に下りるケーブル */}
+⋮----
+{/* ② 床面左コーナーエルボ */}
+⋮----
+{/* ③ 床面・巾木沿いを水平に走るACライン（Y = 0.006, Z = -0.66） */}
+⋮----
+{/* ④ コンセント直下コーナーエルボ */}
+⋮----
+{/* ⑤ 床からコンセントプラグへ立ち上がる垂直ケーブル */}
+⋮----
+{/* --- 部位解説アノテーション（EN / JA ロケール連動2行ラベル表示） --- */}
+{/* ① ソーラーパネル */}
+⋮----
+{/* ② マイクロインバータ */}
+⋮----
+{/* ④ 壁コンセント直挿し（Plug & Play） */}
+⋮----
+{/* 5. 室内Schuko（F型）230V壁コンセント ＋ 差し込みプラグ（PLUG & PLAY） */}
+⋮----
+{/* コンセントプレート化粧枠（壁面 Z = -0.68 に密着） */}
+⋮----
+{/* 丸型コンセント挿し込み口（Schukoソケット凹み：2基） */}
+⋮----
+{/* ピン挿入穴 */}
+⋮----
+{/* 差し込まれたSchukoプラグ本体（直角アングル型・ブラック） */}
+⋮----
+{/* 下向きケーブル引き出しブーツ（垂直ケーブルと合致） */}
+⋮----
+{/* 6. 専用コンクリート腰壁用引っ掛けブラケット金具（2基） */}
+⋮----
+{/* 天端跨ぎ金具（笠木を上から抱え込む） */}
+⋮----
+{/* 外側垂直支持レール */}
+⋮----
+{/* 内側固定クランプ */}
+⋮----
+{/* 下部壁当てストッパーボルト */}
+⋮----
+{/* 7. ソーラーパネル本体（ドイツ標準 400W〜800W級 結晶Si / 化合物薄膜） */}
+⋮----
+{/* パネル枠・バックシート */}
+⋮----
+{/* セル表面（ダークネイビー・結晶Siスリット） */}
+⋮----
+{/* 左右パネル分割フレームライン */}
+⋮----
+{/* 8. 生活感アクセント（小型プランター / エアコン室外機） */}
+{/* 側壁脇の室外機 */}
+⋮----
+{/* 笠木上の小型植木鉢 */}
 ⋮----
 {/* 1. 外壁（RC躯体＋サッシ枠ライン） */}
 ⋮----
@@ -1205,67 +1324,63 @@ type PanelTiltContextValue = {
 ⋮----
 {/* 壁付け物干し金物（ホスクリーン型アーム：左右2基 ＋ SUS物干し竿） */}
 ⋮----
-{/* 左右のアーム金物（サッシ脇：x = -1.2, 0.85） */}
-⋮----
-{/* ベース壁面固定座（H300×W50mm） */}
-⋮----
-{/* 角度調整可動アーム（出幅約550mm・斜め下約35°） */}
-⋮----
-{/* 先端竿掛けリング部 */}
-⋮----
-{/* 物干し竿（SUSクラッド管：Φ30mm × 2.2m、アーム先端リング接合位置） */}
-⋮----
 {/* 2. 床コンクリートスラブ（厚み150mm・長尺塩ビシート仕上げ） */}
 ⋮----
 {/* 3. 排水側溝（手すり側の一段下がった水抜き溝） */}
 ⋮----
 {/* 4. JIS準拠 アルミ手すり（天端H=1,100mm・ピッチ110mm格子） */}
 ⋮----
-{/* トップレール（笠木） */}
+{/* 5. 隔て板（蹴破り戸：アルミ枠＋シースルー半透明パネル＋避難標示） */}
 ⋮----
-{/* ボトムレール（下桟） */}
+{/* アルミ外枠（輪郭を維持） */}
 ⋮----
-{/* メイン支柱（4本スラブアンカー） */}
+{/* ケイカル板メイン面（奥の配線・室外機が見えるよう半透明化） */}
 ⋮----
-{/* 転落防止 縦格子 */}
-⋮----
-{/* 5. 隔て板（蹴破り戸：アルミ枠＋ケイカル板＋避難ステッカー） */}
+{/* 避難ステッカー枠（アクセントとして視認維持） */}
 ⋮----
 {/* 6. 避難ハッチ金物（SUS製 600角：外枠段差・蓋天板・格納式取っ手・ラッチ部） */}
 ⋮----
-{/* 床埋め込みアウター枠 */}
-⋮----
-{/* 止水インナー枠 */}
-⋮----
-{/* 上蓋メイン天板 */}
-⋮----
-{/* 格納式SUS取っ手金物 */}
-⋮----
-{/* 開閉ラッチ錠 */}
-⋮----
-{/* 避難はしご標示プレート枠 */}
-⋮----
-{/* 7. エアコン室外機＋据付架台＋配管化粧カバー（CAD標準：W780×D300×H560mm） */}
-⋮----
-{/* 据付プラ架台（2脚） */}
-⋮----
-{/* ファン吹き出し口・円形フロントグリル */}
-⋮----
-{/* 右側面 サービスバルブ・端子カバー凸部 */}
-⋮----
-{/* 配管化粧カバー（外壁縦ダクト〜室外機接続エルボ） */}
+{/* 7. エアコン室外機＋据付架台＋配管化粧カバー */}
 ⋮----
 {/* 8. 消防避難動線（60cm幅クリアライン床面ガイド） */}
 ⋮----
-{/* 9. ドイツ式バルコニー発電スタイル（手すり外側・完全垂直吊り下げ） */}
+{/* 9. 日本式バルコニー発電スタイル（手すり内側・着脱退避フック金具） */}
 ⋮----
-{/* 手すり笠木からのSUS引っ掛けフック金具（左右2箇所：外側から笠木を抱え込む） */}
+{/* 手すり笠木からのSUS引っ掛け金具（内側吊り下げ固定） */}
 ⋮----
-{/* 上部フック（笠木抱き込み部：外側から内側へ折り返し） */}
+{/* 太陽光パネル本体（手すり内側垂直・エメラルドグリーン） */}
 ⋮----
-{/* 縦ステー金物 */}
+{/* 10. 日本仕様の蓄電・給電システム（ポータブル電源 ＋ 床面密着配線） */}
+{/* 小型ベランダ蓄電／ポータブル電源（サッシ左脇・避難動線外） */}
 ⋮----
-{/* 垂直ソーラーパネル本体（手すり外側に面して直立） */}
+{/* 状態インジケーター液晶 */}
+⋮----
+{/* 持ち運び用ハンドル */}
+⋮----
+{/* DC入力配線（パネル内面 ➔ 側溝・床沿い ➔ ポータブル電源） */}
+⋮----
+{/* パネル下部から床面への縦配線 */}
+⋮----
+{/* 床面を壁方向へ這うDC配線 */}
+⋮----
+{/* 壁際からポータブル電源へ向かう横配線 */}
+⋮----
+{/* 室内AC給電フラット配線（ポータブル電源 ➔ サッシ下隙間引き込み ➔ 室内壁面） */}
+⋮----
+{/* ポータブル電源からサッシ中央下（X: -0.95 ➔ 0.45）へ巾木沿いに這う給電ライン */}
+⋮----
+{/* 室内壁コンセントへの立ち上がり（X = 0.45, 室外機から離れた窓サッシ内壁面） */}
+⋮----
+{/* 11. 室内壁コンセント（窓奥・室内側の壁面 Z = -0.72） */}
+⋮----
+{/* コンセント差し込みプラグヘッド */}
+⋮----
+{/* 12. 部位解説アノテーション（EN / JA ロケール連動2行ラベル表示） */}
+{/* ① 太陽光パネル */}
+⋮----
+{/* ② ポータブル蓄電（一時蓄電） */}
+⋮----
+{/* ③ 室内引き込み給電 */}
 ⋮----
 {/* walls */}
 ⋮----
@@ -1345,10 +1460,6 @@ type PanelTiltContextValue = {
 className=
 ⋮----
 <div className=
-</file>
-
-<file path="features/balcony-pv/index.ts">
-/** 構造分析書ノード: balcony-plug-in-pv */
 </file>
 
 <file path="features/balcony-pv/components/world-implementation-view.tsx">
@@ -1764,11 +1875,13 @@ export function NetworkView()
   "private": true,
   "packageManager": "pnpm@10.15.1",
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
+    "dev": "next dev -p 3004",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "dump": "node scripts/dump-context.mjs"
+    "dump": "node scripts/dump-context.mjs",
+    "check": "npx tsc --noEmit && npm run lint",
+    "clean:build": "rm -rf .next && npm run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

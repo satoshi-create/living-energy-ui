@@ -5833,18 +5833,6 @@ export const COUNTRY_ARCHITECTURE_CONFIGS: readonly CountryArchitectureConfig[] 
         adaptedFurnitureIds: ['solar-endai-bench', 'solar-sudare-screen'],
       },
       {
-        // 共用開放廊下 — 既存 3D を流用し typology のみ access_gallery を代表
-        id: 'access-gallery',
-        type: 'balcony',
-        typologyId: 'access_gallery',
-        model3dId: 'japanese-evacuation-balcony',
-        tiltAngle: '0°',
-        nameKey: 'profiles.access-gallery.name',
-        descriptionKey: 'profiles.access-gallery.description',
-        constraintsKey: 'profiles.access-gallery.constraints',
-        adaptedFurnitureIds: ['solar-endai-bench', 'solar-table'],
-      },
-      {
         id: 'japanese-kawara-roof',
         type: 'roof',
         model3dId: 'japanese-kawara-roof',
@@ -5887,16 +5875,6 @@ export const COUNTRY_ARCHITECTURE_CONFIGS: readonly CountryArchitectureConfig[] 
         descriptionKey: 'profiles.uk-juliet-balcony.description',
         constraintsKey: 'profiles.uk-juliet-balcony.constraints',
         adaptedFurnitureIds: ['solar-window-shutter', 'heavy-duty-clamp-pv'],
-      },
-      {
-        id: 'uk-recessed-balcony',
-        type: 'balcony',
-        model3dId: 'uk-recessed-balcony',
-        tiltAngle: '0°',
-        nameKey: 'profiles.uk-recessed-balcony.name',
-        descriptionKey: 'profiles.uk-recessed-balcony.description',
-        constraintsKey: 'profiles.uk-recessed-balcony.constraints',
-        adaptedFurnitureIds: ['solar-table', 'heavy-duty-clamp-pv'],
       },
       {
         // 陸屋根デッキ／パーゴラ — roof カテゴリ（バルコニー一覧への混入防止）
@@ -5946,8 +5924,8 @@ export function getArchitectureProfilesForCountry(
   return getCountryArchitectureConfig(countryCodeOrRegionId)?.profiles ?? []
 }
 
-/** 建築形態一覧カードの「主な実装国」表示対象（原則 JP / DE のみ） */
-const SURFACE_DISPLAY_COUNTRY_CODES = new Set(['JP', 'DE'])
+/** 建築形態一覧カードの「主な実装国」表示対象（代表カードの国を掲載） */
+const SURFACE_DISPLAY_COUNTRY_CODES = new Set(['JP', 'DE', 'FR', 'GB', 'IN'])
 
 export function filterSurfaceDisplayCountries<T extends { code: string }>(
   countries?: readonly T[] | null,
@@ -6103,8 +6081,8 @@ const SURFACE_LABEL_JA: Record<SurfaceTypology, string> = {
   recessed_loggia: 'くぼんだ形のバルコニー',
   glass_railing: 'ガラス手すりのあるベランダ',
   access_gallery: 'マンションの共用廊下',
-  mansard_dormer: 'ヨーロッパ風の急勾配屋根',
-  japanese_tiled_roof: '日本の戸建ての瓦屋根',
+  mansard_dormer: '欧州の標準的な急勾配屋根（45°〜60°）',
+  japanese_tiled_roof: '日本の標準的な戸建て屋根（スレート／ガルバリウム鋼板）',
   flat_roof_terrace: '平らな屋上（テラス付き）',
   pitched_gable_terrace: '連棟住宅の勾配屋根',
 }
@@ -6116,8 +6094,8 @@ const SURFACE_LABEL_EN: Record<SurfaceTypology, string> = {
   recessed_loggia: 'Recessed balcony (set into the building)',
   glass_railing: 'Balcony with a glass railing',
   access_gallery: 'Shared corridor of an apartment building',
-  mansard_dormer: 'Steep European-style roof',
-  japanese_tiled_roof: 'Japanese house tile roof',
+  mansard_dormer: 'Standard European steep-pitch roof (45°–60°)',
+  japanese_tiled_roof: 'Standard Japanese house roof (slate / galvalume)',
   flat_roof_terrace: 'Flat rooftop with a terrace',
   pitched_gable_terrace: 'Pitched roof of a terraced house',
 }

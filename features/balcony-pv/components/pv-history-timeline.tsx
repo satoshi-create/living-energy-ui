@@ -51,8 +51,8 @@ const TYPOLOGY_LABEL: Record<SurfaceTypology, { ja: string; en: string }> = {
     en: 'Mansard + dormer',
   },
   japanese_tiled_roof: {
-    ja: '和瓦屋根',
-    en: 'Japanese tiled roof',
+    ja: '日本の標準的な戸建て屋根（スレート／ガルバリウム鋼板）',
+    en: 'Standard Japanese house roof (slate / galvalume)',
   },
   flat_roof_terrace: {
     ja: '陸屋根テラス',
@@ -461,7 +461,7 @@ export function PvHistoryTimeline({
                           className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/30 px-2.5 py-2"
                         >
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-foreground">
+                            <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground">
                               {isEn ? label.en : label.ja}
                             </p>
                             <p className="font-mono text-xs text-muted-foreground">

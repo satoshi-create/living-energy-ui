@@ -59,12 +59,12 @@ const TYPOLOGY_LABEL: Record<SurfaceTypology, { ja: string; en: string }> = {
     en: 'Shared corridor of an apartment building',
   },
   mansard_dormer: {
-    ja: 'ヨーロッパ風の急勾配屋根',
-    en: 'Steep European-style roof',
+    ja: '欧州の標準的な急勾配屋根（45°〜60°）',
+    en: 'Standard European steep-pitch roof (45°–60°)',
   },
   japanese_tiled_roof: {
-    ja: '日本の戸建ての瓦屋根',
-    en: 'Japanese house tile roof',
+    ja: '日本の標準的な戸建て屋根（スレート／ガルバリウム鋼板）',
+    en: 'Standard Japanese house roof (slate / galvalume)',
   },
   flat_roof_terrace: {
     ja: '平らな屋上（テラス付き）',
@@ -428,7 +428,7 @@ export function SolarCellTypesView({
                             className="flex items-center justify-between gap-2 rounded-xl border border-border/40 bg-muted/30 px-2.5 py-2"
                           >
                             <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">
+                              <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground">
                                 {isEn ? label.en : label.ja}
                               </p>
                               <p className="font-mono text-xs text-muted-foreground">

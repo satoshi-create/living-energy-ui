@@ -43,7 +43,7 @@ export type Surface3DFullViewProps = {
   hideSidebarToggle?: boolean
 }
 
-type AnglePreset = '0°' | '30°' | '90°'
+type AnglePreset = '0°' | '30°' | '90°' | '-30°'
 type PanelMode = 'structure' | 'legal' | 'panels'
 
 function resolveInitialProfile(
@@ -202,208 +202,208 @@ export function Surface3DFullView({
       </div>
 
       {sidebarOpen ? (
-      <aside className="flex w-full shrink-0 flex-col gap-6 overflow-y-auto lg:w-[380px]">
-        {/* 1. 観察角度 */}
-        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6">
-          <p className="text-base font-semibold tracking-tight text-slate-100">
-            {tFull('angleLabel')}
-          </p>
-          <ToggleGroup
-            value={[angle]}
-            onValueChange={(v) => v[0] && setAngle(v[0] as AnglePreset)}
-            variant="outline"
-            className="flex w-full"
-          >
-            {(['0°', '30°', '90°'] as const).map((a) => (
-              <ToggleGroupItem key={a} value={a} className="flex-1 font-mono text-xs">
-                {a}
-                {angleMatches(profile.tiltAngle) && a === angle ? (
-                  <span className="sr-only">{tFull('angleNative')}</span>
-                ) : null}
+        <aside className="flex w-full shrink-0 flex-col gap-6 overflow-y-auto lg:w-[380px]">
+          {/* 1. 観察角度 */}
+          <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6">
+            <p className="text-base font-semibold tracking-tight text-slate-100">
+              {tFull('angleLabel')}
+            </p>
+            <ToggleGroup
+              value={[angle]}
+              onValueChange={(v) => v[0] && setAngle(v[0] as AnglePreset)}
+              variant="outline"
+              className="flex w-full"
+            >
+              {(['0°', '30°', '90°', '-30°'] as const).map((a) => (
+                <ToggleGroupItem className="flex-1 font-mono text-xs" key={a} value={a}>
+                  {a}
+                  {angleMatches(profile.tiltAngle) && a === angle ? (
+                    <span className="sr-only">{tFull('angleNative')}</span>
+                  ) : null}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            <p className="text-xs text-slate-400">
+              {tFull('angleHint', { tilt: profile.tiltAngle })}
+            </p>
+          </section>
+
+          {/* 2. 角度効率・生活適応メーター */}
+          <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6">
+            <p className="text-sm font-bold tracking-tight text-slate-100">
+              {tPv('livingMetrics.cardTitle')}
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-xs text-slate-400">
+                  {tPv('livingMetrics.relativeEfficiency')}
+                </span>
+                <span className="font-mono text-xs tabular-nums text-slate-200">
+                  {livingMetrics.displayEfficiencyPct}%
+                  {tPv.has(`livingMetrics.efficiencyNote.${tiltMode}`)
+                    ? ` ${tPv(`livingMetrics.efficiencyNote.${tiltMode}`)}`
+                    : tiltMetric.efficiencyNote
+                      ? ` （${tiltMetric.efficiencyNote}）`
+                      : null}
+                </span>
+              </div>
+              <Progress value={livingMetrics.displayEfficiencyPct} className="h-1.5" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-xs text-slate-400">
+                  {tPv('livingMetrics.lifeCompliance')}
+                </span>
+                <span className="font-mono text-xs tabular-nums text-emerald-400">
+                  {livingMetrics.lifeCompliancePct}%
+                </span>
+              </div>
+              <Progress value={livingMetrics.lifeCompliancePct} className="h-1.5" />
+            </div>
+          </section>
+
+          {/* 3. 制約・法規制・推奨パネル */}
+          <section className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6">
+            <ToggleGroup
+              value={[panelMode]}
+              onValueChange={(v) => v[0] && setPanelMode(v[0] as PanelMode)}
+              variant="outline"
+              className="flex w-full"
+            >
+              <ToggleGroupItem value="structure" className="flex-1 text-xs">
+                {tFull('tabStructure')}
               </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          <p className="text-xs text-slate-400">
-            {tFull('angleHint', { tilt: profile.tiltAngle })}
-          </p>
-        </section>
+              <ToggleGroupItem value="legal" className="flex-1 text-xs">
+                {tFull('tabLegal')}
+              </ToggleGroupItem>
+              <ToggleGroupItem value="panels" className="flex-1 text-xs">
+                {tFull('tabPanels')}
+              </ToggleGroupItem>
+            </ToggleGroup>
 
-        {/* 2. 角度効率・生活適応メーター */}
-        <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6">
-          <p className="text-sm font-bold tracking-tight text-slate-100">
-            {tPv('livingMetrics.cardTitle')}
-          </p>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs text-slate-400">
-                {tPv('livingMetrics.relativeEfficiency')}
-              </span>
-              <span className="font-mono text-xs tabular-nums text-slate-200">
-                {livingMetrics.displayEfficiencyPct}%
-                {tPv.has(`livingMetrics.efficiencyNote.${tiltMode}`)
-                  ? ` ${tPv(`livingMetrics.efficiencyNote.${tiltMode}`)}`
-                  : tiltMetric.efficiencyNote
-                    ? ` （${tiltMetric.efficiencyNote}）`
-                    : null}
-              </span>
-            </div>
-            <Progress value={livingMetrics.displayEfficiencyPct} className="h-1.5" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-xs text-slate-400">
-                {tPv('livingMetrics.lifeCompliance')}
-              </span>
-              <span className="font-mono text-xs tabular-nums text-emerald-400">
-                {livingMetrics.lifeCompliancePct}%
-              </span>
-            </div>
-            <Progress value={livingMetrics.lifeCompliancePct} className="h-1.5" />
-          </div>
-        </section>
+            {panelMode === 'structure' ? (
+              <div className="space-y-4">
+                <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                    <ShieldAlert className="size-3.5" />
+                    <span>{tFull('structureTitle')}</span>
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed text-slate-200">
+                    {tFull('structureDesc')}
+                  </p>
+                  <p className="text-xs leading-relaxed text-slate-400 border-t border-slate-800/60 pt-2">
+                    {tFull('structureScope')}
+                  </p>
+                </div>
 
-        {/* 3. 制約・法規制・推奨パネル */}
-        <section className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6">
-          <ToggleGroup
-            value={[panelMode]}
-            onValueChange={(v) => v[0] && setPanelMode(v[0] as PanelMode)}
-            variant="outline"
-            className="flex w-full"
-          >
-            <ToggleGroupItem value="structure" className="flex-1 text-xs">
-              {tFull('tabStructure')}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="legal" className="flex-1 text-xs">
-              {tFull('tabLegal')}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="panels" className="flex-1 text-xs">
-              {tFull('tabPanels')}
-            </ToggleGroupItem>
-          </ToggleGroup>
+                {profile.model3dId === 'japanese-evacuation-balcony' && (
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      {isEn ? 'Design Specifications (CAD / Codes)' : '基本設計寸法（CAD / 法規準拠）'}
+                    </div>
+                    <div className="mt-3 divide-y divide-slate-800/60 text-xs">
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Floor Slab (Depth × Width)' : '床スラブ（有効出幅×間口）'}</span>
+                        <span className="font-mono text-slate-200">1,550 × 2,800 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Railing Height (Order Art. 126)' : '手すり天端高（令第126条）'}</span>
+                        <span className="font-mono font-medium text-emerald-400">H = 1,100 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Baluster Pitch (Head Safety)' : '縦格子ピッチ（頭部侵入防止）'}</span>
+                        <span className="font-mono text-slate-200">約 115 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Egress Corridor Clearance' : '消防避難動線（有効幅基準）'}</span>
+                        <span className="font-mono font-medium text-emerald-400">600 mm 以上確保</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Evacuation Hatch Cover' : '避難ハッチ蓋（SUS標準）'}</span>
+                        <span className="font-mono text-slate-200">620 × 620 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Drainage Gutter Step' : '水抜き排水側溝'}</span>
+                        <span className="font-mono text-slate-200">幅 140 mm / 段差 15 mm</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-          {panelMode === 'structure' ? (
-            <div className="space-y-4">
+                {profile.model3dId === 'concrete-parapet' && (
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      {isEn ? 'Design Specifications (DIN / Eurocodes)' : '基本設計寸法（DIN / 欧州法規準拠）'}
+                    </div>
+                    <div className="mt-3 divide-y divide-slate-800/60 text-xs">
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Balcony Slab (DIN 18065)' : '床スラブ有効寸法（DIN 18065）'}</span>
+                        <span className="font-mono text-slate-200">1,650 × 2,700 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Parapet Height (LBO Standard)' : '腰壁天端高（各州建築基準法）'}</span>
+                        <span className="font-mono font-medium text-emerald-400">H = 1,050 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Concrete Parapet Thickness' : 'RC腰壁躯体厚み'}</span>
+                        <span className="font-mono text-slate-200">220 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Capping Flashing (Width)' : '笠木水切り天端幅'}</span>
+                        <span className="font-mono text-slate-200">260 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Roller Shutter (Rollladen Box)' : '外付けシャッター格納箱'}</span>
+                        <span className="font-mono text-slate-200">1,480 × 220 mm</span>
+                      </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-slate-400">{isEn ? 'Inverter Clearance (VDE AR-N 4105)' : 'インバータ設置離隔（VDE規格）'}</span>
+                        <span className="font-mono font-medium text-emerald-400">通風 150 mm 以上</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : panelMode === 'legal' ? (
               <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                  <ShieldAlert className="size-3.5" />
-                  <span>{tFull('structureTitle')}</span>
+                  <FileText className="size-3.5" />
+                  <span>{tFull('legalTitle')}</span>
                 </div>
                 <p className="text-sm font-medium leading-relaxed text-slate-200">
-                  {tFull('structureDesc')}
-                </p>
-                <p className="text-xs leading-relaxed text-slate-400 border-t border-slate-800/60 pt-2">
-                  {tFull('structureScope')}
+                  {tFull('legalDesc')}
                 </p>
               </div>
-
-              {profile.model3dId === 'japanese-evacuation-balcony' && (
-                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    {isEn ? 'Design Specifications (CAD / Codes)' : '基本設計寸法（CAD / 法規準拠）'}
-                  </div>
-                  <div className="mt-3 divide-y divide-slate-800/60 text-xs">
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Floor Slab (Depth × Width)' : '床スラブ（有効出幅×間口）'}</span>
-                      <span className="font-mono text-slate-200">1,550 × 2,800 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Railing Height (Order Art. 126)' : '手すり天端高（令第126条）'}</span>
-                      <span className="font-mono font-medium text-emerald-400">H = 1,100 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Baluster Pitch (Head Safety)' : '縦格子ピッチ（頭部侵入防止）'}</span>
-                      <span className="font-mono text-slate-200">約 115 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Egress Corridor Clearance' : '消防避難動線（有効幅基準）'}</span>
-                      <span className="font-mono font-medium text-emerald-400">600 mm 以上確保</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Evacuation Hatch Cover' : '避難ハッチ蓋（SUS標準）'}</span>
-                      <span className="font-mono text-slate-200">620 × 620 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Drainage Gutter Step' : '水抜き排水側溝'}</span>
-                      <span className="font-mono text-slate-200">幅 140 mm / 段差 15 mm</span>
-                    </div>
-                  </div>
+            ) : (
+              <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                  <Sparkles className="size-3.5" />
+                  <span>{tFull('tabPanels')}</span>
                 </div>
-              )}
-
-              {profile.model3dId === 'concrete-parapet' && (
-                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    {isEn ? 'Design Specifications (DIN / Eurocodes)' : '基本設計寸法（DIN / 欧州法規準拠）'}
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+                    <CheckCircle2 className="size-4 shrink-0 text-emerald-400 mt-0.5" />
+                    <p className="text-xs font-medium text-emerald-300">
+                      {tFull('panelsRec1')}
+                    </p>
                   </div>
-                  <div className="mt-3 divide-y divide-slate-800/60 text-xs">
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Balcony Slab (DIN 18065)' : '床スラブ有効寸法（DIN 18065）'}</span>
-                      <span className="font-mono text-slate-200">1,650 × 2,700 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Parapet Height (LBO Standard)' : '腰壁天端高（各州建築基準法）'}</span>
-                      <span className="font-mono font-medium text-emerald-400">H = 1,050 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Concrete Parapet Thickness' : 'RC腰壁躯体厚み'}</span>
-                      <span className="font-mono text-slate-200">220 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Capping Flashing (Width)' : '笠木水切り天端幅'}</span>
-                      <span className="font-mono text-slate-200">260 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Roller Shutter (Rollladen Box)' : '外付けシャッター格納箱'}</span>
-                      <span className="font-mono text-slate-200">1,480 × 220 mm</span>
-                    </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">{isEn ? 'Inverter Clearance (VDE AR-N 4105)' : 'インバータ設置離隔（VDE規格）'}</span>
-                      <span className="font-mono font-medium text-emerald-400">通風 150 mm 以上</span>
-                    </div>
+                  <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+                    <CheckCircle2 className="size-4 shrink-0 text-emerald-400 mt-0.5" />
+                    <p className="text-xs font-medium text-emerald-300">
+                      {tFull('panelsRec2')}
+                    </p>
                   </div>
-                </div>
-              )}
-            </div>
-          ) : panelMode === 'legal' ? (
-            <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                <FileText className="size-3.5" />
-                <span>{tFull('legalTitle')}</span>
-              </div>
-              <p className="text-sm font-medium leading-relaxed text-slate-200">
-                {tFull('legalDesc')}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                <Sparkles className="size-3.5" />
-                <span>{tFull('tabPanels')}</span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-                  <CheckCircle2 className="size-4 shrink-0 text-emerald-400 mt-0.5" />
-                  <p className="text-xs font-medium text-emerald-300">
-                    {tFull('panelsRec1')}
-                  </p>
-                </div>
-                <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-                  <CheckCircle2 className="size-4 shrink-0 text-emerald-400 mt-0.5" />
-                  <p className="text-xs font-medium text-emerald-300">
-                    {tFull('panelsRec2')}
-                  </p>
-                </div>
-                <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5">
-                  <XCircle className="size-4 shrink-0 text-rose-400 mt-0.5" />
-                  <p className="text-xs font-medium text-rose-300">
-                    {tFull('panelsUnfit')}
-                  </p>
+                  <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5">
+                    <XCircle className="size-4 shrink-0 text-rose-400 mt-0.5" />
+                    <p className="text-xs font-medium text-rose-300">
+                      {tFull('panelsUnfit')}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </section>
-      </aside>
+            )}
+          </section>
+        </aside>
       ) : null}
     </div>
   )

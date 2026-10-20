@@ -418,7 +418,7 @@ function ArchitectureSidebar({
             key={profile.id}
             className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-muted/30 px-2.5 py-2"
           >
-            <p className="min-w-0 truncate text-sm font-medium text-foreground">
+            <p className="min-w-0 line-clamp-2 text-sm font-medium leading-relaxed text-foreground">
               {tArch(profile.nameKey)}
             </p>
             <div className="max-h-[140px] overflow-hidden rounded-md [&_>div]:min-h-[120px] [&_>div]:h-[140px]">
@@ -1371,7 +1371,7 @@ export function WorldImplementationView() {
                   {tArch("surface3d.backToList")}
                 </button>
                 {detailCatalogItem ? (
-                  <h2 className="truncate text-base font-semibold text-slate-100">
+                  <h2 className="line-clamp-2 text-base font-semibold leading-snug text-slate-100">
                     {tArch(detailCatalogItem.profile.nameKey)}
                   </h2>
                 ) : null}

@@ -211,18 +211,18 @@
         "mechanism": "Origami / bench freestanding furniture—keep the walkway open; full indoor stow in high wind."
       },
       "mansard_dormer": {
-        "name": "Steep European-style roof",
+        "name": "Standard European steep-pitch roof (45°–60°)",
         "feature": "Two-pitch mansard with a steep lower face and dormer windows; harvest beside the dormer cheeks.",
         "constraints": "Steep faces reject heavy racks—adapt beside dormers or on the shallow upper pitch with light no-drill film mounts.",
         "regionContext": "Note: Typical contexts — historic districts (façade protection), steep zinc / mansard stock",
         "mechanism": "Flexible thin-film along steep pitches and dormer cheeks; no heavy racks."
       },
       "japanese_tiled_roof": {
-        "name": "Japanese house tile roof",
-        "feature": "~30° gable or hip tile roofs where lightweight panels ride on roof-edge brackets along the pitch.",
-        "constraints": "Tile damage and leak risk rule out heavy racks—light along-pitch hook mounts only.",
-        "regionContext": "Note: Typical contexts — pitched tile-roof belts",
-        "mechanism": "Catenary / hook-style light brackets that hang panels along the tile plane."
+        "name": "Standard Japanese house roof (slate / galvalume)",
+        "feature": "Lightweight pitched roof in slate (colonial) or galvalume steel sheet—the most common roof on new and existing Japanese homes. Panels mount with support/catch brackets.",
+        "constraints": "Light support and catch brackets that avoid damaging slate or metal roofing—no heavy racks or tile-straddling mounts.",
+        "regionContext": "Note: Typical contexts — Japanese residential neighbourhoods (slate / metal roofs)",
+        "mechanism": "Light along-pitch support on slate anchors or metal-roof catch brackets."
       },
       "flat_roof_terrace": {
         "name": "Flat rooftop with a terrace",
@@ -626,7 +626,7 @@
           "haussmann-balconet": "Ultra-shallow stone floor + ornate iron rail; window louvers as the harvest plane.",
           "concrete-parapet": "Thick parapet with clamp mounts for a near-vertical panel.",
           "japanese-evacuation-balcony": "Standard-depth floor + aluminum rail, kick-out panel, and stowable bench.",
-          "japanese-kawara-roof": "~30° tile roof with bracket-mounted panels along the pitch.",
+          "japanese-kawara-roof": "Clean slate / galvalume-steel pitched roof with bracket-mounted panels along the pitch.",
           "french-mansard-roof": "Two-pitch mansard in zinc with dormer; harvest beside the dormer face.",
           "flat-concrete-roof": "Flat concrete slab with shade-pergola rack for living-furniture PV.",
           "uk-juliet-balcony": "No deck—Juliet rail / French-door glazing as a vertical harvest plane.",
@@ -687,14 +687,14 @@
           "regionContext": "Note: Typical contexts — multifamily (egress kept clear), gallery-access blocks"
         },
         "japanese-kawara-roof": {
-          "name": "Japanese house tile roof",
-          "description": "~30° gable or hip tile roofs where lightweight panels ride on roof-edge brackets.",
-          "constraints": "Light hook mounts only",
-          "regionContext": "Note: Typical contexts — pitched tile-roof belts"
+          "name": "Standard Japanese house roof (slate / galvalume)",
+          "description": "Lightweight slate (colonial) or galvalume-steel pitched roof, with panels fixed by support and catch brackets.",
+          "constraints": "Light support / catch brackets only",
+          "regionContext": "Note: Typical contexts — Japanese residential neighbourhoods (slate / metal roofs)"
         },
         "french-mansard-roof": {
-          "name": "Steep European-style roof",
-          "description": "Two-pitch mansard with a steep lower face and dormer windows; harvest beside the dormer cheeks.",
+          "name": "Standard European steep-pitch roof (45°–60°)",
+          "description": "A 45°–60° steep clay-tile or slate roof common in Germany and France, with durable thin-film modules fixed by steep-pitch brackets to shed snow and catch low winter sun.",
           "constraints": "Light film adaptation",
           "regionContext": "Note: Typical contexts — historic districts (façade protection), steep zinc / mansard stock"
         },
