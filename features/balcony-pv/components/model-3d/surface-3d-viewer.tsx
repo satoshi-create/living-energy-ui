@@ -25,19 +25,30 @@ export function Surface3DViewer({
 }: Surface3DViewerProps) {
   const t = useTranslations('worldPv.architecture.surface3d')
   const full = variant === 'full'
-  const cam = (full ? CAMERA_PRESETS_FULL : CAMERA_PRESETS_PREVIEW)[cameraPreset]
+  const stretchPreview =
+    !full && typeof className === 'string' && /\bh-full\b/.test(className)
+  const cam = (full || stretchPreview
+    ? CAMERA_PRESETS_FULL
+    : CAMERA_PRESETS_PREVIEW)[cameraPreset]
+  const cameraFov = stretchPreview ? 48 : 42
 
   return (
     <div
       className={cn(
         'relative overflow-hidden rounded-lg border border-border/50 bg-slate-950',
-        full && 'flex h-full min-h-0 flex-col',
+        (full || stretchPreview) && 'flex h-full min-h-0 flex-col',
         className,
       )}
       role="img"
       aria-label={t(full ? 'fullView.viewerAria' : 'viewerAria')}
     >
-      <div className={cn(full ? 'min-h-0 flex-1' : 'h-44 w-full sm:h-48')}>
+      <div
+        className={cn(
+          full || stretchPreview
+            ? 'min-h-0 w-full flex-1'
+            : 'h-44 w-full sm:h-48',
+        )}
+      >
         <Suspense
           fallback={
             <div className="flex h-full items-center justify-center text-xs text-slate-400">
@@ -46,11 +57,11 @@ export function Surface3DViewer({
           }
         >
           <Canvas
-            key={`${profileId}-${full ? cameraPreset : 'preview'}-${tiltDeg}-${isRetracted}`}
+            key={`${profileId}-${full ? cameraPreset : stretchPreview ? 'card' : 'preview'}-${tiltDeg}-${isRetracted}`}
             dpr={[1, full ? 2 : 1.5]}
             camera={{
               position: cam.position,
-              fov: 42,
+              fov: cameraFov,
               near: 0.1,
               far: 50,
             }}
@@ -64,6 +75,7 @@ export function Surface3DViewer({
               profileId={profileId}
               cameraPreset={cameraPreset}
               full={full}
+              relaxedPreview={stretchPreview}
               tiltDeg={tiltDeg}
               isRetracted={isRetracted}
             />

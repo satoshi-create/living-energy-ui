@@ -40,30 +40,32 @@ export function CameraPresetController({
   )
 }
 
-/** プレビューのカメラをOrbitControlsと同じ注視点へ向ける。 */
-function PreviewCameraAim() {
+export function PreviewCameraRig({
+  relaxed = false,
+  preset,
+}: {
+  relaxed?: boolean
+  preset: Surface3DCameraPreset
+}) {
   const { camera } = useThree()
 
   useLayoutEffect(() => {
+    if (relaxed) {
+      const { position } = CAMERA_PRESETS_FULL[preset]
+      camera.position.set(...position)
+    }
     camera.lookAt(...SURFACE_CAMERA_TARGET)
     camera.updateProjectionMatrix()
-  }, [camera])
+  }, [camera, relaxed, preset])
 
-  return null
-}
-
-export function PreviewCameraRig() {
   return (
-    <>
-      <PreviewCameraAim />
-      <OrbitControls
-        makeDefault
-        enablePan={false}
-        minDistance={2.2}
-        maxDistance={7}
-        maxPolarAngle={Math.PI / 2.05}
-        target={SURFACE_CAMERA_TARGET}
-      />
-    </>
+    <OrbitControls
+      makeDefault
+      enablePan={false}
+      minDistance={relaxed ? 3.2 : 2.2}
+      maxDistance={relaxed ? 12 : 7}
+      maxPolarAngle={Math.PI / 2.05}
+      target={SURFACE_CAMERA_TARGET}
+    />
   )
 }

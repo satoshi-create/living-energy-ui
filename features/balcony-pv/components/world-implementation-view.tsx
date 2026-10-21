@@ -27,6 +27,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { SurfaceCountryTags } from "./balcony-illustration"
+import { Ecosystem3DFullView } from "./ecosystem-3d-full-view"
 import type { Surface3DFocus } from "./surface-3d-full-view"
 import type { PvHistoryStream } from "../history-data"
 import type {
@@ -1207,152 +1208,8 @@ export function WorldImplementationView() {
         </div>
       </TabsContent>
 
-      <TabsContent
-        value="ecosystem"
-        className="m-0 min-h-0 flex-1 overflow-hidden outline-none data-[hidden]:hidden"
-      >
-        <div className="flex h-full min-h-0 flex-col space-y-8 overflow-y-auto bg-slate-950 p-5 sm:p-6 md:p-8">
-          <div className="mb-8 shrink-0 space-y-4 rounded-2xl border border-slate-800/80 bg-slate-900/40 p-5 md:p-6">
-            <div className="space-y-2">
-              <h2 className="text-base font-semibold text-slate-100">{t("ecosystem.title")}</h2>
-              <p className="text-sm leading-relaxed text-slate-400">{t("ecosystem.lead")}</p>
-            </div>
-
-          <div className="flex flex-wrap gap-2">
-            {MARKET_ECOSYSTEM_TOPOLOGIES.map((topo) => {
-              const id = topo.modelId as MarketEcosystemModelId
-              const active = id === ecosystemModelId
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setEcosystemModelId(id)}
-                  className={cn(
-                    "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
-                    active
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                      : "border-slate-700/60 bg-slate-900/80 text-slate-300 hover:border-slate-600 hover:bg-slate-800/80",
-                  )}
-                >
-                  {t(`ecosystem.models.${id}`)}
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="flex flex-col gap-2 border-t border-slate-800/60 pt-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              {t("ecosystem.viewMode.label")}
-            </p>
-            <ToggleGroup
-              value={[ecosystemViewMode]}
-              onValueChange={(v) => {
-                if (v[0] === "hardware" || v[0] === "software") {
-                  setEcosystemViewMode(v[0])
-                }
-              }}
-              variant="outline"
-              className="flex w-full flex-wrap sm:w-auto"
-              aria-label={t("ecosystem.viewMode.label")}
-            >
-              <ToggleGroupItem
-                value="hardware"
-                className="flex-1 text-xs sm:flex-none"
-              >
-                {t("ecosystem.viewMode.hardware")}
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="software"
-                className="flex-1 text-xs sm:flex-none"
-              >
-                {t("ecosystem.viewMode.software")}
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-
-          <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              {isEn
-                ? "🌍 Main countries & regions using this power model"
-                : "🌍 この給電モデルを採用している主な国・地域"}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {ecosystemAdopterCountries.length === 0 ? (
-                <span className="text-xs text-slate-400">
-                  {isEn ? "No countries listed" : "該当国なし"}
-                </span>
-              ) : (
-                ecosystemAdopterCountries.map((country) => (
-                  <button
-                    key={country.id}
-                    type="button"
-                    onClick={() => jumpToMapCountry(country.id)}
-                    className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/20"
-                  >
-                    {formatMarketEcosystemCountryChip(country, isEn)}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-          </div>
-
-          {/* Hide inner ①②③ tabs — parent owns model selection for chip sync.
-              remount on locale / viewMode so wiringFlow + SVG overlays refresh.
-              Hide default wiring-step cards (5th child); re-render below as hardware specs. */}
-          <div className="[&>div>div:first-child]:hidden [&>div>div:nth-child(5)]:hidden">
-            <CountryPvEcosystem
-              key={`${ecosystemModelId}:${ecosystemViewMode}:${isEn ? "en" : "ja"}:${resolveMarketEcosystemWiringFlow(
-                activeEcosystemTopology,
-                isEn,
-              ).generation}`}
-              isEn={isEn}
-              modelId={ecosystemModelId}
-              viewMode={ecosystemViewMode}
-              onSelectOssTab={() => jumpToOssTools()}
-            />
-          </div>
-
-          {/* Hardware wiring specs only — software overlays live on the SVG above */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {ECOSYSTEM_WIRING_STEPS.map((stepKey) => {
-              const flow = resolveMarketEcosystemWiringFlow(
-                activeEcosystemTopology,
-                isEn,
-              )
-              const isConsumption = stepKey === "consumption"
-              return (
-                <div
-                  key={stepKey}
-                  className={cn(
-                    "flex flex-col space-y-2 rounded-xl border border-slate-800 bg-slate-900/80 p-5 md:p-6",
-                    isConsumption && "min-h-[7.5rem] sm:col-span-2 lg:col-span-1",
-                  )}
-                >
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    {isConsumption
-                      ? consumptionNodeTitle(ecosystemModelId, isEn)
-                      : t(`ecosystem.wiringSteps.${stepKey}`)}
-                  </p>
-                  <p className="text-sm leading-relaxed break-words text-slate-200">
-                    {flow[stepKey]}
-                  </p>
-                  {isConsumption && (
-                    <PoweredApplianceChips
-                      appliances={activeEcosystemTopology.poweredAppliances}
-                      note={
-                        isEn
-                          ? activeEcosystemTopology.applianceNoteEn
-                          : activeEcosystemTopology.applianceNoteJa
-                      }
-                      isEn={isEn}
-                    />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
+      <TabsContent className="mt-6 focus-visible:outline-none focus-visible:ring-0" value="ecosystem">
+        {viewTab === "ecosystem" ? <Ecosystem3DFullView /> : null}
       </TabsContent>
 
       <TabsContent
@@ -1444,11 +1301,23 @@ export function WorldImplementationView() {
               </Tabs>
             </div>
 
-            <ul className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredArchitectureCatalog.map(({ countryId, profile, typology }) => {
+            <ul className="mb-8 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredArchitectureCatalog.map(({ countryId, countryCode, profile, typology }) => {
                 const TypeIcon = ARCH_TYPE_ICON[profile.type]
+                const repCode = countryCode.toUpperCase()
+                const prevalentCountries = typology.prevalentCountries.some(
+                  (c) => String(c.code).toUpperCase() === repCode,
+                )
+                  ? typology.prevalentCountries
+                  : [
+                      {
+                        code: repCode,
+                        nameKey: `countries.${countryCode.toLowerCase()}`,
+                      },
+                      ...typology.prevalentCountries,
+                    ]
                 return (
-                  <li key={`${countryId}:${profile.id}`}>
+                  <li key={`${countryId}:${profile.id}`} className="flex min-h-0">
                     <div
                       role="button"
                       tabIndex={0}
@@ -1467,17 +1336,20 @@ export function WorldImplementationView() {
                           })
                         }
                       }}
-                      className="flex w-full cursor-pointer flex-col space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 text-left transition-all duration-200 hover:border-slate-700 hover:bg-slate-800/80 md:p-6"
+                      className="flex h-full min-h-[520px] w-full cursor-pointer flex-col space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 text-left transition-all duration-200 hover:border-slate-700 hover:bg-slate-800/80 md:p-6"
                     >
-                      <p className="min-w-0 text-base font-semibold leading-relaxed text-slate-100">
+                      <p className="min-w-0 truncate text-base font-semibold text-slate-100">
                         {tArch(profile.nameKey)}
                       </p>
 
-                      <div className="overflow-hidden rounded-lg border border-slate-800 [&_.text-muted-foreground]:hidden [&_p]:hidden">
-                        <Surface3DViewer profileId={profile.model3dId} />
+                      <div className="flex min-h-[200px] flex-1 flex-col overflow-hidden rounded-lg border border-slate-800 [&_.text-muted-foreground]:hidden [&_p]:hidden">
+                        <Surface3DViewer
+                          profileId={profile.model3dId}
+                          className="h-full min-h-0 flex-1 rounded-none border-0 bg-transparent"
+                        />
                       </div>
 
-                      <div className="flex flex-col gap-3 border-t border-slate-800/60 pt-4">
+                      <div className="mt-auto flex shrink-0 flex-col gap-3 border-t border-slate-800/60 pt-4">
                         <div className="flex flex-wrap content-start gap-2">
                           <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/60 bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-slate-300">
                             <TypeIcon className="size-3 shrink-0 text-slate-400" aria-hidden />
@@ -1498,11 +1370,7 @@ export function WorldImplementationView() {
                           <SurfaceCountryTags
                             typology={{
                               ...typology,
-                              prevalentCountries:
-                                typology.prevalentCountries.filter((c) => {
-                                  const code = String(c.code).toUpperCase()
-                                  return code === "JP" || code === "DE"
-                                }),
+                              prevalentCountries,
                             }}
                           />
                         </div>

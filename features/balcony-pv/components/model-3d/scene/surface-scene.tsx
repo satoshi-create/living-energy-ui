@@ -18,12 +18,14 @@ export function SurfaceScene({
   profileId,
   cameraPreset,
   full,
+  relaxedPreview = false,
   tiltDeg,
   isRetracted,
 }: {
   profileId: Surface3dModelId
   cameraPreset: Surface3DCameraPreset
   full: boolean
+  relaxedPreview?: boolean
   tiltDeg: number
   isRetracted: boolean
 }) {
@@ -40,7 +42,9 @@ export function SurfaceScene({
       <Model />
       <SurfaceGround />
       <CameraPresetController preset={cameraPreset} enabled={full} />
-      {!full && <PreviewCameraRig />}
+      {!full && (
+        <PreviewCameraRig relaxed={relaxedPreview} preset={cameraPreset} />
+      )}
     </PanelTiltContext.Provider>
   )
 }

@@ -2,21 +2,9 @@ import { Analytics } from '@vercel/analytics/next'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import type { Metadata, Viewport } from 'next'
-import { Noto_Sans_JP, JetBrains_Mono } from 'next/font/google'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import '../globals.css'
-
-const _notoSansJP = Noto_Sans_JP({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-sans',
-})
-
-const _jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-})
 
 type LocaleLayoutProps = {
   children: React.ReactNode
@@ -75,10 +63,10 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const messages = await getMessages()
 
   return (
-    <html lang={locale} className={`dark ${_notoSansJP.variable} ${_jetbrainsMono.variable}`}>
+    <html lang={locale} className="dark">
       <body className="bg-background font-sans antialiased">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NODE_ENV === 'production' && <Analytics/>}
       </body>
     </html>
   )
