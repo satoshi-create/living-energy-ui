@@ -1,6 +1,6 @@
 'use client'
 
-import type { SolarCellTypeId } from '../../../data'
+import type { SolarCellTypeId } from '../../../solar-cell-data'
 import { CELL_STAGE_LIFT } from '../constants/dimensions'
 import { CellMesh } from '../panels/cell-mesh'
 

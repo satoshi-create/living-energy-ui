@@ -417,6 +417,50 @@
         "grid_plugin_allowed": "① コンセント直結型（送電網あり・プラグイン公認）",
         "grid_plugin_prohibited": "② 蓄電ハイブリッド型（送電網あり・直結禁止のため蓄電自給）",
         "offgrid_leapfrog": "③ 無電化・独立電源型（送電網なし・未整備地域の生活自給）"
+      },
+      "pins3d": {
+        "directPlugin": {
+          "solar": {
+            "title": "太陽光パネル",
+            "subtitle": "太陽光で発電 (DC)"
+          },
+          "inverter": {
+            "title": "インバータ",
+            "subtitle": "家庭用に変換 (AC)"
+          },
+          "outlet": {
+            "title": "壁コンセント直挿し",
+            "subtitle": "部屋へ給電 (工事不要)"
+          }
+        },
+        "storageHybrid": {
+          "solar": {
+            "title": "太陽光パネル",
+            "subtitle": "DC 400W〜800W 急速発電"
+          },
+          "battery": {
+            "title": "蓄電ユニット",
+            "subtitle": "昼間に急速蓄電 / 夜間に給電"
+          },
+          "gridCutoff": {
+            "title": "系統非連系（逆潮流遮断）",
+            "subtitle": "直結禁止規制を完全クリア"
+          }
+        },
+        "offgridStandalone": {
+          "solar": {
+            "title": "自立型ソーラーパネル",
+            "subtitle": "未電化・散乱光対応 (DC 200W〜600W)"
+          },
+          "hub": {
+            "title": "独立蓄電ハブ（オフグリッドEMS）",
+            "subtitle": "日中充電 ＆ 夜間インフラ維持"
+          },
+          "living": {
+            "title": "完全オフグリッド生活",
+            "subtitle": "通信・照明・保冷の生活維持自給"
+          }
+        }
       }
     },
     "vendors": {

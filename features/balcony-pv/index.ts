@@ -8,12 +8,12 @@ export type {
   BalconyFitStatus,
   SolarCellTypeDetail,
   SolarCellTypeId,
-} from "./data"
+} from "./solar-cell-data"
 export {
   SOLAR_CELL_TYPE_IDS,
   SOLAR_CELL_TYPES,
   getSolarCellType,
   solarCellTypeFromHistoryStream,
-} from "./data"
+} from "./solar-cell-data"
 export { PvHistoryTimeline } from "./components/pv-history-timeline"
 export type { PvHistoryTimelineProps } from "./components/pv-history-timeline"

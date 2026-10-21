@@ -1,6 +1,6 @@
 'use client'
 
-import type { SolarCellTypeId } from '../../../data'
+import type { SolarCellTypeId } from '../../../solar-cell-data'
 import { CompoundThinFilmPanel } from './compound-thin-film-panel'
 import { EtfeFlexiblePanel } from './etfe-flexible-panel'
 import { PerovskiteFilmPanel } from './perovskite-film-panel'

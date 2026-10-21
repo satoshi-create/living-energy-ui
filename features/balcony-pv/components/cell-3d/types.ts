@@ -1,4 +1,4 @@
-import type { SolarCellTypeId } from '../../data'
+import type { SolarCellTypeId } from '../../solar-cell-data'
 import type { CellViewAngle } from './constants/camera'
 
 export type { CellViewAngle }

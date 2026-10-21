@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -62,6 +63,7 @@ interface Ecosystem3DViewerProps {
 }
 
 export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
+  const t = useTranslations("worldPv");
   const [screenCoords, setScreenCoords] = useState<
     Record<string, { x: number; y: number; visible: boolean }>
   >({});
@@ -74,8 +76,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
           badge: "1",
           badgeBg: "bg-emerald-500",
           badgeText: "text-slate-950",
-          title: "太陽光パネル",
-          subtitle: "太陽光で発電 (DC)",
+          title: t("ecosystem.pins3d.directPlugin.solar.title"),
+          subtitle: t("ecosystem.pins3d.directPlugin.solar.subtitle"),
           subColor: "text-emerald-400",
           borderColor: "border-emerald-500/60",
           worldPos: [-3.3, 1.4, 0],
@@ -85,8 +87,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
           badge: "2",
           badgeBg: "bg-sky-500",
           badgeText: "text-slate-950",
-          title: "インバータ",
-          subtitle: "家庭用に変換 (AC)",
+          title: t("ecosystem.pins3d.directPlugin.inverter.title"),
+          subtitle: t("ecosystem.pins3d.directPlugin.inverter.subtitle"),
           subColor: "text-sky-400",
           borderColor: "border-sky-500/60",
           worldPos: [-2.75, 1.0, -1.0],
@@ -96,8 +98,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
           badge: "✓",
           badgeBg: "bg-emerald-500/20",
           badgeText: "text-emerald-400",
-          title: "壁コンセント直挿し",
-          subtitle: "部屋へ給電 (工事不要)",
+          title: t("ecosystem.pins3d.directPlugin.outlet.title"),
+          subtitle: t("ecosystem.pins3d.directPlugin.outlet.subtitle"),
           subColor: "text-emerald-400",
           borderColor: "border-emerald-500/60",
           worldPos: [-0.7, 0.9, -1.3],
@@ -111,8 +113,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
           badge: "1",
           badgeBg: "bg-emerald-500",
           badgeText: "text-slate-950",
-          title: "太陽光パネル",
-          subtitle: "DC 400W〜800W 急速発電",
+          title: t("ecosystem.pins3d.storageHybrid.solar.title"),
+          subtitle: t("ecosystem.pins3d.storageHybrid.solar.subtitle"),
           subColor: "text-emerald-400",
           borderColor: "border-emerald-500/60",
           worldPos: [-3.3, 1.4, 0],
@@ -122,8 +124,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
           badge: "2",
           badgeBg: "bg-emerald-500",
           badgeText: "text-slate-950",
-          title: "蓄電ユニット",
-          subtitle: "昼間に急速蓄電 / 夜間に給電",
+          title: t("ecosystem.pins3d.storageHybrid.battery.title"),
+          subtitle: t("ecosystem.pins3d.storageHybrid.battery.subtitle"),
           subColor: "text-emerald-400",
           borderColor: "border-emerald-500/60",
           worldPos: [1.4, 0.9, -0.4],
@@ -133,8 +135,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
           badge: "✕",
           badgeBg: "bg-rose-500/20",
           badgeText: "text-rose-400",
-          title: "系統非連系（逆潮流遮断）",
-          subtitle: "直結禁止規制を完全クリア",
+          title: t("ecosystem.pins3d.storageHybrid.gridCutoff.title"),
+          subtitle: t("ecosystem.pins3d.storageHybrid.gridCutoff.subtitle"),
           subColor: "text-rose-400",
           borderColor: "border-rose-500/50",
           worldPos: [3.5, 1.6, -1.75],
@@ -147,8 +149,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
         badge: "1",
         badgeBg: "bg-emerald-500",
         badgeText: "text-slate-950",
-        title: "自立型ソーラーパネル",
-        subtitle: "未電化・散乱光対応 (DC 200W〜600W)",
+        title: t("ecosystem.pins3d.offgridStandalone.solar.title"),
+        subtitle: t("ecosystem.pins3d.offgridStandalone.solar.subtitle"),
         subColor: "text-emerald-400",
         borderColor: "border-emerald-500/60",
         worldPos: [-3.3, 1.4, 0],
@@ -158,8 +160,8 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
         badge: "2",
         badgeBg: "bg-emerald-500",
         badgeText: "text-slate-950",
-        title: "独立蓄電ハブ（オフグリッドEMS）",
-        subtitle: "日中充電 ＆ 夜間インフラ維持",
+        title: t("ecosystem.pins3d.offgridStandalone.hub.title"),
+        subtitle: t("ecosystem.pins3d.offgridStandalone.hub.subtitle"),
         subColor: "text-emerald-400",
         borderColor: "border-emerald-500/60",
         worldPos: [1.4, 0.9, -0.4],
@@ -169,14 +171,14 @@ export function Ecosystem3DViewer({ modelId }: Ecosystem3DViewerProps) {
         badge: "3",
         badgeBg: "bg-sky-500",
         badgeText: "text-slate-950",
-        title: "完全オフグリッド生活",
-        subtitle: "通信・照明・保冷の生活維持自給",
+        title: t("ecosystem.pins3d.offgridStandalone.living.title"),
+        subtitle: t("ecosystem.pins3d.offgridStandalone.living.subtitle"),
         subColor: "text-sky-400",
         borderColor: "border-sky-500/60",
         worldPos: [0.5, 1.0, 0.7],
       },
     ];
-  }, [modelId]);
+  }, [modelId, t]);
 
   return (
     <div className="w-full h-full relative min-h-0 overflow-hidden">

@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { BalconyIllustration } from "./balcony-illustration"
 import {
   DIRECTIONS,
   RAILING_TYPES,
@@ -30,6 +29,19 @@ const HomeView = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex min-h-[200px] w-full items-center justify-center rounded-xl bg-slate-950/40">
+        <div className="size-5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+      </div>
+    ),
+  },
+)
+
+const BalconyIllustration = dynamic(
+  () =>
+    import("./balcony-illustration").then((m) => m.BalconyIllustration),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[280px] w-full items-center justify-center rounded-xl bg-slate-950/40">
         <div className="size-5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
       </div>
     ),

@@ -410,6 +410,50 @@
         "grid_plugin_allowed": "① Outlet plug-in (grid present · plug-in certified)",
         "grid_plugin_prohibited": "② Storage hybrid (grid present · no outlet tie · battery self-supply)",
         "offgrid_leapfrog": "③ Unelectrified / independent power (no grid · life self-supply in underserved areas)"
+      },
+      "pins3d": {
+        "directPlugin": {
+          "solar": {
+            "title": "Solar panels",
+            "subtitle": "Generate power (DC)"
+          },
+          "inverter": {
+            "title": "Inverter",
+            "subtitle": "Convert for home use (AC)"
+          },
+          "outlet": {
+            "title": "Wall outlet plug-in",
+            "subtitle": "Power the room (no electrician)"
+          }
+        },
+        "storageHybrid": {
+          "solar": {
+            "title": "Solar panels",
+            "subtitle": "Fast DC generation (400–800W)"
+          },
+          "battery": {
+            "title": "Battery unit",
+            "subtitle": "Charge by day · power by night"
+          },
+          "gridCutoff": {
+            "title": "Grid-isolated (no export)",
+            "subtitle": "Meets no-outlet-tie rules"
+          }
+        },
+        "offgridStandalone": {
+          "solar": {
+            "title": "Standalone solar",
+            "subtitle": "Low-light & off-grid ready (DC 200–600W)"
+          },
+          "hub": {
+            "title": "Off-grid storage hub",
+            "subtitle": "Daytime charge · night infrastructure"
+          },
+          "living": {
+            "title": "Fully off-grid living",
+            "subtitle": "Comms, lighting & cold chain at home"
+          }
+        }
       }
     },
     "vendors": {

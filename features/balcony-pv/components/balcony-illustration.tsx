@@ -26,7 +26,7 @@ import {
   getSolarCellTypesForSurface,
   type SolarCellTypeDetail,
   type SolarCellTypeId,
-} from "../data"
+} from "../solar-cell-data"
 
 type SurfaceCategoryFilter = "all" | "balcony" | "roof"
 
